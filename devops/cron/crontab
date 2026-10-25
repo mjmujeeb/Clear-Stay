@@ -1,0 +1,10 @@
+# ==============================================================================
+# ClearStay - Crontab Schedule Configuration
+# Add to crontab via: crontab -e
+# ==============================================================================
+
+# Laravel Task Scheduler (Triggers daily summaries, reminders, checkout turnover)
+* * * * * cd /var/www/clearstay && php artisan schedule:run >> /dev/null 2>&1
+
+# Nightly Database & S3 Cloud Backup (Runs at 02:00 AM JST)
+0 2 * * * /bin/bash /var/www/clearstay/devops/scripts/backup.sh >> /var/log/clearstay-backup.log 2>&1

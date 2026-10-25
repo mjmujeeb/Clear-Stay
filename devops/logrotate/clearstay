@@ -1,0 +1,16 @@
+# Logrotate configuration for ClearStay Laravel Application Logs
+# Placed at /etc/logrotate.d/clearstay
+
+/var/www/clearstay/storage/logs/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0664 www-data www-data
+    sharedscripts
+    postrotate
+        [ -f /var/run/php/php8.3-fpm.pid ] && kill -USR1 $(cat /var/run/php/php8.3-fpm.pid)
+    endscript
+}
