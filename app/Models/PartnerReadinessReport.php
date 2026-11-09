@@ -106,7 +106,10 @@ class PartnerReadinessReport extends Model
                 ];
             } elseif (is_array($val)) {
                 $score = isset($val['score']) ? intval($val['score']) : (isset($val['percentage']) ? intval($val['percentage']) : 80);
-                $status = isset($val['status']) && is_string($val['status']) ? $val['status'] : ($score >= 90 ? 'COMPLIANT' : 'PENDING');
+                $rawStatus = isset($val['status']) && is_string($val['status']) ? strtoupper($val['status']) : '';
+                $status = ($rawStatus === 'CERTIFIED' || empty($rawStatus))
+                    ? ($score >= 85 ? 'COMPLIANT' : ($score >= 60 ? 'NEEDS_REVIEW' : 'FAILED'))
+                    : $rawStatus;
                 $name = isset($val['name']) && is_string($val['name']) ? $val['name'] : $categoryName;
 
                 $normalized[] = [
@@ -116,11 +119,13 @@ class PartnerReadinessReport extends Model
                     'status' => $status,
                 ];
             } elseif (is_string($val)) {
+                $rawStatus = strtoupper($val);
+                $status = $rawStatus === 'CERTIFIED' ? 'COMPLIANT' : $rawStatus;
                 $normalized[] = [
                     'key' => $categoryKey,
                     'name' => $categoryName,
                     'score' => 85,
-                    'status' => strtoupper($val),
+                    'status' => $status,
                 ];
             } else {
                 $normalized[] = [

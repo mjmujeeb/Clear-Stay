@@ -7,6 +7,7 @@ use App\Models\PartnerReadinessReport;
 use App\Services\Integration\ReadinessReportService;
 use App\Services\Governance\HybridAccessControlService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReadinessCentreController extends Controller
@@ -53,7 +54,7 @@ class ReadinessCentreController extends Controller
 
     public function generate(Request $request, IntegrationPartner $partner)
     {
-        $hotelId = $request->user()->hotel_id;
+        $hotelId = $request->user()?->hotel_id;
 
         $decision = $this->accessControl->evaluate($request->user(), 'partner.test_execute', [
             'hotel_id' => $hotelId,
@@ -66,9 +67,51 @@ class ReadinessCentreController extends Controller
             return back()->with('error', 'Access denied: ' . $decision->getReason());
         }
 
-        $report = $this->readinessService->generateReport($partner);
+        $idempotencyToken = $request->input('idempotency_token') ?? $request->header('X-Idempotency-Token');
 
-        return redirect()->route('readiness.show', $report)->with('success', "Readiness evaluation generated successfully for {$partner->name}. Certification score: {$report->overall_score}% ({$report->certification_status})");
+        // Server-Side Duplicate Submission Protection:
+        // If the exact same request token is re-submitted, return the already generated report safely
+        if ($idempotencyToken) {
+            $existingReport = PartnerReadinessReport::where('partner_id', $partner->id)
+                ->whereJsonContains('evidence_data->idempotency_token', $idempotencyToken)
+                ->first();
+
+            if ($existingReport) {
+                return redirect()->route('readiness.show', $existingReport)
+                    ->with('info', "Report already generated for this submission (Report Code: {$existingReport->report_code}).");
+            }
+        }
+
+        // Concurrency-safe atomic lock to serialize simultaneous submissions with the exact same token
+        $lockKey = $idempotencyToken ? "readiness_token_lock_{$partner->id}_{$idempotencyToken}" : null;
+        $lock = $lockKey ? Cache::lock($lockKey, 10) : null;
+
+        if ($lock && !$lock->get()) {
+            // Concurrent request with same token, wait and retrieve created report
+            $lock->block(3);
+            $existingReport = PartnerReadinessReport::where('partner_id', $partner->id)
+                ->whereJsonContains('evidence_data->idempotency_token', $idempotencyToken)
+                ->first();
+
+            if ($existingReport) {
+                return redirect()->route('readiness.show', $existingReport)
+                    ->with('info', "Report already generated for this submission (Report Code: {$existingReport->report_code}).");
+            }
+        }
+
+        try {
+            $report = $this->readinessService->generateReport(
+                $partner,
+                $request->user()?->id,
+                $idempotencyToken
+            );
+        } finally {
+            if ($lock) {
+                $lock->release();
+            }
+        }
+
+        return redirect()->route('readiness.show', $report)->with('success', "Readiness evaluation generated successfully for {$partner->name}. Evaluation score: {$report->score_percentage}% ({$report->status_label}).");
     }
 
     public function exportCsv(Request $request, PartnerReadinessReport $report): StreamedResponse

@@ -12,9 +12,10 @@
             <i class="fa-solid fa-arrow-left"></i> Back to Readiness Centre
         </a>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <form action="{{ route('readiness.generate', $report->partner_id) }}" method="POST">
+            <form action="{{ route('readiness.generate', $report->partner_id) }}" method="POST" class="generate-readiness-form">
                 @csrf
-                <button type="submit" class="btn btn-sm btn-secondary" style="font-weight: 700;">
+                <input type="hidden" name="idempotency_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                <button type="submit" class="btn btn-sm btn-secondary btn-generate-readiness" style="font-weight: 700;">
                     <i class="fa-solid fa-arrows-rotate"></i> Re-Run Sandbox Scenarios
                 </button>
             </form>
@@ -507,5 +508,22 @@ function switchReadinessTab(tabId) {
         activePane.style.display = 'block';
     }
 }
+
+document.querySelectorAll('.generate-readiness-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        var btn = form.querySelector('.btn-generate-readiness');
+        if (form.dataset.submitting === 'true') {
+            e.preventDefault();
+            return false;
+        }
+        form.dataset.submitting = 'true';
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'not-allowed';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Re-evaluating Scenarios...';
+        }
+    });
+});
 </script>
 @endsection

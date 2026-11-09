@@ -36,9 +36,10 @@
                             <i class="fa-solid fa-play"></i> Run Automated Scenario Suite
                         </button>
                     </form>
-                    <form action="{{ route('readiness.generate', $partner) }}" method="POST">
+                    <form action="{{ route('readiness.generate', $partner) }}" method="POST" class="generate-readiness-form">
                         @csrf
-                        <button type="submit" class="btn btn-secondary" style="font-weight: 700;">
+                        <input type="hidden" name="idempotency_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                        <button type="submit" class="btn btn-secondary btn-generate-readiness" style="font-weight: 700;">
                             <i class="fa-solid fa-certificate"></i> Generate Readiness Report
                         </button>
                     </form>
@@ -139,5 +140,93 @@
             </div>
         </div>
     </div>
+
+    <!-- Partner Evaluation Reports History Card -->
+    <div class="card" style="margin-top: 24px;">
+        <div class="card-header" style="background: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: #287F79;"></i> Partner Readiness Report History
+                </h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0;">
+                    Every historical evaluation is permanently preserved with a unique identifier for audit comparisons
+                </p>
+            </div>
+            <span class="badge" style="background: #F1F5F9; color: var(--text-main); font-weight: 700;">
+                {{ $partner->readinessReports->count() }} Total Reports
+            </span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="background: #F8FAFC; border-bottom: 1px solid var(--border); text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">
+                        <th style="padding: 12px 18px;">Report Code</th>
+                        <th style="padding: 12px 12px;">Score</th>
+                        <th style="padding: 12px 14px;">Certification Status</th>
+                        <th style="padding: 12px 14px;">Evaluator</th>
+                        <th style="padding: 12px 14px;">Generated Date</th>
+                        <th style="padding: 12px 18px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($partner->readinessReports as $rpt)
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 14px 18px; font-family: monospace; font-size: 12px; font-weight: 700;">
+                            <a href="{{ route('readiness.show', $rpt) }}" style="color: #0284C7; text-decoration: none;">
+                                {{ $rpt->report_code }}
+                            </a>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <span style="font-weight: 800; color: {{ $rpt->score_percentage >= 85 ? '#065F46' : ($rpt->score_percentage >= 60 ? '#92400E' : '#991B1B') }};">
+                                {{ $rpt->score_percentage }}%
+                            </span>
+                        </td>
+                        <td style="padding: 14px 14px;">
+                            <span class="badge" style="background: {{ $rpt->status_color['bg'] }}; color: {{ $rpt->status_color['text'] }}; border: 1px solid {{ $rpt->status_color['border'] }}; font-size: 11px;">
+                                {{ $rpt->status_label }}
+                            </span>
+                        </td>
+                        <td style="padding: 14px 14px; color: var(--text-muted);">
+                            {{ $rpt->evaluator?->name ?? 'System Automated' }}
+                        </td>
+                        <td style="padding: 14px 14px; color: var(--text-muted); font-size: 12px;">
+                            {{ $rpt->created_at->format('Y-m-d H:i:s') }}
+                        </td>
+                        <td style="padding: 14px 18px; text-align: right;">
+                            <a href="{{ route('readiness.show', $rpt) }}" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 4px 10px;">
+                                View Details <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">
+                            No readiness reports generated for this partner yet. Click "Generate Readiness Report" above.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<script>
+document.querySelectorAll('.generate-readiness-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        var btn = form.querySelector('.btn-generate-readiness');
+        if (form.dataset.submitting === 'true') {
+            e.preventDefault();
+            return false;
+        }
+        form.dataset.submitting = 'true';
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'not-allowed';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating Evaluation Report...';
+        }
+    });
+});
+</script>
 @endsection
