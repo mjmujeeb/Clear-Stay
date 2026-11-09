@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ClearStaySeeder::class,
             ClearStay2EnterpriseSeeder::class,
+            ClearStayTemairazuSeeder::class,
         ]);
     }
 }

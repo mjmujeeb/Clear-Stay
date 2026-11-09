@@ -46,6 +46,11 @@ class ChannelConnection extends Model
         return $this->hasMany(ChannelRoomMapping::class);
     }
 
+    public function channelRoomMappings(): HasMany
+    {
+        return $this->roomMappings();
+    }
+
     public function outboxEvents(): HasMany
     {
         return $this->hasMany(SyncOutboxEvent::class);

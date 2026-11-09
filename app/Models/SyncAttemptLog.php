@@ -32,4 +32,9 @@ class SyncAttemptLog extends Model
     {
         return $this->belongsTo(SyncOutboxEvent::class, 'sync_outbox_event_id');
     }
+
+    public function syncOutboxEvent(): BelongsTo
+    {
+        return $this->event();
+    }
 }

@@ -616,6 +616,18 @@
                     <span>Smart Rate Studio</span>
                 </a>
             </li>
+            <li class="menu-item {{ request()->routeIs('inventory_reconciliation.*') ? 'active' : '' }}">
+                <a href="{{ route('inventory_reconciliation.index') }}">
+                    <i class="fa-solid fa-arrows-split-up-and-left" style="color: #2DD4BF;"></i>
+                    <span>Inventory Reconcile</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('payment_reconciliation.*') ? 'active' : '' }}">
+                <a href="{{ route('payment_reconciliation.index') }}">
+                    <i class="fa-solid fa-building-columns" style="color: #38BDF8;"></i>
+                    <span>Payment Reconcile</span>
+                </a>
+            </li>
 
             <li class="menu-header">Partner Assurance</li>
             <li class="menu-item {{ request()->routeIs('partner_assurance.*') ? 'active' : '' }}">
@@ -664,6 +676,12 @@
             </li>
 
             <li class="menu-header">Executive & Analytics</li>
+            <li class="menu-item {{ request()->routeIs('booking_analytics.*') ? 'active' : '' }}">
+                <a href="{{ route('booking_analytics.index') }}">
+                    <i class="fa-solid fa-chart-line" style="color: #60A5FA;"></i>
+                    <span>Booking Analytics (BA+)</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                 <a href="{{ route('reports.index') }}">
                     <i class="fa-solid fa-file-lines" style="color: #FBBF24;"></i>

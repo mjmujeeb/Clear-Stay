@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookingAnalyticsController;
 use App\Http\Controllers\BulkEditorController;
 use App\Http\Controllers\ChannelManagerController;
 use App\Http\Controllers\CsvImportController;
@@ -10,9 +11,11 @@ use App\Http\Controllers\DeviceTrustController;
 use App\Http\Controllers\EventTraceController;
 use App\Http\Controllers\GuestPortalController;
 use App\Http\Controllers\HousekeepingController;
+use App\Http\Controllers\InventoryReconciliationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\PartnerAssuranceController;
+use App\Http\Controllers\PaymentReconciliationController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RateStudioController;
 use App\Http\Controllers\ReadinessCentreController;
@@ -120,6 +123,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Pillar 1: Enterprise Unified Overview
     Route::get('/overview', [OverviewController::class, 'index'])->name('overview.index');
+    Route::get('/overview-dashboard', [OverviewController::class, 'index'])->name('overview');
 
     // Pillar 2 & 3: Multi-Channel Distribution & Centralized Outbox Sync
     Route::get('/channels', [ChannelManagerController::class, 'index'])->name('channels.index');
@@ -179,6 +183,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/security-governance', [SecurityGovernanceController::class, 'index'])->name('security_governance.index');
     Route::post('/security-governance/recommendations/{recommendation}', [SecurityGovernanceController::class, 'updateRecommendation'])->name('security_governance.update_recommendation');
     Route::post('/security-governance/ai-review', [SecurityGovernanceController::class, 'generateAiReview'])->name('security_governance.generate_ai_review');
+
+    // TEMAIRAZU BA+ Style Booking Analytics & Historical Pace
+    Route::get('/booking-analytics', [BookingAnalyticsController::class, 'index'])->name('booking_analytics.index');
+    Route::post('/booking-analytics/capture', [BookingAnalyticsController::class, 'capture'])->name('booking_analytics.capture');
+    Route::get('/booking-analytics/export-csv', [BookingAnalyticsController::class, 'exportCsv'])->name('booking_analytics.export_csv');
+
+    // TEMAIRAZU-Oriented Reservation-to-Payment Reconciliation (Agoda & NTT DATA Style)
+    Route::get('/payment-reconciliation', [PaymentReconciliationController::class, 'index'])->name('payment_reconciliation.index');
+    Route::post('/payment-reconciliation/reconcile', [PaymentReconciliationController::class, 'reconcile'])->name('payment_reconciliation.reconcile');
+    Route::post('/payment-reconciliation/{reconciliation}/resolve', [PaymentReconciliationController::class, 'resolve'])->name('payment_reconciliation.resolve');
+    Route::get('/payment-reconciliation/export-csv', [PaymentReconciliationController::class, 'exportCsv'])->name('payment_reconciliation.export_csv');
+
+    // Central Inventory Reconciliation (PMS vs OTAs Discrepancy Auditing)
+    Route::get('/inventory-reconciliation', [InventoryReconciliationController::class, 'index'])->name('inventory_reconciliation.index');
+    Route::post('/inventory-reconciliation/audit', [InventoryReconciliationController::class, 'audit'])->name('inventory_reconciliation.audit');
+    Route::post('/inventory-reconciliation/{reconciliation}/resolve', [InventoryReconciliationController::class, 'resolve'])->name('inventory_reconciliation.resolve');
 
     // Executive Reports & CSV Exports
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');

@@ -32,6 +32,7 @@ class Reservation extends Model
         'checked_out_at',
         'cancelled_at',
         'source',
+        'channel_id',
     ];
 
     protected $casts = [
@@ -67,6 +68,11 @@ class Reservation extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(Channel::class);
     }
 
     public function changes(): HasMany

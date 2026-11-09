@@ -232,5 +232,8 @@ return [
         'device_trust' => '端末認証 (Zero-Trust)',
         'security_governance' => 'セキュリティAIインテリジェンス',
         'reports' => '経営分析・CSVエクスポート',
+        'booking_analytics' => '予約動向分析 (BA+)',
+        'payment_reconciliation' => '精算照合 (Agoda/NTT DATA)',
+        'inventory_reconciliation' => '在庫照合・差異監査',
     ],
 ];

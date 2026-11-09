@@ -232,5 +232,8 @@ return [
         'device_trust' => 'Device Trust Certificates',
         'security_governance' => 'Security Intelligence',
         'reports' => 'Executive Reports & CSV Exports',
+        'booking_analytics' => 'Booking Analytics (BA+)',
+        'payment_reconciliation' => 'Payment Reconciliation (Agoda/NTT DATA)',
+        'inventory_reconciliation' => 'Inventory Reconciliation & Audit',
     ],
 ];

@@ -510,4 +510,19 @@ class ClearStay2EnterpriseTest extends TestCase
             'currency' => 'JPY',
         ]);
     }
+
+    public function test_overview_and_channels_routes_render_cleanly(): void
+    {
+        $overviewResponse = $this->actingAs($this->manager)->get(route('overview.index'));
+        $overviewResponse->assertOk();
+        $overviewResponse->assertViewHas('availableRoomsToday');
+        $overviewResponse->assertViewHas('activeChannelsCount');
+        $overviewResponse->assertSee('Outbox inventory synchronized');
+
+        $channelsResponse = $this->actingAs($this->manager)->get(route('channels.index'));
+        $channelsResponse->assertOk();
+        $channelsResponse->assertViewHas('channels');
+        $channelsResponse->assertViewHas('connections');
+        $channelsResponse->assertSee('Channel');
+    }
 }
