@@ -288,10 +288,10 @@ class ClearStay2EnterpriseSeeder extends Seeder
                 }
             }
 
-            // 6. Central Inventory for Next 30 Days
+            // 6. Central Inventory for Next 90 Days
             $today = Carbon::today();
             foreach ($roomTypes as $rt) {
-                for ($d = 0; $d < 30; $d++) {
+                for ($d = 0; $d < 90; $d++) {
                     $date = $today->copy()->addDays($d);
                     $total = 10;
                     $booked = rand(1, 4);
@@ -303,23 +303,35 @@ class ClearStay2EnterpriseSeeder extends Seeder
                         $rate = round($rate * 1.25);
                     }
 
-                    CentralInventory::updateOrCreate(
-                        ['hotel_id' => $hotel->id, 'room_type_id' => $rt->id, 'date' => $date->toDateString()],
-                        [
-                            'total_units' => $total,
-                            'available_units' => $available,
-                            'reserved_units' => $booked,
-                            'maintenance_units' => $maintenance,
-                            'base_rate' => $rate,
-                            'currency' => 'JPY',
-                            'min_stay' => $date->isWeekend() ? 2 : 1,
-                            'max_stay' => 30,
-                            'closed_to_arrival' => false,
-                            'closed_to_departure' => false,
-                            'stop_sell' => false,
-                            'version' => 1,
-                        ]
-                    );
+                    $existingInv = CentralInventory::where('hotel_id', $hotel->id)
+                        ->where('room_type_id', $rt->id)
+                        ->whereDate('date', $date->toDateString())
+                        ->first();
+
+                    $invPayload = [
+                        'total_units' => $total,
+                        'available_units' => $available,
+                        'reserved_units' => $booked,
+                        'maintenance_units' => $maintenance,
+                        'base_rate' => $rate,
+                        'currency' => 'JPY',
+                        'min_stay' => $date->isWeekend() ? 2 : 1,
+                        'max_stay' => 30,
+                        'closed_to_arrival' => false,
+                        'closed_to_departure' => false,
+                        'stop_sell' => false,
+                        'version' => 1,
+                    ];
+
+                    if ($existingInv) {
+                        $existingInv->update($invPayload);
+                    } else {
+                        CentralInventory::create(array_merge([
+                            'hotel_id' => $hotel->id,
+                            'room_type_id' => $rt->id,
+                            'date' => $date->toDateString(),
+                        ], $invPayload));
+                    }
                 }
             }
         }

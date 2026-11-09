@@ -32,9 +32,9 @@ class ReadinessReportService
 
         $score = $totalCases > 0 ? intval(($passedCases / $totalCases) * 100) : 75;
 
-        $status = 'passed';
+        $status = 'internal_readiness_passed';
         if ($score < 60) {
-            $status = 'failed';
+            $status = 'internal_readiness_failed';
         } elseif ($score < 85) {
             $status = 'passed_with_limitations';
         }
@@ -85,8 +85,8 @@ class ReadinessReportService
         $csv .= "\"{$report->report_code}\",\"{$partner->name}\",\"{$partner->company}\",\"{$report->overall_status}\",\"{$report->score_percentage}%\",\"{$report->created_at}\"\n\n";
 
         $csv .= "Category,Score,Status\n";
-        foreach ($report->category_breakdown ?? [] as $cat => $data) {
-            $csv .= "\"{$cat}\",\"{$data['score']}%\",\"{$data['status']}\"\n";
+        foreach ($report->normalized_category_breakdown as $item) {
+            $csv .= "\"{$item['name']}\",\"{$item['score']}%\",\"{$item['status']}\"\n";
         }
 
         return $csv;

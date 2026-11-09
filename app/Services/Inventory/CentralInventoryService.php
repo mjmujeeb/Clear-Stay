@@ -23,6 +23,61 @@ class CentralInventoryService
     }
 
     /**
+     * Ensure the hotel has realistic central inventory for the next N days (idempotent).
+     */
+    public function ensureUpcomingInventory(int $hotelId, int $days = 90): int
+    {
+        $today = Carbon::today();
+        $roomTypes = RoomType::where('hotel_id', $hotelId)->get();
+        if ($roomTypes->isEmpty()) {
+            return 0;
+        }
+
+        $createdCount = 0;
+        foreach ($roomTypes as $rt) {
+            $totalUnits = max(5, $rt->rooms()->count() ?: 12);
+            for ($d = 0; $d < $days; $d++) {
+                $date = $today->copy()->addDays($d);
+                $dateStr = $date->toDateString();
+
+                $weekendMultiplier = $date->isWeekend() ? 1.25 : 1.0;
+                $baseRate = round($rt->base_price * $weekendMultiplier);
+
+                $existing = CentralInventory::where('hotel_id', $hotelId)
+                    ->where('room_type_id', $rt->id)
+                    ->where('date', $dateStr)
+                    ->first();
+
+                if (!$existing) {
+                    $booked = min($totalUnits - 2, max(0, ($d % 7 === 5 || $d % 7 === 6) ? rand(2, 4) : rand(1, 2)));
+                    $available = max(0, $totalUnits - $booked);
+
+                    CentralInventory::create([
+                        'hotel_id' => $hotelId,
+                        'room_type_id' => $rt->id,
+                        'date' => $dateStr,
+                        'total_units' => $totalUnits,
+                        'available_units' => $available,
+                        'reserved_units' => $booked,
+                        'maintenance_units' => 0,
+                        'base_rate' => $baseRate,
+                        'currency' => 'JPY',
+                        'min_stay' => $date->isWeekend() ? 2 : 1,
+                        'max_stay' => 30,
+                        'closed_to_arrival' => false,
+                        'closed_to_departure' => false,
+                        'stop_sell' => false,
+                        'version' => 1,
+                    ]);
+                    $createdCount++;
+                }
+            }
+        }
+
+        return $createdCount;
+    }
+
+    /**
      * Get or initialize central inventory records for a date range.
      */
     public function getInventoryMatrix(int $hotelId, ?int $roomTypeId, string $startDate, string $endDate): array
@@ -100,16 +155,44 @@ class CentralInventoryService
 
         $currentRecords = $query->with('roomType')->get();
 
+        $warnings = [];
+        $uniqueRoomTypes = $currentRecords->pluck('roomType.name')->unique()->values()->toArray();
+
+        if ($daysCount > 90) {
+            $warnings[] = "Selected date range ({$daysCount} days) exceeds 90 days. High volume batch operation.";
+        }
+
+        if ($currentRecords->isEmpty()) {
+            $warnings[] = 'No existing inventory records found for the selected date range. Please run seeder or adjust dates.';
+        }
+
+        if (!empty($changes['stop_sell'])) {
+            $warnings[] = 'CRITICAL: Stop-sell is enabled. Inbound reservations across all connected channels will be closed.';
+        }
+
+        if (isset($changes['price_delta']) && floatval($changes['price_delta']) < 0) {
+            $warnings[] = 'Caution: Price delta is negative. Check OTA parity and margin limits before committing.';
+        }
+
         foreach ($currentRecords as $rec) {
+            $newRate = $rec->base_rate;
+            if (isset($changes['price_delta']) && $changes['price_delta'] !== '') {
+                $newRate = max(1000, $rec->base_rate + floatval($changes['price_delta']));
+            } elseif (isset($changes['base_rate'])) {
+                $newRate = floatval($changes['base_rate']);
+            }
+
             $item = [
-                'room_type' => $rec->roomType->name,
+                'room_type' => $rec->roomType?->name ?? 'Room Type #' . $rec->room_type_id,
                 'date' => $rec->date->toDateString(),
                 'old_available' => $rec->available_units,
                 'new_available' => isset($changes['available_units']) ? intval($changes['available_units']) : $rec->available_units,
                 'old_rate' => $rec->base_rate,
-                'new_rate' => isset($changes['base_rate']) ? floatval($changes['base_rate']) : $rec->base_rate,
-                'old_stop_sell' => $rec->stop_sell,
-                'new_stop_sell' => isset($changes['stop_sell']) ? (bool) $changes['stop_sell'] : $rec->stop_sell,
+                'new_rate' => $newRate,
+                'old_min_stay' => $rec->min_stay ?? 1,
+                'new_min_stay' => isset($changes['min_stay']) ? intval($changes['min_stay']) : ($rec->min_stay ?? 1),
+                'old_stop_sell' => (bool)$rec->stop_sell,
+                'new_stop_sell' => isset($changes['stop_sell']) ? (bool)$changes['stop_sell'] : (bool)$rec->stop_sell,
             ];
             $affectedItems[] = $item;
         }
@@ -117,10 +200,12 @@ class CentralInventoryService
         return [
             'total_days' => $daysCount,
             'total_records_affected' => count($affectedItems),
+            'room_types_affected' => $uniqueRoomTypes,
             'channels_count' => $connectedChannels->count(),
             'channels' => $connectedChannels->pluck('channel.name')->toArray(),
-            'sample_items' => array_slice($affectedItems, 0, 10),
+            'sample_items' => array_slice($affectedItems, 0, 15),
             'changes_summary' => $changes,
+            'warnings' => $warnings,
         ];
     }
 
@@ -158,7 +243,9 @@ class CentralInventoryService
                 if (isset($changes['available_units'])) {
                     $record->available_units = intval($changes['available_units']);
                 }
-                if (isset($changes['base_rate'])) {
+                if (isset($changes['price_delta']) && $changes['price_delta'] !== '') {
+                    $record->base_rate = max(1000, $record->base_rate + floatval($changes['price_delta']));
+                } elseif (isset($changes['base_rate'])) {
                     $record->base_rate = floatval($changes['base_rate']);
                 }
                 if (isset($changes['stop_sell'])) {
@@ -186,11 +273,12 @@ class CentralInventoryService
                 ];
             }
 
+            $reasonPrefix = !empty($changes['reason']) ? ($changes['reason'] . ' - ') : '';
             $batch = BulkChangeBatch::create([
                 'hotel_id' => $hotelId,
                 'user_id' => $userId ?? Auth::id(),
                 'change_type' => 'bulk_inventory_rate_update',
-                'summary' => "Updated " . count($records) . " inventory dates between {$startDate} and {$endDate}",
+                'summary' => "{$reasonPrefix}Updated " . count($records) . " inventory dates between {$startDate} and {$endDate}",
                 'scope_criteria' => $criteria,
                 'previous_state' => $previousState,
                 'new_state' => $newState,

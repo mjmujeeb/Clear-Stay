@@ -59,15 +59,9 @@
                             </div>
                         </td>
                         <td style="padding: 14px 14px;">
-                            @if($report->overall_status === 'passed')
-                                <span class="badge" style="background: #D1FAE5; color: #065F46;">
-                                    <i class="fa-solid fa-circle-check"></i> Passed & Certified
-                                </span>
-                            @else
-                                <span class="badge" style="background: #FEF3C7; color: #92400E;">
-                                    {{ ucfirst(str_replace('_', ' ', $report->overall_status)) }}
-                                </span>
-                            @endif
+                            <span class="badge" style="background: {{ $report->status_color['bg'] }}; color: {{ $report->status_color['text'] }}; font-weight: 700; border: 1px solid {{ $report->status_color['border'] }};">
+                                {{ $report->status_label }}
+                            </span>
                         </td>
                         <td style="padding: 14px 14px; color: var(--text-muted); font-size: 12px;">
                             {{ $report->created_at->format('Y-m-d H:i') }}

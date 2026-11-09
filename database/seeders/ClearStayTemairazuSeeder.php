@@ -118,24 +118,33 @@ class ClearStayTemairazuSeeder extends Seeder
                     $remote = $hasDrift ? 4 : 5;
                     $diff = $central - $remote;
 
-                    InventoryReconciliation::updateOrCreate(
-                        [
+                    $existingRecon = InventoryReconciliation::where('hotel_id', $hotel->id)
+                        ->where('room_type_id', $rt->id)
+                        ->where('channel_id', $ch->id)
+                        ->whereDate('stay_date', $stayDate->toDateString())
+                        ->first();
+
+                    $reconPayload = [
+                        'central_units' => $central,
+                        'channel_units' => $remote,
+                        'difference' => $diff,
+                        'status' => $diff === 0 ? 'in_sync' : 'discrepancy',
+                        'last_synced_at' => now()->subMinutes(15),
+                        'suggested_action' => $diff === 0
+                            ? 'No action needed. In perfect sync.'
+                            : "Discrepancy: Central has {$central} units, {$ch->name} reports {$remote}. Recommended: Re-push central inventory.",
+                    ];
+
+                    if ($existingRecon) {
+                        $existingRecon->update($reconPayload);
+                    } else {
+                        InventoryReconciliation::create(array_merge([
                             'hotel_id' => $hotel->id,
                             'room_type_id' => $rt->id,
                             'channel_id' => $ch->id,
                             'stay_date' => $stayDate->toDateString(),
-                        ],
-                        [
-                            'central_units' => $central,
-                            'channel_units' => $remote,
-                            'difference' => $diff,
-                            'status' => $diff === 0 ? 'in_sync' : 'discrepancy',
-                            'last_synced_at' => now()->subMinutes(15),
-                            'suggested_action' => $diff === 0
-                                ? 'No action needed. In perfect sync.'
-                                : "Discrepancy: Central has {$central} units, {$ch->name} reports {$remote}. Recommended: Re-push central inventory.",
-                        ]
-                    );
+                        ], $reconPayload));
+                    }
                 }
             }
         }

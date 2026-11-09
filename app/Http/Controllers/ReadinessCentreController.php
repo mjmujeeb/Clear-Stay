@@ -39,8 +39,14 @@ class ReadinessCentreController extends Controller
 
     public function show(Request $request, PartnerReadinessReport $report)
     {
-        $hotelId = $request->user()->hotel_id;
-        $report->load('partner');
+        $report->load([
+            'partner.contracts',
+            'partner.testSuites.testCases',
+            'partner.testSuites.testRuns',
+            'partner.eventTraces' => fn($q) => $q->latest()->take(15),
+            'partner.readinessReports' => fn($q) => $q->latest()->take(10),
+            'evaluator',
+        ]);
 
         return view('readiness.show', compact('report'));
     }

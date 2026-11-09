@@ -26,96 +26,104 @@
     <!-- Key Metrics Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 26px;">
         <!-- Card 1: Total Today's Inventory -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid var(--primary-accent);">
-            <div class="card-body" style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                            Today's Available
+        <a href="{{ route('bulk_editor.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to open Bulk Inventory Studio">
+            <div class="card" style="margin-bottom: 0; border-top: 4px solid var(--primary-accent); transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+                <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
+                                Today's Available
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                                {{ $availableRoomsToday }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">/ {{ $totalRooms }} rooms</span>
+                            </div>
                         </div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                            {{ $availableRoomsToday }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">/ {{ $totalRooms }} rooms</span>
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; color: #0284C7; font-size: 18px;">
+                            <i class="fa-solid fa-bed"></i>
                         </div>
                     </div>
-                    <div style="width: 42px; height: 42px; border-radius: 10px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; color: #0284C7; font-size: 18px;">
-                        <i class="fa-solid fa-bed"></i>
+                    <div style="font-size: 12px; color: var(--success); margin-top: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-circle-check"></i> Outbox inventory synchronized across all OTAs
                     </div>
-                </div>
-                <div style="font-size: 12px; color: var(--success); margin-top: 10px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-circle-check"></i> Outbox inventory synchronized across all OTAs
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Card 2: Connected Channels -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #34D399;">
-            <div class="card-body" style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                            Connected OTAs
+        <a href="{{ route('channels.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to view Channel Connections">
+            <div class="card" style="margin-bottom: 0; border-top: 4px solid #34D399; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+                <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
+                                Connected OTAs
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                                {{ $activeChannelsCount }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">active</span>
+                            </div>
                         </div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                            {{ $activeChannelsCount }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">active</span>
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #D1FAE5; display: flex; align-items: center; justify-content: center; color: #10B981; font-size: 18px;">
+                            <i class="fa-solid fa-globe"></i>
                         </div>
                     </div>
-                    <div style="width: 42px; height: 42px; border-radius: 10px; background: #D1FAE5; display: flex; align-items: center; justify-content: center; color: #10B981; font-size: 18px;">
-                        <i class="fa-solid fa-globe"></i>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+                        Booking.com, Agoda, Expedia, Rakuten, Jalan
                     </div>
-                </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
-                    Booking.com, Agoda, Expedia, Rakuten, Jalan
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Card 3: Outbox Sync Queue -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #F59E0B;">
-            <div class="card-body" style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                            Sync Outbox Queue
+        <a href="{{ route('event_trace.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to inspect EventTrace Telemetry">
+            <div class="card" style="margin-bottom: 0; border-top: 4px solid #F59E0B; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+                <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
+                                Sync Outbox Queue
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                                {{ $pendingOutboxCount }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">pending</span>
+                            </div>
                         </div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                            {{ $pendingOutboxCount }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">pending</span>
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #FEF3C7; display: flex; align-items: center; justify-content: center; color: #D97706; font-size: 18px;">
+                            <i class="fa-solid fa-paper-plane"></i>
                         </div>
                     </div>
-                    <div style="width: 42px; height: 42px; border-radius: 10px; background: #FEF3C7; display: flex; align-items: center; justify-content: center; color: #D97706; font-size: 18px;">
-                        <i class="fa-solid fa-paper-plane"></i>
+                    <div style="font-size: 12px; color: {{ $failedOutboxCount > 0 ? 'var(--danger)' : 'var(--text-muted)' }}; margin-top: 10px;">
+                        @if($failedOutboxCount > 0)
+                            <i class="fa-solid fa-triangle-exclamation"></i> {{ $failedOutboxCount }} events require retry
+                        @else
+                            <i class="fa-solid fa-check-double"></i> 0 failed queue events
+                        @endif
                     </div>
-                </div>
-                <div style="font-size: 12px; color: {{ $failedOutboxCount > 0 ? 'var(--danger)' : 'var(--text-muted)' }}; margin-top: 10px;">
-                    @if($failedOutboxCount > 0)
-                        <i class="fa-solid fa-triangle-exclamation"></i> {{ $failedOutboxCount }} events require retry
-                    @else
-                        <i class="fa-solid fa-check-double"></i> 0 failed queue events
-                    @endif
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Card 4: Security Risk Index -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #EC4899;">
-            <div class="card-body" style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                            Security Posture
+        <a href="{{ route('security_governance.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to open Security Intelligence">
+            <div class="card" style="margin-bottom: 0; border-top: 4px solid #EC4899; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+                <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
+                                Security Posture
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                                {{ $systemRiskScore }}/100 <span style="font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #D1FAE5; color: #065F46;">NORMAL</span>
+                            </div>
                         </div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                            {{ $systemRiskScore }}/100 <span style="font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #D1FAE5; color: #065F46;">NORMAL</span>
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #FCE7F3; display: flex; align-items: center; justify-content: center; color: #DB2777; font-size: 18px;">
+                            <i class="fa-solid fa-shield-halved"></i>
                         </div>
                     </div>
-                    <div style="width: 42px; height: 42px; border-radius: 10px; background: #FCE7F3; display: flex; align-items: center; justify-content: center; color: #DB2777; font-size: 18px;">
-                        <i class="fa-solid fa-shield-halved"></i>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+                        Context-Aware Hybrid Access Governance Active
                     </div>
-                </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
-                    Context-Aware Hybrid Access Governance Active
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Quick Actions Banner -->

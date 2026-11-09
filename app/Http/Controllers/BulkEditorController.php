@@ -28,17 +28,21 @@ class BulkEditorController extends Controller
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
         $hotel = Hotel::find($hotelId) ?? Hotel::first();
 
-        $roomTypes = RoomType::where('hotel_id', $hotelId)->get();
-        $batches = BulkChangeBatch::where('hotel_id', $hotelId)
+        if ($hotel) {
+            $this->inventoryService->ensureUpcomingInventory($hotel->id, 90);
+        }
+
+        $roomTypes = RoomType::where('hotel_id', $hotel?->id)->get();
+        $batches = BulkChangeBatch::where('hotel_id', $hotel?->id)
             ->with(['user', 'rolledBackByUser'])
             ->latest()
             ->take(10)
             ->get();
 
-        $recentInventories = CentralInventory::where('hotel_id', $hotelId)
+        $recentInventories = CentralInventory::where('hotel_id', $hotel?->id)
             ->where('date', '>=', Carbon::today())
             ->orderBy('date')
-            ->take(7)
+            ->take(14)
             ->get();
 
         return view('bulk_editor.index', compact('hotel', 'roomTypes', 'batches', 'recentInventories'));
@@ -50,6 +54,10 @@ class BulkEditorController extends Controller
     public function preview(Request $request)
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
+
+        if ($request->isMethod('get') && !$request->has('start_date')) {
+            return redirect()->route('bulk_editor.index')->with('info', 'Please configure your bulk date range and criteria first.');
+        }
 
         $request->validate([
             'start_date' => 'required|date',
@@ -73,16 +81,21 @@ class BulkEditorController extends Controller
         $changes = array_filter([
             'available_units' => $request->available_units,
             'base_rate' => $request->base_rate,
+            'price_delta' => $request->price_delta,
             'stop_sell' => $request->has('stop_sell') ? (bool) $request->stop_sell : null,
             'min_stay' => $request->min_stay,
-        ], fn($v) => !is_null($v));
+        ], fn($v) => !is_null($v) && $v !== '');
 
         $preview = $this->inventoryService->generateBulkPreview($hotelId, $criteria, $changes);
 
-        return response()->json([
-            'success' => true,
-            'preview' => $preview,
-        ]);
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'preview' => $preview,
+            ]);
+        }
+
+        return redirect()->route('bulk_editor.index')->with('info', 'Bulk change preview generated. Please use the interactive preview diff in the form.');
     }
 
     /**
@@ -95,6 +108,7 @@ class BulkEditorController extends Controller
         $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string|min:5|max:255',
         ]);
 
         $roomTypeIds = $request->input('room_type_ids');
@@ -111,22 +125,29 @@ class BulkEditorController extends Controller
             'room_type_ids' => $roomTypeIds,
         ];
 
-        $baseRate = $request->input('base_rate');
-        if (is_null($baseRate) && $request->filled('price_delta')) {
-            $currentBase = CentralInventory::where('hotel_id', $hotelId)->whereIn('room_type_id', $roomTypeIds)->value('base_rate') ?? 15000;
-            $baseRate = max(1000, $currentBase + (float) $request->input('price_delta'));
-        }
-
         $changes = array_filter([
             'available_units' => $request->available_units,
-            'base_rate' => $baseRate,
+            'base_rate' => $request->base_rate,
+            'price_delta' => $request->price_delta,
             'stop_sell' => $request->has('stop_sell') ? (bool) $request->stop_sell : null,
             'min_stay' => $request->min_stay,
-        ], fn($v) => !is_null($v));
+            'reason' => $request->reason,
+        ], fn($v) => !is_null($v) && $v !== '');
 
         $batch = $this->inventoryService->applyBulkChange($hotelId, $criteria, $changes, Auth::id());
 
-        return redirect()->route('bulk_editor.index')->with('success', "Bulk update committed successfully: {$batch->summary}. Synchronization outbox dispatched.");
+        return redirect()->route('bulk_editor.index')->with('success', "Bulk update committed successfully: {$batch->summary}. Synchronization outbox dispatched to connected channels.");
+    }
+
+    /**
+     * One-click action to initialize or refresh 90-day demo inventory.
+     */
+    public function seedDemoInventory(Request $request)
+    {
+        $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
+        $created = $this->inventoryService->ensureUpcomingInventory($hotelId, 90);
+
+        return redirect()->route('bulk_editor.index')->with('success', "Demonstration inventory refreshed: {$created} upcoming day-records ensured for active property.");
     }
 
     /**

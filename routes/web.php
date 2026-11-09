@@ -136,9 +136,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Bulk Change Studio & 1-Click Rollback
     Route::get('/bulk-editor', [BulkEditorController::class, 'index'])->name('bulk_editor.index');
-    Route::post('/bulk-editor/preview', [BulkEditorController::class, 'preview'])->name('bulk_editor.preview');
+    Route::match(['get', 'post'], '/bulk-editor/preview', [BulkEditorController::class, 'preview'])->name('bulk_editor.preview');
     Route::post('/bulk-editor/commit', [BulkEditorController::class, 'commit'])->name('bulk_editor.commit');
     Route::post('/bulk-editor/rollback/{batch}', [BulkEditorController::class, 'rollback'])->name('bulk_editor.rollback');
+    Route::post('/bulk-editor/seed-demo', [BulkEditorController::class, 'seedDemoInventory'])->name('bulk_editor.seed_demo');
 
     // Pillar 4: Smart Rate Studio & Calendar Intelligence
     Route::get('/rate-studio', [RateStudioController::class, 'index'])->name('rates.index');

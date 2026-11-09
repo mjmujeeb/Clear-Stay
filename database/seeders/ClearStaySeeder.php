@@ -19,11 +19,10 @@ class ClearStaySeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create Hotels
-        $hotelTokyo = Hotel::create([
+        // 1. Create Hotels (Idempotent)
+        $hotelTokyo = Hotel::firstOrCreate(['code' => 'TYO-GNZ'], [
             'name' => 'ClearStay Premier Tokyo Ginza',
             'slug' => 'clearstay-premier-tokyo-ginza',
-            'code' => 'TYO-GNZ',
             'address' => '6-10-1 Ginza, Chuo-ku',
             'city' => 'Tokyo',
             'country' => 'JP',
@@ -38,10 +37,9 @@ class ClearStaySeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $hotelKyoto = Hotel::create([
+        $hotelKyoto = Hotel::firstOrCreate(['code' => 'KYO-GIO'], [
             'name' => 'ClearStay Kyoto Gion Heritage',
             'slug' => 'clearstay-kyoto-gion-heritage',
-            'code' => 'KYO-GIO',
             'address' => '570 Gionmachi Minamigawa, Higashiyama-ku',
             'city' => 'Kyoto',
             'country' => 'JP',
@@ -56,10 +54,9 @@ class ClearStaySeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $hotelOsaka = Hotel::create([
+        $hotelOsaka = Hotel::firstOrCreate(['code' => 'OSA-NMB'], [
             'name' => 'ClearStay Urban Osaka Namba',
             'slug' => 'clearstay-urban-osaka-namba',
-            'code' => 'OSA-NMB',
             'address' => '1-10 Namba, Chuo-ku',
             'city' => 'Osaka',
             'country' => 'JP',
@@ -74,10 +71,9 @@ class ClearStaySeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // 2. Create Users (RBAC)
-        $superAdmin = User::create([
+        // 2. Create Users (RBAC) (Idempotent)
+        $superAdmin = User::firstOrCreate(['email' => 'admin@clearstay.jp'], [
             'name' => 'ClearStay HQ Super Admin',
-            'email' => 'admin@clearstay.jp',
             'password' => Hash::make('password'),
             'role' => 'superadmin',
             'hotel_id' => null,
@@ -86,9 +82,8 @@ class ClearStaySeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $managerTokyo = User::create([
+        $managerTokyo = User::firstOrCreate(['email' => 'manager.tokyo@clearstay.jp'], [
             'name' => 'Kenji Sato (General Manager)',
-            'email' => 'manager.tokyo@clearstay.jp',
             'password' => Hash::make('password'),
             'role' => 'manager',
             'hotel_id' => $hotelTokyo->id,
@@ -97,9 +92,8 @@ class ClearStaySeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $frontDeskTokyo = User::create([
+        $frontDeskTokyo = User::firstOrCreate(['email' => 'frontdesk.tokyo@clearstay.jp'], [
             'name' => 'Yuki Tanaka (Front Desk)',
-            'email' => 'frontdesk.tokyo@clearstay.jp',
             'password' => Hash::make('password'),
             'role' => 'frontdesk',
             'hotel_id' => $hotelTokyo->id,
@@ -108,9 +102,8 @@ class ClearStaySeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $cleanerTokyo = User::create([
+        $cleanerTokyo = User::firstOrCreate(['email' => 'cleaner.tokyo@clearstay.jp'], [
             'name' => 'Hiroshi Suzuki (Housekeeping Lead)',
-            'email' => 'cleaner.tokyo@clearstay.jp',
             'password' => Hash::make('password'),
             'role' => 'housekeeping',
             'hotel_id' => $hotelTokyo->id,
@@ -120,40 +113,32 @@ class ClearStaySeeder extends Seeder
         ]);
 
         // 3. Create Room Types for Tokyo
-        $typeSingle = RoomType::create([
-            'hotel_id' => $hotelTokyo->id,
+        $typeSingle = RoomType::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'code' => 'SGL-MOD'], [
             'name' => 'Modern Compact Single',
-            'code' => 'SGL-MOD',
             'capacity' => 1,
             'base_price' => 13500,
             'description' => 'Ergonomic Japanese design optimized for business travelers, with soundproof glazing and high-speed fiber internet.',
             'amenities' => ['WiFi', 'Air Conditioning', 'Work Desk', 'Rain Shower', 'Yukata Robes'],
         ]);
 
-        $typeDouble = RoomType::create([
-            'hotel_id' => $hotelTokyo->id,
+        $typeDouble = RoomType::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'code' => 'DBL-QUEEN'], [
             'name' => 'Superior Queen Double',
-            'code' => 'DBL-QUEEN',
             'capacity' => 2,
             'base_price' => 21000,
             'description' => 'Spacious queen-bed suite with Simmons mattress, Nespresso machine, and panoramic city views.',
             'amenities' => ['WiFi', 'Air Conditioning', 'Bathtub', 'Nespresso', 'Minibar', 'City View'],
         ]);
 
-        $typeTwin = RoomType::create([
-            'hotel_id' => $hotelTokyo->id,
+        $typeTwin = RoomType::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'code' => 'TWN-DLX'], [
             'name' => 'Deluxe Executive Twin',
-            'code' => 'TWN-DLX',
             'capacity' => 3,
             'base_price' => 29500,
             'description' => 'Two semi-double beds with sitting lounge, Dyson hair dryer, and deep soaking tub.',
             'amenities' => ['WiFi', 'Sitting Lounge', 'Deep Soaking Tub', 'Air Purifier', 'Smart TV'],
         ]);
 
-        $typeTatami = RoomType::create([
-            'hotel_id' => $hotelTokyo->id,
+        $typeTatami = RoomType::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'code' => 'SUI-TTM'], [
             'name' => 'Presidential Tatami Suite',
-            'code' => 'SUI-TTM',
             'capacity' => 4,
             'base_price' => 58000,
             'description' => 'Authentic natural rush tatami flooring with hinoki wood bath and custom futon bedding.',
@@ -162,22 +147,18 @@ class ClearStaySeeder extends Seeder
 
         // 4. Create Rooms across floors 1 to 4 for Tokyo
         $roomsData = [
-            // Floor 1
             ['floor' => 1, 'number' => '101', 'type' => $typeSingle, 'status' => 'clean', 'occ' => false],
             ['floor' => 1, 'number' => '102', 'type' => $typeSingle, 'status' => 'clean', 'occ' => false],
             ['floor' => 1, 'number' => '103', 'type' => $typeDouble, 'status' => 'dirty', 'occ' => false],
             ['floor' => 1, 'number' => '104', 'type' => $typeDouble, 'status' => 'clean', 'occ' => false],
-            // Floor 2
             ['floor' => 2, 'number' => '201', 'type' => $typeSingle, 'status' => 'clean', 'occ' => true],
             ['floor' => 2, 'number' => '202', 'type' => $typeDouble, 'status' => 'clean', 'occ' => true],
             ['floor' => 2, 'number' => '203', 'type' => $typeDouble, 'status' => 'clean', 'occ' => false],
             ['floor' => 2, 'number' => '204', 'type' => $typeTwin, 'status' => 'inspecting', 'occ' => false],
-            // Floor 3
             ['floor' => 3, 'number' => '301', 'type' => $typeDouble, 'status' => 'clean', 'occ' => true],
             ['floor' => 3, 'number' => '302', 'type' => $typeTwin, 'status' => 'clean', 'occ' => false],
             ['floor' => 3, 'number' => '303', 'type' => $typeTwin, 'status' => 'dirty', 'occ' => false],
             ['floor' => 3, 'number' => '304', 'type' => $typeTwin, 'status' => 'maintenance', 'occ' => false],
-            // Floor 4
             ['floor' => 4, 'number' => '401', 'type' => $typeTwin, 'status' => 'clean', 'occ' => true],
             ['floor' => 4, 'number' => '402', 'type' => $typeTatami, 'status' => 'clean', 'occ' => true],
             ['floor' => 4, 'number' => '403', 'type' => $typeTatami, 'status' => 'clean', 'occ' => false],
@@ -185,14 +166,15 @@ class ClearStaySeeder extends Seeder
 
         $createdRooms = [];
         foreach ($roomsData as $r) {
-            $createdRooms[$r['number']] = Room::create([
-                'hotel_id' => $hotelTokyo->id,
-                'room_type_id' => $r['type']->id,
-                'room_number' => $r['number'],
-                'floor' => $r['floor'],
-                'status' => $r['status'],
-                'is_occupied' => $r['occ'],
-            ]);
+            $createdRooms[$r['number']] = Room::firstOrCreate(
+                ['hotel_id' => $hotelTokyo->id, 'room_number' => $r['number']],
+                [
+                    'room_type_id' => $r['type']->id,
+                    'floor' => $r['floor'],
+                    'status' => $r['status'],
+                    'is_occupied' => $r['occ'],
+                ]
+            );
         }
 
         // 5. Create Sample Guests
@@ -207,24 +189,24 @@ class ClearStaySeeder extends Seeder
 
         $createdGuests = [];
         foreach ($guestsData as $g) {
-            $createdGuests[] = Guest::create([
-                'hotel_id' => $hotelTokyo->id,
-                'first_name' => $g['first'],
-                'last_name' => $g['last'],
-                'email' => $g['email'],
-                'phone' => $g['phone'],
-                'vip_level' => $g['vip'],
-            ]);
+            $createdGuests[] = Guest::firstOrCreate(
+                ['hotel_id' => $hotelTokyo->id, 'email' => $g['email']],
+                [
+                    'first_name' => $g['first'],
+                    'last_name' => $g['last'],
+                    'phone' => $g['phone'],
+                    'vip_level' => $g['vip'],
+                ]
+            );
         }
 
         $today = Carbon::today();
 
-        // 6. Active Occupied Stays
-        Reservation::create([
+        // 6. Active Occupied Stays (Idempotent)
+        Reservation::firstOrCreate(['confirmation_code' => 'CS-TYO-1001'], [
             'hotel_id' => $hotelTokyo->id,
             'guest_id' => $createdGuests[0]->id,
             'room_id' => $createdRooms['201']->id,
-            'confirmation_code' => 'CS-TYO-1001',
             'guest_portal_token' => Str::random(48),
             'check_in_date' => $today->copy()->subDays(1)->toDateString(),
             'check_out_date' => $today->copy()->addDays(2)->toDateString(),
@@ -238,11 +220,10 @@ class ClearStaySeeder extends Seeder
             'special_requests' => 'High floor, quiet corner, extra tea bags requested',
         ]);
 
-        Reservation::create([
+        Reservation::firstOrCreate(['confirmation_code' => 'CS-TYO-1002'], [
             'hotel_id' => $hotelTokyo->id,
             'guest_id' => $createdGuests[1]->id,
             'room_id' => $createdRooms['202']->id,
-            'confirmation_code' => 'CS-TYO-1002',
             'guest_portal_token' => Str::random(48),
             'check_in_date' => $today->copy()->subDays(2)->toDateString(),
             'check_out_date' => $today->toDateString(), // Departing today!
@@ -255,11 +236,10 @@ class ClearStaySeeder extends Seeder
             'source' => 'direct',
         ]);
 
-        Reservation::create([
+        Reservation::firstOrCreate(['confirmation_code' => 'CS-TYO-1003'], [
             'hotel_id' => $hotelTokyo->id,
             'guest_id' => $createdGuests[2]->id,
             'room_id' => $createdRooms['402']->id,
-            'confirmation_code' => 'CS-TYO-1003',
             'guest_portal_token' => Str::random(48),
             'check_in_date' => $today->copy()->subDays(1)->toDateString(),
             'check_out_date' => $today->copy()->addDays(3)->toDateString(),
@@ -274,11 +254,10 @@ class ClearStaySeeder extends Seeder
         ]);
 
         // Today Arrival (Confirmed)
-        Reservation::create([
+        Reservation::firstOrCreate(['confirmation_code' => 'CS-TYO-1004'], [
             'hotel_id' => $hotelTokyo->id,
             'guest_id' => $createdGuests[3]->id,
             'room_id' => $createdRooms['101']->id,
-            'confirmation_code' => 'CS-TYO-1004',
             'guest_portal_token' => Str::random(48),
             'check_in_date' => $today->toDateString(), // Arriving today!
             'check_out_date' => $today->copy()->addDays(3)->toDateString(),
@@ -291,11 +270,10 @@ class ClearStaySeeder extends Seeder
             'special_requests' => 'Arriving late at 19:30 from Narita Express',
         ]);
 
-        Reservation::create([
+        Reservation::firstOrCreate(['confirmation_code' => 'CS-TYO-1005'], [
             'hotel_id' => $hotelTokyo->id,
             'guest_id' => $createdGuests[4]->id,
             'room_id' => $createdRooms['302']->id,
-            'confirmation_code' => 'CS-TYO-1005',
             'guest_portal_token' => Str::random(48),
             'check_in_date' => $today->toDateString(), // Arriving today!
             'check_out_date' => $today->copy()->addDays(2)->toDateString(),
@@ -311,11 +289,10 @@ class ClearStaySeeder extends Seeder
         for ($m = 5; $m >= 1; $m--) {
             for ($k = 1; $k <= 4; $k++) {
                 $pastDate = $today->copy()->subMonths($m)->addDays($k * 5);
-                Reservation::create([
+                Reservation::firstOrCreate(['confirmation_code' => 'CS-HIST-' . $m . $k], [
                     'hotel_id' => $hotelTokyo->id,
                     'guest_id' => $createdGuests[$k % count($createdGuests)]->id,
                     'room_id' => $createdRooms['104']->id,
-                    'confirmation_code' => 'CS-HIST-' . $m . $k,
                     'guest_portal_token' => Str::random(48),
                     'check_in_date' => $pastDate->toDateString(),
                     'check_out_date' => $pastDate->copy()->addDays(2)->toDateString(),
@@ -332,32 +309,23 @@ class ClearStaySeeder extends Seeder
         }
 
         // 7. Housekeeping Tasks
-        HousekeepingTask::create([
-            'hotel_id' => $hotelTokyo->id,
-            'room_id' => $createdRooms['103']->id,
+        HousekeepingTask::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'room_id' => $createdRooms['103']->id, 'task_type' => 'checkout_turnover'], [
             'assigned_to' => $cleanerTokyo->id,
-            'task_type' => 'checkout_turnover',
             'priority' => 'urgent',
             'status' => 'pending',
             'notes' => 'Checkout turnover for 103. New guest arriving at 15:00.',
         ]);
 
-        HousekeepingTask::create([
-            'hotel_id' => $hotelTokyo->id,
-            'room_id' => $createdRooms['204']->id,
+        HousekeepingTask::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'room_id' => $createdRooms['204']->id, 'task_type' => 'inspection'], [
             'assigned_to' => $cleanerTokyo->id,
-            'task_type' => 'inspection',
             'priority' => 'high',
             'status' => 'in_progress',
             'started_at' => now()->subMinutes(20),
             'notes' => 'Supervisor inspection after deep cleaning.',
         ]);
 
-        HousekeepingTask::create([
-            'hotel_id' => $hotelTokyo->id,
-            'room_id' => $createdRooms['304']->id,
+        HousekeepingTask::firstOrCreate(['hotel_id' => $hotelTokyo->id, 'room_id' => $createdRooms['304']->id, 'task_type' => 'maintenance'], [
             'assigned_to' => null,
-            'task_type' => 'maintenance',
             'priority' => 'normal',
             'status' => 'pending',
             'notes' => 'Inspect AC filter and bathroom thermostat display.',
