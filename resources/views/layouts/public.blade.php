@@ -274,17 +274,16 @@
     <nav class="pub-nav">
         <a href="{{ route('public.home') }}" class="pub-brand">
             <div class="logo-icon"><i class="fa-solid fa-hotel"></i></div>
-            <span>ClearStay <small style="font-size: 11px; font-weight: 800; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 2px;">2.0</small></span>
+            <span>ClearStay <small style="font-size: 11px; font-weight: 800; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 2px;">3.0</small></span>
         </a>
 
         <ul class="nav-links">
-            <li><a href="#product-demo">Product Tour</a></li>
-            <li><a href="#features-section">Features</a></li>
-            <li><a href="#integrations-section">Channels &amp; OTAs</a></li>
-            <li><a href="#workflow-section">Distribution Pipeline</a></li>
-            <li><a href="#security-section">Security</a></li>
+            <li><a href="{{ route('public.home') }}#three-products" style="color: var(--primary); font-weight: 700;"><i class="fa-solid fa-layer-group"></i> 3 Products</a></li>
+            <li><a href="{{ route('experience_lab.index') }}"><i class="fa-solid fa-microscope"></i> 体験ラボ (QA)</a></li>
+            <li><a href="{{ route('easy_mode.index') }}"><i class="fa-solid fa-person-shelter"></i> 簡単モード</a></li>
+            <li><a href="{{ route('learning_centre.index') }}"><i class="fa-solid fa-film"></i> 動画ガイド</a></li>
             <li><a href="{{ route('public.features') }}">Architecture</a></li>
-            <li><a href="{{ route('public.contact') }}">Request Demo</a></li>
+            <li><a href="{{ route('public.contact') }}">Contact</a></li>
         </ul>
 
         <div class="nav-actions">
@@ -334,7 +333,7 @@
                 <div class="footer-col">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
                         <div class="pub-brand logo-icon" style="width: 32px; height: 32px; font-size: 16px;"><i class="fa-solid fa-hotel"></i></div>
-                        <span style="color: white; font-size: 18px; font-weight: 800;">ClearStay 2.0</span>
+                        <span style="color: white; font-size: 18px; font-weight: 800;">ClearStay 3.0</span>
                     </div>
                     <p style="font-size: 13px; line-height: 1.7; color: #94A3B8; max-width: 340px;">
                         Smart Hotel Operations, Multi-Channel Distribution, Integration Assurance and Intelligent Access Governance Platform.

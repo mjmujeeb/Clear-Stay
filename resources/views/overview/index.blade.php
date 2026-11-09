@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'ClearStay 2.0 - Unified Enterprise Overview')
+@section('title', 'ClearStay 3.0 - Unified Enterprise Overview')
 @section('header_title', 'Enterprise Operations Overview')
 @section('header_subtitle', 'Real-time multi-channel distribution, central inventory matrix, and intelligent security posture.')
 
@@ -26,13 +26,13 @@
     <!-- Key Metrics Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 26px;">
         <!-- Card 1: Total Today's Inventory -->
-        <a href="{{ route('bulk_editor.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to open Bulk Inventory Studio">
+        <a href="{{ route('bulk_editor.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" data-tooltip="Total physical rooms configured minus current active reservations for today. Row-locked to prevent overbooking." data-tooltip-title="Occupancy & Allotment">
             <div class="card" style="margin-bottom: 0; border-top: 4px solid var(--primary-accent); transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
                 <div class="card-body" style="padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                                Today's Available
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; display: flex; align-items: center;">
+                                Today's Available <span class="help-cue">?</span>
                             </div>
                             <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
                                 {{ $availableRoomsToday }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">/ {{ $totalRooms }} rooms</span>
@@ -50,13 +50,13 @@
         </a>
 
         <!-- Card 2: Connected Channels -->
-        <a href="{{ route('channels.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to view Channel Connections">
+        <a href="{{ route('channels.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" data-tooltip="Total external travel booking platforms actively mapped with bidirectional inventory push." data-tooltip-title="OTA Distribution Channels">
             <div class="card" style="margin-bottom: 0; border-top: 4px solid #34D399; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
                 <div class="card-body" style="padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                                Connected OTAs
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; display: flex; align-items: center;">
+                                Connected OTAs <span class="help-cue">?</span>
                             </div>
                             <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
                                 {{ $activeChannelsCount }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">active</span>
@@ -74,13 +74,13 @@
         </a>
 
         <!-- Card 3: Outbox Sync Queue -->
-        <a href="{{ route('event_trace.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to inspect EventTrace Telemetry">
+        <a href="{{ route('event_trace.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" data-tooltip="Asynchronous transactional queue ensuring outbox messages reach OTAs with exponential retry backoff." data-tooltip-title="Transactional Outbox Pattern">
             <div class="card" style="margin-bottom: 0; border-top: 4px solid #F59E0B; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
                 <div class="card-body" style="padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                                Sync Outbox Queue
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; display: flex; align-items: center;">
+                                Sync Outbox Queue <span class="help-cue">?</span>
                             </div>
                             <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
                                 {{ $pendingOutboxCount }} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">pending</span>
@@ -102,13 +102,13 @@
         </a>
 
         <!-- Card 4: Security Risk Index -->
-        <a href="{{ route('security_governance.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" title="Click to open Security Intelligence">
+        <a href="{{ route('security_governance.index') }}" style="text-decoration: none; color: inherit; display: block;" class="kpi-card-link" data-tooltip="Dynamic risk score (0-100) evaluating device fingerprint trust, off-hours access, and abnormal cancellation patterns." data-tooltip-title="Security Posture Hygiene">
             <div class="card" style="margin-bottom: 0; border-top: 4px solid #EC4899; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
                 <div class="card-body" style="padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-                                Security Posture
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; display: flex; align-items: center;">
+                                Security Posture <span class="help-cue">?</span>
                             </div>
                             <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
                                 {{ $systemRiskScore }}/100 <span style="font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #D1FAE5; color: #065F46;">NORMAL</span>
@@ -140,14 +140,14 @@
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <form action="{{ route('channels.sync_all') }}" method="POST">
                     @csrf
-                    <button type="submit" class="btn" style="background: #287F79; color: white; border: none; font-weight: 600;">
+                    <button type="submit" class="btn" style="background: #287F79; color: white; border: none; font-weight: 600;" data-tooltip="Broadcast real-time availability and rate updates to all connected external OTAs instantly." data-tooltip-title="One-Touch Broadcast">
                         <i class="fa-solid fa-arrows-rotate"></i> Broadcast Inventory Now
                     </button>
                 </form>
-                <a href="{{ route('bulk_editor.index') }}" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                <a href="{{ route('bulk_editor.index') }}" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);" data-tooltip="Perform date-range inventory adjustments with 2-step visual before/after diff confirmation and 1-click rollback." data-tooltip-title="Bulk Studio">
                     <i class="fa-solid fa-layer-group"></i> Bulk Change Studio
                 </a>
-                <a href="{{ route('partner_assurance.index') }}" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                <a href="{{ route('partner_assurance.index') }}" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);" data-tooltip="Run contract compliance tests, EventTrace latency checks, and generate collision-resistant ULID readiness reports." data-tooltip-title="Partner Assurance">
                     <i class="fa-solid fa-handshake"></i> Partner Quality Lab
                 </a>
             </div>

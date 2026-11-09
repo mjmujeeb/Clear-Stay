@@ -646,6 +646,139 @@
         body.simple-mode .main-wrapper {
             margin-left: 290px;
         }
+
+        /* ==========================================================================
+           Interactive Help & Universal Tooltip System
+           ========================================================================== */
+        .clearstay-tooltip-bubble {
+            position: fixed;
+            z-index: 10000;
+            max-width: 280px;
+            padding: 8px 12px;
+            background: #0F1D2F;
+            color: #F8FAFC;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.45;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.12);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .clearstay-tooltip-bubble.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .clearstay-tooltip-bubble .tooltip-title {
+            font-weight: 700;
+            color: #2DD4BF;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .clearstay-tooltip-bubble .tooltip-close {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            margin-left: auto;
+            font-size: 12px;
+        }
+        .clearstay-tooltip-bubble.touch-active .tooltip-close {
+            display: inline-block;
+        }
+        .help-cue {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 800;
+            cursor: help;
+            margin-left: 6px;
+            vertical-align: middle;
+            transition: all 0.2s;
+            border: 1px solid #CBD5E1;
+        }
+        .help-cue:hover, .help-cue:focus {
+            background: #287F79;
+            color: #ffffff;
+            border-color: #287F79;
+            outline: none;
+            transform: scale(1.1);
+        }
+
+        /* ==========================================================================
+           Guided Next-Step Floating Card & Onboarding Modal
+           ========================================================================== */
+        .next-step-floater {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 990;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-left: 4px solid #287F79;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(15, 29, 47, 0.15);
+            max-width: 360px;
+            padding: 16px;
+            animation: slideInUp 0.3s ease-out;
+            display: none;
+        }
+        .next-step-floater.visible {
+            display: block;
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .next-step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .next-step-tag {
+            font-size: 10px;
+            font-weight: 800;
+            color: #287F79;
+            background: #E6F3F2;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .next-step-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        .next-step-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin-bottom: 12px;
+        }
+        .next-step-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
     </style>
 
     @stack('styles')
@@ -666,10 +799,24 @@
         <ul class="sidebar-menu">
             <li class="menu-header">Quality Assurance & Tools</li>
             <li class="menu-item {{ request()->routeIs('experience_lab.*') ? 'active' : '' }}">
-                <a href="{{ route('experience_lab.index') }}">
+                <a href="{{ route('experience_lab.index') }}" data-tooltip="QA & developer environment for testing responsive viewports (360px-1920px), zero-clipping scaling, and automated responsive audits.">
                     <i class="fa-solid fa-microscope" style="color: #2DD4BF;"></i>
                     <span>体験ラボ (Experience Lab)</span>
-                    <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">3.0</span>
+                    <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">QA</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('easy_mode.*') ? 'active' : '' }}">
+                <a href="{{ route('easy_mode.index') }}" data-tooltip="Senior & nontechnical staff operational mode with 18px+ typography and 1-touch arrivals/departures/cleanliness workflows.">
+                    <i class="fa-solid fa-person-shelter" style="color: #FBBF24;"></i>
+                    <span>かんたん操作 (Easy Mode)</span>
+                    <span class="badge" style="background: #E8A64A; color: #183B50; font-size: 10px; font-weight: 700; margin-left: auto; padding: 2px 6px;">Staff</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('learning_centre.*') ? 'active' : '' }}">
+                <a href="{{ route('learning_centre.index') }}" data-tooltip="Interactive video learning library containing 8 recorded walkthroughs of core hotel operations and QA features.">
+                    <i class="fa-solid fa-graduation-cap" style="color: #38BDF8;"></i>
+                    <span>学習センター (Learning)</span>
+                    <span class="badge" style="background: #0284C7; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">8 Videos</span>
                 </a>
             </li>
 
@@ -907,14 +1054,24 @@
                     </div>
                 </div>
 
-                <!-- Simple Mode Toggle -->
-                <form action="{{ route('simple_mode.toggle') }}" method="POST" style="margin: 0;">
-                    @csrf
-                    <button type="submit" class="btn btn-sm" style="{{ session('clearstay_simple_mode') ? 'background: #E8A64A; color: #183B50; font-weight: 700; border: none;' : 'background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1;' }}" title="Toggle between High-Readability Simple Mode and Standard Full Mode">
-                        <i class="fa-solid fa-glasses"></i>
-                        <span>{{ session('clearstay_simple_mode') ? '簡単モード ON' : '簡単モード' }}</span>
-                    </button>
-                </form>
+                <!-- Easy Mode Quick Switch -->
+                <a href="{{ route('easy_mode.index') }}" class="btn btn-sm" style="background: #183B50; color: #E8A64A; border: 1px solid #287F79; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Switch to Senior & Nontechnical Easy Mode: larger typography, 52px+ buttons, and 1-touch arrivals/departures.">
+                    <i class="fa-solid fa-person-shelter"></i>
+                    <span>かんたん操作</span>
+                </a>
+
+                <!-- Learning Centre Videos -->
+                <a href="{{ route('learning_centre.index') }}" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Watch 8 recorded video walkthroughs demonstrating full reservation, bulk update, and QA workflows.">
+                    <i class="fa-solid fa-film" style="color: #287F79;"></i>
+                    <span>動画ガイド</span>
+                </a>
+
+                <!-- Onboarding Setup Guide Trigger -->
+                <button type="button" class="btn btn-sm btn-secondary" onclick="openOnboardingModal()" id="btnOnboardingTrigger" style="display: inline-flex; align-items: center; gap: 6px;" data-tooltip="Track the 7-step enterprise setup checklist reflecting live database state.">
+                    <i class="fa-solid fa-rocket" style="color: #E8A64A;"></i>
+                    <span>ガイド</span>
+                    <span class="badge" id="onboardingHeaderBadge" style="background: #287F79; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px;">...</span>
+                </button>
 
                 <!-- Multi-Tenant Hotel Switcher -->
                 <div class="hotel-selector">
@@ -1092,6 +1249,83 @@
                 <button type="button" class="btn btn-secondary" onclick="closeReservationModal()">{{ __('clearstay.general.close') }}</button>
             </div>
         </div>
+    </div>
+
+    <!-- 7-Step Enterprise Onboarding Checklist Modal -->
+    <div id="onboardingModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 680px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0F1D2F, #183B50); color: #ffffff;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #E8A64A;">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 17px; font-weight: 700; color: #ffffff; margin: 0;">Enterprise Setup Checklist (導入設定ガイド)</h4>
+                        <div style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Live progress evaluated from database records</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="closeOnboardingModal()" style="color: #ffffff; background: rgba(255,255,255,0.1); border: none;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body" style="padding: 24px;">
+                <!-- Live Progress Bar -->
+                <div style="margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Setup Completion</span>
+                        <span id="onboardingProgressLabel" style="font-size: 13px; font-weight: 800; color: #287F79;">0 / 7 Steps (0%)</span>
+                    </div>
+                    <div style="background: #e2e8f0; border-radius: 9999px; height: 10px; overflow: hidden;">
+                        <div id="onboardingProgressBar" style="background: linear-gradient(90deg, #287F79, #2DD4BF); height: 100%; width: 0%; transition: width 0.4s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- 7 Checklist Steps List -->
+                <div id="onboardingStepsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Dynamically populated via /api/onboarding/status -->
+                    <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: #287F79;"></i>
+                        <p style="margin-top: 10px; font-size: 13px;">Loading system setup status...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="resetOnboarding()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Progress
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="closeOnboardingModal()">Close Checklist</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contextual Guided Next-Step Floating Card -->
+    <div id="nextStepPopup" class="next-step-floater" role="status" aria-live="polite">
+        <div class="next-step-header">
+            <span class="next-step-tag"><i class="fa-solid fa-lightbulb"></i> Recommended Next Step</span>
+            <button type="button" onclick="dismissNextStepPopup()" style="background: transparent; border: none; color: #94A3B8; cursor: pointer; font-size: 13px;" title="Dismiss">&times;</button>
+        </div>
+        <div class="next-step-title" id="nextStepTitle">Configure Your Property</div>
+        <div class="next-step-desc" id="nextStepDesc">Complete this recommended operational step to optimize your hotel distribution.</div>
+        <div class="next-step-actions">
+            <a href="#" id="nextStepActionBtn" class="btn btn-sm btn-primary" style="font-size: 12px; padding: 6px 14px; text-decoration: none;">
+                Proceed &rarr;
+            </a>
+            <button type="button" onclick="openOnboardingModal()" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 6px 12px;">
+                View All Steps (7)
+            </button>
+        </div>
+    </div>
+
+    <!-- Universal Interactive Tooltip Bubble Container -->
+    <div id="clearstayTooltipBubble" class="clearstay-tooltip-bubble" role="tooltip" aria-hidden="true">
+        <div class="tooltip-title">
+            <i class="fa-solid fa-circle-info"></i>
+            <span id="tooltipHeader">Information</span>
+            <button type="button" class="tooltip-close" onclick="hideClearstayTooltip()">&times;</button>
+        </div>
+        <div id="tooltipBody" class="tooltip-body"></div>
     </div>
 
     <!-- Global Command Palette Modal (Ctrl+K) -->
@@ -1462,6 +1696,200 @@
                         .fadeIn();
                 }
             });
+        });
+
+        /* ==========================================================================
+           Interactive Universal Tooltip Engine (Hover, Keyboard Focus & Touch)
+           ========================================================================== */
+        const tooltipBubble = document.getElementById('clearstayTooltipBubble');
+        const tooltipHeader = document.getElementById('tooltipHeader');
+        const tooltipBody = document.getElementById('tooltipBody');
+        let currentTooltipTarget = null;
+
+        function showClearstayTooltip(target, text, headerText = 'Explanation') {
+            if (!tooltipBubble || !text) return;
+            currentTooltipTarget = target;
+            tooltipHeader.textContent = headerText;
+            tooltipBody.textContent = text;
+            tooltipBubble.classList.add('active');
+            tooltipBubble.setAttribute('aria-hidden', 'false');
+
+            const rect = target.getBoundingClientRect();
+            const bubbleRect = tooltipBubble.getBoundingClientRect();
+            const padding = 10;
+
+            let top = rect.top - bubbleRect.height - 8;
+            if (top < 50) {
+                // Flip below if not enough room above
+                top = rect.bottom + 8;
+            }
+
+            let left = rect.left + (rect.width / 2) - (bubbleRect.width / 2);
+            if (left < padding) left = padding;
+            if (left + bubbleRect.width > window.innerWidth - padding) {
+                left = window.innerWidth - padding - bubbleRect.width;
+            }
+
+            tooltipBubble.style.top = Math.round(top) + 'px';
+            tooltipBubble.style.left = Math.round(left) + 'px';
+        }
+
+        function hideClearstayTooltip() {
+            if (!tooltipBubble) return;
+            tooltipBubble.classList.remove('active', 'touch-active');
+            tooltipBubble.setAttribute('aria-hidden', 'true');
+            currentTooltipTarget = null;
+        }
+
+        // Global Event Delegation for Tooltips
+        document.addEventListener('mouseover', function(e) {
+            const el = e.target.closest('[data-tooltip]');
+            if (el && !tooltipBubble.classList.contains('touch-active')) {
+                const text = el.getAttribute('data-tooltip');
+                const title = el.getAttribute('data-tooltip-title') || 'Guidance';
+                showClearstayTooltip(el, text, title);
+            }
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            const el = e.target.closest('[data-tooltip]');
+            if (el && !tooltipBubble.classList.contains('touch-active')) {
+                hideClearstayTooltip();
+            }
+        });
+
+        document.addEventListener('focusin', function(e) {
+            const el = e.target.closest('[data-tooltip]');
+            if (el) {
+                const text = el.getAttribute('data-tooltip');
+                const title = el.getAttribute('data-tooltip-title') || 'Guidance';
+                showClearstayTooltip(el, text, title);
+            }
+        });
+
+        document.addEventListener('focusout', function(e) {
+            const el = e.target.closest('[data-tooltip]');
+            if (el && !tooltipBubble.classList.contains('touch-active')) {
+                hideClearstayTooltip();
+            }
+        });
+
+        // Touch & Tap Support for Mobile / Tablet Devices
+        document.addEventListener('click', function(e) {
+            const el = e.target.closest('[data-tooltip], .help-cue');
+            if (el) {
+                const text = el.getAttribute('data-tooltip');
+                const title = el.getAttribute('data-tooltip-title') || 'Guidance';
+                if (tooltipBubble.classList.contains('active') && currentTooltipTarget === el) {
+                    hideClearstayTooltip();
+                } else {
+                    showClearstayTooltip(el, text, title);
+                    tooltipBubble.classList.add('touch-active');
+                }
+            } else if (!e.target.closest('#clearstayTooltipBubble')) {
+                hideClearstayTooltip();
+            }
+        });
+
+        /* ==========================================================================
+           Onboarding Checklist & Guided Next-Step Controller
+           ========================================================================== */
+        function openOnboardingModal() {
+            $('#onboardingModal').addClass('active');
+            loadOnboardingStatus();
+        }
+
+        function closeOnboardingModal() {
+            $('#onboardingModal').removeClass('active');
+        }
+
+        $('#onboardingModal').on('click', function(e) {
+            if ($(e.target).is('#onboardingModal')) {
+                closeOnboardingModal();
+            }
+        });
+
+        function loadOnboardingStatus() {
+            $.ajax({
+                url: '/api/onboarding/status',
+                method: 'GET',
+                success: function(res) {
+                    if (!res.success) return;
+
+                    // Update Header Badge
+                    $('#onboardingHeaderBadge').text(res.completed_count + '/' + res.total_count);
+
+                    // Update Modal Progress
+                    $('#onboardingProgressLabel').text(res.completed_count + ' / ' + res.total_count + ' Steps (' + res.progress_percent + '%)');
+                    $('#onboardingProgressBar').css('width', res.progress_percent + '%');
+
+                    // Render Steps List
+                    const container = $('#onboardingStepsContainer');
+                    container.empty();
+
+                    res.steps.forEach(function(s) {
+                        const statusBadge = s.is_completed
+                            ? `<span class="badge" style="background: #D1FAE5; color: #065F46; font-size: 11px;"><i class="fa-solid fa-circle-check"></i> Completed</span>`
+                            : `<span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 11px;"><i class="fa-solid fa-clock"></i> Action Needed</span>`;
+
+                        const rowBg = s.is_completed ? '#ffffff' : '#f0fdf4';
+                        const borderCol = s.is_completed ? 'var(--border)' : '#86efac';
+
+                        container.append(`
+                            <div style="background: ${rowBg}; border: 1px solid ${borderCol}; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: ${s.is_completed ? '#E2E8F0' : '#287F79'}; color: ${s.is_completed ? '#475569' : '#ffffff'}; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                        <i class="fa-solid ${s.icon}"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${s.title}</div>
+                                        <div style="font-size: 11px; color: var(--text-muted);">${s.description}</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    ${statusBadge}
+                                    <a href="${s.url}" class="btn btn-sm btn-secondary" style="font-size: 11px; padding: 4px 10px; text-decoration: none;">
+                                        ${s.is_completed ? 'Review' : 'Configure'} &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        `);
+                    });
+
+                    // Contextual Next-Step Floater
+                    if (res.next_step && !res.is_dismissed && res.completed_count < res.total_count) {
+                        $('#nextStepTitle').text(res.next_step.title);
+                        $('#nextStepDesc').text(res.next_step.description);
+                        $('#nextStepActionBtn').attr('href', res.next_step.url);
+                        $('#nextStepPopup').addClass('visible');
+                    } else {
+                        $('#nextStepPopup').removeClass('visible');
+                    }
+                }
+            });
+        }
+
+        function dismissNextStepPopup() {
+            $('#nextStepPopup').removeClass('visible');
+            $.ajax({
+                url: '/api/onboarding/dismiss',
+                method: 'POST'
+            });
+        }
+
+        function resetOnboarding() {
+            $.ajax({
+                url: '/api/onboarding/reset',
+                method: 'POST',
+                success: function() {
+                    loadOnboardingStatus();
+                }
+            });
+        }
+
+        // Initialize Onboarding check on page load
+        $(document).ready(function() {
+            loadOnboardingStatus();
         });
     </script>
 

@@ -8,13 +8,16 @@ use App\Http\Controllers\ChannelManagerController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceTrustController;
+use App\Http\Controllers\EasyModeController;
 use App\Http\Controllers\EventTraceController;
 use App\Http\Controllers\ExperienceLabController;
 use App\Http\Controllers\GuestPortalController;
 use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\HousekeepingController;
 use App\Http\Controllers\InventoryReconciliationController;
+use App\Http\Controllers\LearningCentreController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\PartnerAssuranceController;
 use App\Http\Controllers\PaymentReconciliationController;
@@ -226,4 +229,24 @@ Route::middleware(['auth'])->group(function () {
 
     // System Health & Observability Hub
     Route::get('/health', [HealthCheckController::class, 'index'])->name('health.index');
+
+    // Easy Mode — Simplified Hotel Operations (Senior & Nontechnical Staff)
+    Route::get('/easy-mode', [EasyModeController::class, 'index'])->name('easy_mode.index');
+    Route::get('/easy-mode/arrivals', [EasyModeController::class, 'arrivals'])->name('easy_mode.arrivals');
+    Route::post('/easy-mode/check-in/{id}', [EasyModeController::class, 'checkIn'])->name('easy_mode.check_in');
+    Route::get('/easy-mode/departures', [EasyModeController::class, 'departures'])->name('easy_mode.departures');
+    Route::post('/easy-mode/check-out/{id}', [EasyModeController::class, 'checkOut'])->name('easy_mode.check_out');
+    Route::get('/easy-mode/rooms', [EasyModeController::class, 'rooms'])->name('easy_mode.rooms');
+    Route::post('/easy-mode/rooms/{id}/status', [EasyModeController::class, 'updateRoomStatus'])->name('easy_mode.update_room_status');
+    Route::get('/easy-mode/reservations', [EasyModeController::class, 'reservations'])->name('easy_mode.reservations');
+    Route::post('/easy-mode/toggle', [EasyModeController::class, 'toggle'])->name('easy_mode.toggle');
+
+    // Learning Centre & Demonstration Video Library
+    Route::get('/learning-centre', [LearningCentreController::class, 'index'])->name('learning_centre.index');
+    Route::get('/videos/{filename}', [LearningCentreController::class, 'streamVideo'])->name('learning_centre.video_stream');
+
+    // Onboarding & Guided Tours API
+    Route::get('/api/onboarding/status', [OnboardingController::class, 'status'])->name('onboarding.status');
+    Route::post('/api/onboarding/dismiss', [OnboardingController::class, 'dismiss'])->name('onboarding.dismiss');
+    Route::post('/api/onboarding/reset', [OnboardingController::class, 'reset'])->name('onboarding.reset');
 });

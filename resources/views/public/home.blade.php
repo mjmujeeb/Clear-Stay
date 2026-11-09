@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
-@section('meta_title', 'ClearStay 2.0 - Connected Hotel Operations & Multi-Channel Distribution')
-@section('meta_description', 'One connected enterprise workspace for modern hotel operations. Central inventory, multi-channel distribution, transactional outbox and context-aware security.')
+@section('meta_title', 'ClearStay 3.0 - Enterprise Hospitality & Multi-Channel Distribution Platform')
+@section('meta_description', 'Three connected products in one enterprise architecture: Standard Professional Hotel Management, Senior-Friendly Easy Mode, and Responsive Experience Lab.')
 
 @section('content')
 <!-- HERO SECTION -->
@@ -22,14 +22,14 @@
         </p>
 
         <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 50px;">
-            <a href="#product-demo" class="btn-demo" style="padding: 14px 28px; font-size: 15px;">
-                <i class="fa-solid fa-compass"></i> Explore Platform
+            <a href="#three-products" class="btn-demo" style="padding: 14px 28px; font-size: 15px;">
+                <i class="fa-solid fa-layer-group"></i> 3 Connected Products
             </a>
             <a href="{{ route('login') }}" class="btn-login-outline" style="padding: 14px 26px; font-size: 15px; font-weight: 700;">
                 <i class="fa-solid fa-desktop"></i> Open Demo Workspace
             </a>
-            <a href="#integrations-section" style="background: #F8FAFC; color: #183B50; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 700; border: 1px solid var(--border);">
-                <i class="fa-solid fa-arrows-split-up-and-left"></i> View Integrations
+            <a href="{{ route('learning_centre.index') }}" style="background: #F8FAFC; color: #183B50; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 700; border: 1px solid var(--border);">
+                <i class="fa-solid fa-film" style="color: #287F79;"></i> 8 Video Demos
             </a>
         </div>
 
@@ -41,7 +41,7 @@
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #EF4444;"></span>
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #F59E0B;"></span>
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #10B981;"></span>
-                    <span style="color: #94A3B8; font-size: 12px; margin-left: 10px; font-family: monospace;">ClearStay 2.0 &bull; Unified Operations Engine</span>
+                    <span style="color: #94A3B8; font-size: 12px; margin-left: 10px; font-family: monospace;">ClearStay 3.0 &bull; Unified Enterprise Suite</span>
                 </div>
                 <div style="display: flex; gap: 12px; font-size: 12px; color: #A5F3FC;">
                     <span><i class="fa-solid fa-circle-check" style="color: #34D399;"></i> Transactional Outbox Active</span>
@@ -75,6 +75,124 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- THREE CONNECTED PRODUCTS SHOWCASE -->
+<section id="three-products" style="padding: 70px 0; background: #FFFFFF; border-bottom: 1px solid var(--border);">
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 45px;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: #E6F3F2; color: #1E605B; padding: 4px 14px; border-radius: 9999px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
+                Complete Portfolio Architecture
+            </div>
+            <h2 style="font-size: 34px; font-weight: 900; color: #0F1D2F; margin: 0 0 12px; letter-spacing: -0.02em;">
+                Three Connected Products. One Unified Engineering Standard.
+            </h2>
+            <p style="font-size: 16px; color: var(--text-muted); max-width: 720px; margin: 0 auto; line-height: 1.6;">
+                Built specifically to demonstrate practical full-stack web engineering responsibilities for Temairazu, Inc. (TEMAIRAZU).
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+            <!-- Product 1: Standard Professional Experience -->
+            <div style="background: #F8FAFC; border: 2px solid var(--border); border-top: 5px solid #183B50; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #183B50; background: #E2E8F0; padding: 4px 10px; border-radius: 6px;">
+                            Product 1 &bull; Management Suite
+                        </span>
+                        <i class="fa-solid fa-hotel" style="font-size: 22px; color: #183B50;"></i>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0F1D2F; margin-bottom: 10px;">
+                        Standard Professional Experience
+                    </h3>
+                    <p style="font-size: 13px; color: #475569; line-height: 1.6; margin-bottom: 18px;">
+                        Detailed hotel operations, analytics, multi-channel distribution, and advanced governance designed for trained hospitality managers and revenue officers.
+                    </p>
+                    <ul style="list-style: none; padding: 0; margin-bottom: 24px; font-size: 13px; color: #334155; line-height: 1.8;">
+                        <li><i class="fa-solid fa-circle-check" style="color: #287F79; margin-right: 8px;"></i> 90-day central inventory matrix with bulk updates</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #287F79; margin-right: 8px;"></i> Transactional Outbox OTA synchronization</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #287F79; margin-right: 8px;"></i> Concurrency-safe reservations (<code>FOR UPDATE</code>)</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #287F79; margin-right: 8px;"></i> RevPAR, ADR, and BA+ historical pace analytics</li>
+                    </ul>
+                </div>
+                <a href="{{ route('overview.index') }}" class="btn-demo" style="width: 100%; text-align: center; padding: 12px; font-size: 14px;">
+                    <i class="fa-solid fa-desktop"></i> Open Professional Console
+                </a>
+            </div>
+
+            <!-- Product 2: Easy Mode -->
+            <div style="background: #FFFBEB; border: 2px solid #FDE68A; border-top: 5px solid #F59E0B; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #92400E; background: #FEF3C7; padding: 4px 10px; border-radius: 6px;">
+                            Product 2 &bull; Staff Accessibility
+                        </span>
+                        <i class="fa-solid fa-person-shelter" style="font-size: 22px; color: #D97706;"></i>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #78350F; margin-bottom: 10px;">
+                        かんたん操作 (Easy Mode)
+                    </h3>
+                    <p style="font-size: 13px; color: #92400E; line-height: 1.6; margin-bottom: 18px;">
+                        Senior-friendly interface for everyday hotel staff. Larger typography (18px+), simple navigation, 52px+ touch targets, and 5 guided 1-touch workflows.
+                    </p>
+                    <ul style="list-style: none; padding: 0; margin-bottom: 24px; font-size: 13px; color: #78350F; line-height: 1.8;">
+                        <li><i class="fa-solid fa-circle-check" style="color: #D97706; margin-right: 8px;"></i> 1-click arrival check-in with auto-occupancy</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #D97706; margin-right: 8px;"></i> 1-click departure check-out &amp; auto-housekeeping</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #D97706; margin-right: 8px;"></i> Big visual room cards with Clean/Dirty toggle</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #D97706; margin-right: 8px;"></i> Instant font scaler (Standard / Large / Extra-Large)</li>
+                    </ul>
+                </div>
+                <a href="{{ route('easy_mode.index') }}" style="width: 100%; text-align: center; padding: 12px; font-size: 14px; font-weight: 800; background: #183B50; color: #F59E0B; border: 1px solid #D97706; border-radius: 8px; text-decoration: none; display: block;">
+                    <i class="fa-solid fa-hand-pointer"></i> Launch Easy Mode Console
+                </a>
+            </div>
+
+            <!-- Product 3: Responsive Experience Lab -->
+            <div style="background: #F0FDF4; border: 2px solid #BBF7D0; border-top: 5px solid #287F79; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #065F46; background: #DCFCE7; padding: 4px 10px; border-radius: 6px;">
+                            Product 3 &bull; QA &amp; Emulation
+                        </span>
+                        <i class="fa-solid fa-microscope" style="font-size: 22px; color: #287F79;"></i>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #064E3B; margin-bottom: 10px;">
+                        体験ラボ (Responsive Experience Lab)
+                    </h3>
+                    <p style="font-size: 13px; color: #065F46; line-height: 1.6; margin-bottom: 18px;">
+                        Developer and QA verification workbench. Dual side-by-side synchronized viewports, zero-clipping container-fit scaling, and automated responsive audits.
+                    </p>
+                    <ul style="list-style: none; padding: 0; margin-bottom: 24px; font-size: 13px; color: #064E3B; line-height: 1.8;">
+                        <li><i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 8px;"></i> 8 hardware presets (360px mobile to 1440px desktop)</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 8px;"></i> Container-fit visual scaler with zero clipping</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 8px;"></i> Side-by-side dual desktop/mobile comparison</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 8px;"></i> 32-scenario automated QA test suite &amp; JSON evidence</li>
+                    </ul>
+                </div>
+                <a href="{{ route('experience_lab.index') }}" style="width: 100%; text-align: center; padding: 12px; font-size: 14px; font-weight: 800; background: #287F79; color: #FFFFFF; border-radius: 8px; text-decoration: none; display: block;">
+                    <i class="fa-solid fa-vial-circle-check"></i> Open Experience Lab
+                </a>
+            </div>
+        </div>
+
+        <!-- Video Demonstration Callout Bar -->
+        <div style="margin-top: 32px; background: linear-gradient(135deg, #0F1D2F, #183B50); border-radius: 12px; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; color: white;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,0.12); color: #E8A64A; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <strong style="font-size: 16px; color: #ffffff;">Need to see the system in action?</strong>
+                    <div style="font-size: 13px; color: #94A3B8; margin-top: 2px;">
+                        Explore our 8 recorded HD video walkthroughs with technical scripts in the Learning Centre.
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('learning_centre.index') }}" class="btn" style="background: #287F79; color: white; font-weight: 700; text-decoration: none; padding: 10px 22px; border-radius: 8px; font-size: 14px;">
+                <i class="fa-solid fa-film"></i> Watch Demonstration Videos (8) &rarr;
+            </a>
         </div>
     </div>
 </section>

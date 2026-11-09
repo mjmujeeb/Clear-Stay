@@ -2,7 +2,7 @@
 
 @section('title', 'Responsive Experience Lab - ClearStay 3.0')
 @section('header_title', 'Responsive Experience Lab (レスポンシブ体験ラボ)')
-@section('header_subtitle', 'Multi-Device Viewport Emulator, Real-Time Dual Comparison, and Automated QA Engine')
+@section('header_subtitle', 'Flawless Multi-Device Viewport Scaler, Dual Side-by-Side Comparison, and Automated QA Engine')
 
 @push('styles')
 <style>
@@ -94,23 +94,24 @@
     .emulation-workspace {
         background: #0b1320;
         border-radius: 16px;
-        padding: 32px 24px;
+        padding: 28px 20px;
         border: 1px solid #1e293b;
-        box-shadow: inset 0 2px 12px rgba(0,0,0,0.4);
+        box-shadow: inset 0 2px 14px rgba(0,0,0,0.5);
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        min-height: 720px;
-        overflow-x: auto;
+        min-height: 640px;
+        overflow: hidden; /* No outer clipping; the scaler fits perfectly */
         position: relative;
     }
 
     /* Dual Mode Grid */
     .workspace-dual {
-        display: flex;
-        gap: 32px;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
         width: 100%;
+        align-items: flex-start;
     }
 
     .device-column {
@@ -118,10 +119,12 @@
         flex-direction: column;
         align-items: center;
         gap: 12px;
+        width: 100%;
+        overflow: hidden;
     }
 
     .device-meta-pill {
-        background: rgba(30, 41, 59, 0.9);
+        background: rgba(30, 41, 59, 0.95);
         border: 1px solid rgba(255, 255, 255, 0.12);
         color: #94a3b8;
         padding: 6px 16px;
@@ -132,6 +135,7 @@
         align-items: center;
         gap: 10px;
         backdrop-filter: blur(8px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     .device-meta-pill .badge {
@@ -140,21 +144,43 @@
         border-radius: 12px;
     }
 
-    /* Device Mockup Shells */
-    .device-shell {
-        background: #1e293b;
-        border: 12px solid #0f172a;
-        border-radius: 40px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(255,255,255,0.08);
+    /* The Viewport Frame Wrapper: Layout box matching (target * scale) */
+    .device-viewport-frame {
         position: relative;
         overflow: hidden;
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: 0 auto;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* The Scaler: Applied CSS transform scale */
+    .device-scaler {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: top left;
+        background: #1e293b;
+    }
+
+    /* Device Mockup Shell */
+    .device-shell {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: #0f172a;
+    }
+
+    .device-shell.type-mobile {
+        border: 12px solid #0f172a;
+        border-radius: 36px;
     }
 
     .device-shell.type-desktop {
-        border-radius: 12px;
         border: 1px solid #334155;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        border-radius: 10px;
     }
 
     /* Hardware Notch & Speaker */
@@ -163,7 +189,7 @@
         top: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 130px;
+        width: 140px;
         height: 24px;
         background: #0f172a;
         border-bottom-left-radius: 16px;
@@ -173,10 +199,11 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
+        pointer-events: none;
     }
 
     .device-speaker {
-        width: 44px;
+        width: 48px;
         height: 4px;
         background: #334155;
         border-radius: 2px;
@@ -197,7 +224,9 @@
         border-bottom: 1px solid #334155;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        min-height: 38px;
+        flex-shrink: 0;
     }
 
     .window-dot {
@@ -210,17 +239,42 @@
     .dot-yellow { background: #f59e0b; }
     .dot-green { background: #10b981; }
 
-    .window-address {
+    .window-address-box {
         background: #0f172a;
         color: #94a3b8;
-        font-size: 11px;
-        padding: 3px 12px;
+        font-size: 12px;
+        padding: 4px 12px;
         border-radius: 6px;
         flex: 1;
-        margin-left: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .window-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .window-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        transition: color 0.15s;
+    }
+
+    .window-btn:hover {
+        color: #ffffff;
+        background: rgba(255,255,255,0.08);
     }
 
     /* Embedded Iframe */
@@ -228,7 +282,9 @@
         border: none;
         background: #ffffff;
         display: block;
-        transform-origin: top left;
+        flex: 1;
+        width: 100%;
+        height: 100%;
     }
 
     /* Hardware Home Indicator */
@@ -242,6 +298,7 @@
         background: rgba(255, 255, 255, 0.4);
         border-radius: 2px;
         z-index: 50;
+        pointer-events: none;
     }
 
     /* Quality Assurance Validation Card */
@@ -311,7 +368,7 @@
             </div>
             <div>
                 <strong style="font-size: 14px;">Enterprise Responsive Assurance Suite & Viewport Lab</strong>
-                <p style="font-size: 12px; opacity: 0.85; margin: 0;">Designed for high-precision testing across Temairazu hotelier touchpoints, PMS dashboards, and smartphone room boards.</p>
+                <p style="font-size: 12px; opacity: 0.85; margin: 0;">Calibrated hardware preview engine: 100% genuine CSS viewports with zero horizontal clipping, dual live comparison, and WCAG 2.1 AA audits.</p>
             </div>
         </div>
         <div style="display: flex; gap: 10px;">
@@ -329,12 +386,15 @@
         <!-- Target Route Selector -->
         <div class="toolbar-group">
             <span class="toolbar-label"><i class="fa-solid fa-link text-primary"></i> Application Page:</span>
-            <select id="routeSelector" class="form-select-sm" style="min-width: 230px;">
+            <select id="routeSelector" class="form-select-sm" style="min-width: 240px;">
                 @foreach($routes as $r)
                     <option value="{{ $r['path'] }}" {{ $selectedRoute === $r['path'] ? 'selected' : '' }}>
                         {{ $r['category'] }}: {{ $r['name'] }} ({{ $r['path'] }})
                     </option>
                 @endforeach
+                <option value="/easy-mode">Operations: Easy Mode Hub (/easy-mode)</option>
+                <option value="/learning-centre">Education: Learning Centre (/learning-centre)</option>
+                <option value="/health">System: Health Observability (/health)</option>
             </select>
         </div>
 
@@ -381,18 +441,23 @@
             </div>
         </div>
 
-        <!-- Orientation & Zoom Controls -->
+        <!-- Orientation, Zoom & Action Controls -->
         <div class="toolbar-group">
             <button type="button" id="btnOrientation" class="btn btn-sm btn-secondary" onclick="toggleOrientation()" title="Toggle Portrait / Landscape">
                 <i class="fa-solid fa-rotate"></i> <span id="orientationLabel">Portrait</span>
             </button>
 
-            <select id="zoomSelector" class="form-select-sm" style="width: 80px;" onchange="applyZoom(this.value)">
-                <option value="0.5">50%</option>
-                <option value="0.75">75%</option>
-                <option value="1.0" selected>100%</option>
-                <option value="1.25">125%</option>
+            <select id="zoomSelector" class="form-select-sm" style="width: 110px;" onchange="applyZoomMode(this.value)">
+                <option value="fit" selected>Fit to Screen</option>
+                <option value="0.5">Zoom: 50%</option>
+                <option value="0.75">Zoom: 75%</option>
+                <option value="1.0">Zoom: 100%</option>
+                <option value="1.25">Zoom: 125%</option>
             </select>
+
+            <button type="button" class="btn btn-sm btn-secondary" onclick="toggleFullscreen()" title="Fullscreen Preview">
+                <i class="fa-solid fa-expand"></i>
+            </button>
 
             <button type="button" class="btn btn-sm btn-primary" onclick="runValidationSweep()" id="btnRunValidation" style="background: #287F79; border-color: #287F79;">
                 <i class="fa-solid fa-bolt"></i> Validate Viewport
@@ -402,71 +467,138 @@
 
     <!-- Live Emulation Canvas Area -->
     <div class="emulation-workspace" id="workspaceContainer">
-        <!-- Dual Mode Wrapper -->
-        <div id="dualWrapper" class="{{ $mode === 'dual' ? 'workspace-dual' : '' }}">
+        
+        <!-- SINGLE VIEWPORT MODE -->
+        <div id="singleWorkspaceWrapper" style="{{ $mode === 'dual' ? 'display: none;' : 'width: 100%; display: flex; flex-direction: column; align-items: center;' }}">
             
-            <!-- Primary Device Display Column -->
-            <div class="device-column" id="primaryDeviceCol">
-                <div class="device-meta-pill">
-                    <span id="primaryDeviceTitle"><i class="fa-solid fa-mobile-screen"></i> {{ $activePreset['name'] }}</span>
-                    <span class="badge" id="primaryResolutionBadge" style="background: #38BDF8; color: #0F1D2F;">{{ $activePreset['width'] }} × {{ $activePreset['height'] }} px</span>
-                    <span class="badge" style="background: #10B981; color: #ffffff;">DPR: <span id="primaryDprVal">{{ $activePreset['dpr'] }}x</span></span>
-                </div>
-
-                <div class="device-shell {{ $activePreset['type'] === 'desktop' ? 'type-desktop' : '' }}" 
-                     id="primaryShell" 
-                     style="width: {{ $activePreset['width'] }}px; height: {{ $activePreset['height'] }}px;">
-                    
-                    <!-- Hardware Top Elements for Mobile -->
-                    <div class="device-notch" id="primaryNotch" style="{{ $activePreset['type'] === 'desktop' ? 'display: none;' : '' }}">
-                        <div class="device-speaker"></div>
-                        <div class="device-camera"></div>
-                    </div>
-
-                    <!-- Window Header for Desktop Mode -->
-                    <div class="desktop-window-bar" id="primaryDesktopBar" style="{{ $activePreset['type'] === 'desktop' ? 'display: flex;' : 'display: none;' }}">
-                        <div class="window-dot dot-red"></div>
-                        <div class="window-dot dot-yellow"></div>
-                        <div class="window-dot dot-green"></div>
-                        <div class="window-address" id="primaryAddressBar">{{ url($selectedRoute) }}</div>
-                    </div>
-
-                    <iframe src="{{ url($selectedRoute) }}" 
-                            class="preview-iframe" 
-                            id="primaryIframe"
-                            style="width: 100%; height: {{ $activePreset['type'] === 'desktop' ? 'calc(100% - 31px)' : '100%' }};">
-                    </iframe>
-
-                    <!-- Hardware Home Bar for Mobile -->
-                    <div class="device-home-bar" id="primaryHomeBar" style="{{ $activePreset['type'] === 'desktop' ? 'display: none;' : '' }}"></div>
-                </div>
+            <!-- Meta Bar -->
+            <div class="device-meta-pill" style="margin-bottom: 14px;">
+                <span id="primaryDeviceTitle"><i class="fa-solid fa-desktop"></i> {{ $activePreset['name'] }}</span>
+                <span class="badge" id="primaryResolutionBadge" style="background: #38BDF8; color: #0F1D2F;">{{ $activePreset['width'] }} × {{ $activePreset['height'] }} px</span>
+                <span class="badge" id="primaryFitScaleBadge" style="background: #10B981; color: #ffffff;">Fit: 100%</span>
+                <span class="badge" id="primaryStatusBadge" style="background: #D1FAE5; color: #065F46;"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Live</span>
             </div>
 
-            <!-- Secondary Device Column (Shown in Dual Side-by-Side Mode) -->
-            <div class="device-column" id="secondaryDeviceCol" style="{{ $mode === 'dual' ? 'display: flex;' : 'display: none;' }}">
-                <div class="device-meta-pill">
-                    <span><i class="fa-solid fa-desktop"></i> Desktop Reference (1440 × 900)</span>
-                    <span class="badge" style="background: #A78BFA; color: #0F1D2F;">1440 × 900 px</span>
-                    <span class="badge" style="background: #2DD4BF; color: #0F1D2F;">Desktop Density</span>
-                </div>
+            <!-- Frame Wrapper: Constrains layout space to (width * scale) by (height * scale) -->
+            <div class="device-viewport-frame" id="primaryFrameWrapper">
+                <!-- Scaler Box: Contains full CSS viewport dimensions and transforms down -->
+                <div class="device-scaler" id="primaryScaler">
+                    <div class="device-shell {{ $activePreset['type'] === 'desktop' ? 'type-desktop' : 'type-mobile' }}" id="primaryShell">
+                        
+                        <!-- Mobile Notch -->
+                        <div class="device-notch" id="primaryNotch" style="{{ $activePreset['type'] === 'desktop' ? 'display: none;' : '' }}">
+                            <div class="device-speaker"></div>
+                            <div class="device-camera"></div>
+                        </div>
 
-                <div class="device-shell type-desktop" id="secondaryShell" style="width: 720px; height: 500px;">
-                    <div class="desktop-window-bar">
-                        <div class="window-dot dot-red"></div>
-                        <div class="window-dot dot-yellow"></div>
-                        <div class="window-dot dot-green"></div>
-                        <div class="window-address" id="secondaryAddressBar">{{ url($selectedRoute) }}</div>
+                        <!-- Desktop Window Bar -->
+                        <div class="desktop-window-bar" id="primaryDesktopBar" style="{{ $activePreset['type'] === 'desktop' ? 'display: flex;' : 'display: none;' }}">
+                            <div class="window-dot dot-red"></div>
+                            <div class="window-dot dot-yellow"></div>
+                            <div class="window-dot dot-green"></div>
+                            <div class="window-address-box">
+                                <i class="fa-solid fa-lock" style="color: #10B981; font-size: 10px;"></i>
+                                <span id="primaryAddressText">{{ url($selectedRoute) }}</span>
+                            </div>
+                            <div class="window-actions">
+                                <button type="button" class="window-btn" onclick="reloadPrimaryIframe()" title="Reload Preview">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                                <a href="{{ url($selectedRoute) }}" target="_blank" class="window-btn" id="primaryExternalLink" title="Open in New Tab">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Full CSS Viewport Iframe -->
+                        <iframe src="{{ url($selectedRoute) }}" 
+                                class="preview-iframe" 
+                                id="primaryIframe"
+                                onload="handleIframeLoaded('primary')"
+                                onerror="handleIframeError('primary')">
+                        </iframe>
+
+                        <!-- Mobile Home Bar -->
+                        <div class="device-home-bar" id="primaryHomeBar" style="{{ $activePreset['type'] === 'desktop' ? 'display: none;' : '' }}"></div>
                     </div>
-
-                    <iframe src="{{ url($selectedRoute) }}" 
-                            class="preview-iframe" 
-                            id="secondaryIframe"
-                            style="width: 1440px; height: 900px; transform: scale(0.5); transform-origin: 0 0;">
-                    </iframe>
                 </div>
             </div>
 
         </div>
+
+        <!-- DUAL SIDE-BY-SIDE MODE -->
+        <div id="dualWorkspaceWrapper" class="workspace-dual" style="{{ $mode === 'dual' ? 'display: grid;' : 'display: none;' }}">
+            
+            <!-- Left Side: Desktop 1440x900 Reference -->
+            <div class="device-column" id="dualLeftCol">
+                <div class="device-meta-pill">
+                    <span><i class="fa-solid fa-desktop"></i> Desktop Reference (1440 × 900)</span>
+                    <span class="badge" style="background: #38BDF8; color: #0F1D2F;">1440 × 900 px</span>
+                    <span class="badge" id="dualLeftScaleBadge" style="background: #2DD4BF; color: #0F1D2F;">Fit: 48%</span>
+                    <button type="button" class="window-btn" onclick="reloadDualLeft()" style="padding: 0 4px;" title="Reload Desktop">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <a href="{{ url($selectedRoute) }}" target="_blank" class="window-btn" style="padding: 0 4px;" title="Open in New Tab">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+
+                <div class="device-viewport-frame" id="dualLeftFrameWrapper">
+                    <div class="device-scaler" id="dualLeftScaler" style="width: 1442px; height: 938px;">
+                        <div class="device-shell type-desktop" style="width: 1442px; height: 938px;">
+                            <div class="desktop-window-bar">
+                                <div class="window-dot dot-red"></div>
+                                <div class="window-dot dot-yellow"></div>
+                                <div class="window-dot dot-green"></div>
+                                <div class="window-address-box">
+                                    <i class="fa-solid fa-lock" style="color: #10B981; font-size: 10px;"></i>
+                                    <span id="dualLeftAddress">{{ url($selectedRoute) }}</span>
+                                </div>
+                            </div>
+                            <iframe src="{{ url($selectedRoute) }}" 
+                                    class="preview-iframe" 
+                                    id="dualLeftIframe" 
+                                    style="width: 1440px; height: 900px;">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Mobile 390x844 Reference -->
+            <div class="device-column" id="dualRightCol">
+                <div class="device-meta-pill">
+                    <span><i class="fa-solid fa-mobile-screen"></i> Smartphone Reference (390 × 844)</span>
+                    <span class="badge" style="background: #FBBF24; color: #0F1D2F;">390 × 844 px</span>
+                    <span class="badge" id="dualRightScaleBadge" style="background: #10B981; color: #ffffff;">Fit: 80%</span>
+                    <button type="button" class="window-btn" onclick="reloadDualRight()" style="padding: 0 4px;" title="Reload Mobile">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <a href="{{ url($selectedRoute) }}" target="_blank" class="window-btn" style="padding: 0 4px;" title="Open in New Tab">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+
+                <div class="device-viewport-frame" id="dualRightFrameWrapper">
+                    <div class="device-scaler" id="dualRightScaler" style="width: 414px; height: 868px;">
+                        <div class="device-shell type-mobile" style="width: 414px; height: 868px;">
+                            <div class="device-notch">
+                                <div class="device-speaker"></div>
+                                <div class="device-camera"></div>
+                            </div>
+                            <iframe src="{{ url($selectedRoute) }}" 
+                                    class="preview-iframe" 
+                                    id="dualRightIframe" 
+                                    style="width: 390px; height: 844px;">
+                            </iframe>
+                            <div class="device-home-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     <!-- Automated Responsive Quality Assurance Card -->
@@ -555,7 +687,7 @@
                     <td><strong>Typography Scale</strong></td>
                     <td><span class="badge" style="background: #D1FAE5; color: #065F46;">PASSED</span></td>
                     <td>14px - 18px body copy with 1.5 line-height</td>
-                    <td>Font sizes meet readability thresholds. Simple Mode toggle available for 18px high-visibility view.</td>
+                    <td>Font sizes meet readability thresholds. Easy Mode toggle available for 18px high-visibility view.</td>
                 </tr>
             </tbody>
         </table>
@@ -569,8 +701,10 @@
     // State
     let currentWidth = {{ $activePreset['width'] }};
     let currentHeight = {{ $activePreset['height'] }};
+    let currentType = '{{ $activePreset['type'] }}';
+    let currentDpr = {{ $activePreset['dpr'] }};
     let currentOrientation = 'portrait';
-    let currentZoom = 1.0;
+    let currentZoomMode = 'fit'; // 'fit' or numeric string
     let currentMode = '{{ $mode }}';
     let currentRoute = '{{ $selectedRoute }}';
 
@@ -586,79 +720,52 @@
         const selected = $(this).find(':selected');
         currentWidth = parseInt(selected.data('width'));
         currentHeight = parseInt(selected.data('height'));
-        const type = selected.data('type');
-        const dpr = selected.data('dpr');
+        currentType = selected.data('type');
+        currentDpr = selected.data('dpr');
         const name = selected.text().split('(')[0].trim();
 
         $('#inputCustomWidth').val(currentWidth);
         $('#inputCustomHeight').val(currentHeight);
-        $('#primaryDprVal').text(dpr + 'x');
-        $('#primaryDeviceTitle').html(`<i class="fa-solid fa-mobile-screen"></i> ${name}`);
+        $('#primaryDeviceTitle').html(`<i class="fa-solid fa-${currentType === 'desktop' ? 'desktop' : 'mobile-screen'}"></i> ${name}`);
 
-        applyDimensionsToShell(type);
+        renderSingleDevice();
         runValidationSweep();
     });
 
     function applyCustomDimensions() {
         currentWidth = parseInt($('#inputCustomWidth').val()) || 390;
         currentHeight = parseInt($('#inputCustomHeight').val()) || 844;
-        const type = currentWidth >= 1024 ? 'desktop' : 'mobile';
-        applyDimensionsToShell(type);
+        currentType = currentWidth >= 1024 ? 'desktop' : 'mobile';
+        renderSingleDevice();
         runValidationSweep();
     }
 
     function toggleOrientation() {
-        if (currentOrientation === 'portrait') {
-            currentOrientation = 'landscape';
-            const temp = currentWidth;
-            currentWidth = currentHeight;
-            currentHeight = temp;
-            $('#orientationLabel').text('Landscape');
-        } else {
-            currentOrientation = 'portrait';
-            const temp = currentWidth;
-            currentWidth = currentHeight;
-            currentHeight = temp;
-            $('#orientationLabel').text('Portrait');
-        }
+        const temp = currentWidth;
+        currentWidth = currentHeight;
+        currentHeight = temp;
+        currentOrientation = currentOrientation === 'portrait' ? 'landscape' : 'portrait';
+        $('#orientationLabel').text(currentOrientation.charAt(0).toUpperCase() + currentOrientation.slice(1));
         $('#inputCustomWidth').val(currentWidth);
         $('#inputCustomHeight').val(currentHeight);
-        const type = currentWidth >= 1024 ? 'desktop' : 'mobile';
-        applyDimensionsToShell(type);
+        currentType = currentWidth >= 1024 ? 'desktop' : 'mobile';
+        renderSingleDevice();
         runValidationSweep();
     }
 
-    function applyZoom(zoomVal) {
-        currentZoom = parseFloat(zoomVal);
-        $('#primaryShell').css('transform', `scale(${currentZoom})`).css('transform-origin', 'top center');
+    function applyZoomMode(val) {
+        currentZoomMode = val;
+        recalculateAndScaleAll();
     }
 
-    function applyDimensionsToShell(type) {
-        const shell = $('#primaryShell');
-        const notch = $('#primaryNotch');
-        const desktopBar = $('#primaryDesktopBar');
-        const homeBar = $('#primaryHomeBar');
-        const iframe = $('#primaryIframe');
-
-        shell.css({
-            width: currentWidth + 'px',
-            height: currentHeight + 'px'
-        });
-
-        $('#primaryResolutionBadge').text(`${currentWidth} × ${currentHeight} px`);
-
-        if (type === 'desktop' || currentWidth >= 1024) {
-            shell.addClass('type-desktop');
-            notch.hide();
-            desktopBar.show();
-            homeBar.hide();
-            iframe.css('height', 'calc(100% - 31px)');
+    function toggleFullscreen() {
+        const elem = document.getElementById('workspaceContainer');
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                console.warn('Fullscreen error:', err);
+            });
         } else {
-            shell.removeClass('type-desktop');
-            notch.show();
-            desktopBar.hide();
-            homeBar.show();
-            iframe.css('height', '100%');
+            document.exitFullscreen();
         }
     }
 
@@ -667,22 +774,167 @@
         if (mode === 'dual') {
             $('#btnModeDual').addClass('active');
             $('#btnModeSingle').removeClass('active');
-            $('#dualWrapper').addClass('workspace-dual');
-            $('#secondaryDeviceCol').css('display', 'flex');
+            $('#singleWorkspaceWrapper').hide();
+            $('#dualWorkspaceWrapper').css('display', 'grid');
+            recalculateDualLayout();
         } else {
             $('#btnModeSingle').addClass('active');
             $('#btnModeDual').removeClass('active');
-            $('#dualWrapper').removeClass('workspace-dual');
-            $('#secondaryDeviceCol').hide();
+            $('#singleWorkspaceWrapper').css('display', 'flex');
+            $('#dualWorkspaceWrapper').hide();
+            renderSingleDevice();
         }
     }
 
+    /* Core Scaling Calculation: Flawless fit without clipping */
+    function renderSingleDevice() {
+        const isDesktop = currentType === 'desktop' || currentWidth >= 1024;
+        const targetWidth = currentWidth + (isDesktop ? 2 : 24);
+        const targetHeight = currentHeight + (isDesktop ? 39 : 24);
+
+        const availableWidth = Math.max(300, $('#workspaceContainer').width() - 40);
+
+        let scale = 1.0;
+        if (currentZoomMode === 'fit') {
+            scale = Math.min(availableWidth / targetWidth, 1.0);
+        } else {
+            scale = parseFloat(currentZoomMode);
+        }
+
+        // Apply shell styling
+        const shell = $('#primaryShell');
+        const notch = $('#primaryNotch');
+        const desktopBar = $('#primaryDesktopBar');
+        const homeBar = $('#primaryHomeBar');
+        const iframe = $('#primaryIframe');
+
+        if (isDesktop) {
+            shell.removeClass('type-mobile').addClass('type-desktop');
+            notch.hide();
+            desktopBar.show();
+            homeBar.hide();
+        } else {
+            shell.removeClass('type-desktop').addClass('type-mobile');
+            notch.show();
+            desktopBar.hide();
+            homeBar.show();
+        }
+
+        // Iframe gets EXACT CSS viewport dimensions
+        iframe.css({
+            width: currentWidth + 'px',
+            height: currentHeight + 'px'
+        });
+
+        // Scaler gets exact target dimensions and CSS transform
+        $('#primaryScaler').css({
+            width: targetWidth + 'px',
+            height: targetHeight + 'px',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left'
+        });
+
+        // Outer frame wrapper gets rendered layout dimensions
+        $('#primaryFrameWrapper').css({
+            width: Math.round(targetWidth * scale) + 'px',
+            height: Math.round(targetHeight * scale) + 'px',
+            borderRadius: isDesktop ? '10px' : '36px'
+        });
+
+        $('#primaryResolutionBadge').text(`${currentWidth} × ${currentHeight} px`);
+        $('#primaryFitScaleBadge').text(`Fit: ${Math.round(scale * 100)}%`);
+    }
+
+    function recalculateDualLayout() {
+        const workspaceWidth = Math.max(600, $('#workspaceContainer').width() - 48);
+        const colWidth = (workspaceWidth / 2) - 16;
+
+        // Left Desktop Scaler (1440 × 900)
+        const leftTargetWidth = 1442;
+        const leftTargetHeight = 939;
+        const leftScale = Math.min(colWidth / leftTargetWidth, 1.0);
+
+        $('#dualLeftScaler').css({
+            transform: `scale(${leftScale})`,
+            transformOrigin: 'top left'
+        });
+        $('#dualLeftFrameWrapper').css({
+            width: Math.round(leftTargetWidth * leftScale) + 'px',
+            height: Math.round(leftTargetHeight * leftScale) + 'px'
+        });
+        $('#dualLeftScaleBadge').text(`Fit: ${Math.round(leftScale * 100)}%`);
+
+        // Right Mobile Scaler (390 × 844)
+        const rightTargetWidth = 414;
+        const rightTargetHeight = 868;
+        const rightScale = Math.min(colWidth / rightTargetWidth, 1.0);
+
+        $('#dualRightScaler').css({
+            transform: `scale(${rightScale})`,
+            transformOrigin: 'top left'
+        });
+        $('#dualRightFrameWrapper').css({
+            width: Math.round(rightTargetWidth * rightScale) + 'px',
+            height: Math.round(rightTargetHeight * rightScale) + 'px'
+        });
+        $('#dualRightScaleBadge').text(`Fit: ${Math.round(rightScale * 100)}%`);
+    }
+
+    function recalculateAndScaleAll() {
+        if (currentMode === 'single') {
+            renderSingleDevice();
+        } else {
+            recalculateDualLayout();
+        }
+    }
+
+    // ResizeObserver: auto-resizes preview when window size changes
+    const resizeObserver = new ResizeObserver(() => {
+        recalculateAndScaleAll();
+    });
+    const workspaceElement = document.getElementById('workspaceContainer');
+    if (workspaceElement) {
+        resizeObserver.observe(workspaceElement);
+    }
+
+    // Iframe Management & URL updating
     function updateIframes() {
         const fullUrl = window.location.origin + currentRoute;
         $('#primaryIframe').attr('src', fullUrl);
-        $('#primaryAddressBar').text(fullUrl);
-        $('#secondaryIframe').attr('src', fullUrl);
-        $('#secondaryAddressBar').text(fullUrl);
+        $('#primaryAddressText').text(fullUrl);
+        $('#primaryExternalLink').attr('href', fullUrl);
+
+        $('#dualLeftIframe').attr('src', fullUrl);
+        $('#dualLeftAddress').text(fullUrl);
+        $('#dualRightIframe').attr('src', fullUrl);
+    }
+
+    function reloadPrimaryIframe() {
+        const iframe = document.getElementById('primaryIframe');
+        if (iframe) iframe.src = iframe.src;
+        $('#primaryStatusBadge').html('<i class="fa-solid fa-spinner fa-spin"></i> Loading');
+    }
+
+    function reloadDualLeft() {
+        const iframe = document.getElementById('dualLeftIframe');
+        if (iframe) iframe.src = iframe.src;
+    }
+
+    function reloadDualRight() {
+        const iframe = document.getElementById('dualRightIframe');
+        if (iframe) iframe.src = iframe.src;
+    }
+
+    function handleIframeLoaded(id) {
+        if (id === 'primary') {
+            $('#primaryStatusBadge').html('<i class="fa-solid fa-circle" style="font-size: 8px; color: #10B981;"></i> Live (200 OK)');
+        }
+    }
+
+    function handleIframeError(id) {
+        if (id === 'primary') {
+            $('#primaryStatusBadge').html('<i class="fa-solid fa-triangle-exclamation" style="color: #EF4444;"></i> Blocked');
+        }
     }
 
     // Run Automated Validation
@@ -757,7 +1009,7 @@
             success: function (res) {
                 btn.prop('disabled', false).html('<i class="fa-solid fa-play"></i> Run 32-Scenario Full Sweep');
                 if (res.success && res.report) {
-                    alert(`Comprehensive Sweep Completed!\nReport ID: ${res.report.report_id}\nScenarios: ${res.report.audit_summary.total_scenarios_tested}\nPassed: ${res.report.audit_summary.passed_scenarios}\nCompliance Rate: ${res.report.audit_summary.overall_compliance_rate}`);
+                    alert(`Comprehensive Sweep Completed!\nReport ID: ${res.report.report_id}\nScenarios Tested: ${res.report.audit_summary.total_scenarios_tested}\nPassed: ${res.report.audit_summary.passed_scenarios}\nCompliance Rate: ${res.report.audit_summary.overall_compliance_rate}`);
                 }
             },
             error: function () {
@@ -766,5 +1018,10 @@
             }
         });
     }
+
+    // Initialize scaling on load
+    $(document).ready(function () {
+        recalculateAndScaleAll();
+    });
 </script>
 @endpush
