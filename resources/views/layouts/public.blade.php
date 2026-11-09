@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="theme-color" content="#0F1D2F">
+    <link rel="manifest" href="/manifest.json">
     
     <!-- SEO Primary Meta Tags -->
-    <title>@yield('meta_title', 'ClearStay 2.0 - Connected Hotel Operations & Multi-Channel Distribution')</title>
+    <title>@yield('meta_title', 'ClearStay 3.0 - Connected Hotel Operations & Multi-Channel Distribution')</title>
     <meta name="title" content="@yield('meta_title', 'ClearStay 2.0 - Connected Hotel Operations & Multi-Channel Distribution')">
     <meta name="description" content="@yield('meta_description', 'ClearStay 2.0 is an enterprise hotel operations, central inventory, multi-channel distribution, and integration assurance platform.')">
     <meta name="keywords" content="hotel operations platform, channel manager, hotel pms, central inventory, Temairazu, multi-channel distribution, ClearStay">

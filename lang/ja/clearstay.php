@@ -20,6 +20,8 @@ return [
         'logout' => 'ログアウト',
         'register' => 'スタッフ登録',
         'security' => 'サイバーセキュリティ & WAF',
+        'experience_lab' => 'レスポンシブ体験ラボ',
+        'health' => 'システム稼働状態',
         'language' => '言語切替 (Language)',
         'switch_hotel' => 'ホテル切替',
     ],

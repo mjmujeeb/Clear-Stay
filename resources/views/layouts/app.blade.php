@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'ClearStay') - {{ __('clearstay.tagline') }}</title>
+    <meta name="theme-color" content="#0F1D2F">
+    <link rel="manifest" href="/manifest.json">
+    <title>@yield('title', 'ClearStay 3.0') - {{ __('clearstay.tagline') }}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -502,7 +504,14 @@
         }
 
         /* Mobile Responsive */
-        @media (max-width: 768px) {
+        .mobile-menu-toggle {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .mobile-menu-toggle {
+                display: inline-flex !important;
+            }
             .sidebar {
                 left: -260px;
             }
@@ -515,6 +524,96 @@
             .page-content {
                 padding: 16px;
             }
+            .search-trigger {
+                min-width: 130px !important;
+            }
+            .search-trigger kbd {
+                display: none !important;
+            }
+        }
+
+        /* Command Palette Search Styles */
+        .search-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 1050;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 10vh;
+        }
+        .search-modal-backdrop.active {
+            display: flex;
+        }
+        .search-modal-dialog {
+            background: #ffffff;
+            width: 100%;
+            max-width: 620px;
+            border-radius: 14px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            animation: modalPop 0.2s ease-out;
+            border: 1px solid var(--border);
+        }
+        .search-input-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: #ffffff;
+        }
+        .search-input-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-main);
+            background: transparent;
+        }
+        .search-results-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .search-category-header {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            padding: 8px 12px 4px;
+        }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .search-result-item:hover, .search-result-item.highlighted {
+            background: #f1f5f9;
+        }
+        .search-result-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #1e293b;
         }
 
         /* Simple Mode Accessibility Styles */
@@ -553,23 +652,32 @@
 </head>
 <body class="{{ session('clearstay_simple_mode') ? 'simple-mode' : '' }}">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="appSidebar">
         <div class="sidebar-brand">
             <div class="brand-logo" style="background: linear-gradient(135deg, #287F79, #183B50); border: 1px solid rgba(232, 166, 74, 0.4);">
                 <i class="fa-solid fa-hotel" style="color: #E8A64A;"></i>
             </div>
             <div class="brand-text">
-                <h1>ClearStay 2.0</h1>
-                <span style="color: #2DD4BF;">Enterprise Platform</span>
+                <h1>ClearStay 3.0</h1>
+                <span style="color: #2DD4BF;">Enterprise Suite</span>
             </div>
         </div>
 
         <ul class="sidebar-menu">
+            <li class="menu-header">Quality Assurance & Tools</li>
+            <li class="menu-item {{ request()->routeIs('experience_lab.*') ? 'active' : '' }}">
+                <a href="{{ route('experience_lab.index') }}">
+                    <i class="fa-solid fa-microscope" style="color: #2DD4BF;"></i>
+                    <span>体験ラボ (Experience Lab)</span>
+                    <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">3.0</span>
+                </a>
+            </li>
+
             <li class="menu-header">Core Operations</li>
             <li class="menu-item {{ request()->routeIs('overview.*') ? 'active' : '' }}">
                 <a href="{{ route('overview.index') }}">
                     <i class="fa-solid fa-compass" style="color: #38BDF8;"></i>
-                    <span>Unified Overview</span>
+                    <span>統合画面 (Overview)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -581,19 +689,19 @@
             <li class="menu-item {{ request()->routeIs('board.index') ? 'active' : '' }}">
                 <a href="{{ route('board.index') }}">
                     <i class="fa-solid fa-border-all"></i>
-                    <span>{{ __('clearstay.nav.room_board') }}</span>
+                    <span>空室ボード (Room Board)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('reservations.*') ? 'active' : '' }}">
                 <a href="{{ route('reservations.index') }}">
                     <i class="fa-solid fa-calendar-check"></i>
-                    <span>{{ __('clearstay.nav.reservations') }}</span>
+                    <span>予約管理 (Reservations)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}">
                 <a href="{{ route('housekeeping.index') }}">
                     <i class="fa-solid fa-broom"></i>
-                    <span>{{ __('clearstay.nav.housekeeping') }}</span>
+                    <span>清掃管理 (Housekeeping)</span>
                 </a>
             </li>
 
@@ -601,31 +709,31 @@
             <li class="menu-item {{ request()->routeIs('channels.*') ? 'active' : '' }}">
                 <a href="{{ route('channels.index') }}">
                     <i class="fa-solid fa-globe" style="color: #34D399;"></i>
-                    <span>Channels & OTAs</span>
+                    <span>チャネル連携 (Channels)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('bulk_editor.*') ? 'active' : '' }}">
                 <a href="{{ route('bulk_editor.index') }}">
                     <i class="fa-solid fa-layer-group" style="color: #FBBF24;"></i>
-                    <span>Bulk Change Studio</span>
+                    <span>一括更新 (Bulk Studio)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('rates.*') ? 'active' : '' }}">
                 <a href="{{ route('rates.index') }}">
                     <i class="fa-solid fa-tags" style="color: #F472B6;"></i>
-                    <span>Smart Rate Studio</span>
+                    <span>料金管理 (Rate Studio)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('inventory_reconciliation.*') ? 'active' : '' }}">
                 <a href="{{ route('inventory_reconciliation.index') }}">
                     <i class="fa-solid fa-arrows-split-up-and-left" style="color: #2DD4BF;"></i>
-                    <span>Inventory Reconcile</span>
+                    <span>在庫照合 (Inventory)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('payment_reconciliation.*') ? 'active' : '' }}">
                 <a href="{{ route('payment_reconciliation.index') }}">
                     <i class="fa-solid fa-building-columns" style="color: #38BDF8;"></i>
-                    <span>Payment Reconcile</span>
+                    <span>決済照合 (Payment)</span>
                 </a>
             </li>
 
@@ -633,19 +741,19 @@
             <li class="menu-item {{ request()->routeIs('partner_assurance.*') ? 'active' : '' }}">
                 <a href="{{ route('partner_assurance.index') }}">
                     <i class="fa-solid fa-handshake" style="color: #60A5FA;"></i>
-                    <span>Partner Registry & Lab</span>
+                    <span>パートナー品質 (Assurance)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('event_trace.*') ? 'active' : '' }}">
                 <a href="{{ route('event_trace.index') }}">
                     <i class="fa-solid fa-wave-square" style="color: #A78BFA;"></i>
-                    <span>EventTrace Hub</span>
+                    <span>イベント追跡 (EventTrace)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('readiness.*') ? 'active' : '' }}">
                 <a href="{{ route('readiness.index') }}">
                     <i class="fa-solid fa-certificate" style="color: #F59E0B;"></i>
-                    <span>Readiness Reports</span>
+                    <span>接続準備 (Readiness)</span>
                 </a>
             </li>
 
@@ -653,25 +761,31 @@
             <li class="menu-item {{ request()->routeIs('staff.*') ? 'active' : '' }}">
                 <a href="{{ route('staff.index') }}">
                     <i class="fa-solid fa-user-shield" style="color: #38BDF8;"></i>
-                    <span>Staff Governance</span>
+                    <span>権限管理 (Staff Access)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('device_trust.*') ? 'active' : '' }}">
                 <a href="{{ route('device_trust.index') }}">
                     <i class="fa-solid fa-laptop-file" style="color: #34D399;"></i>
-                    <span>Device Trust</span>
+                    <span>端末信頼性 (Device Trust)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('security_governance.*') ? 'active' : '' }}">
                 <a href="{{ route('security_governance.index') }}">
                     <i class="fa-solid fa-brain" style="color: #EC4899;"></i>
-                    <span>Security Intelligence</span>
+                    <span>AIガバナンス (Security AI)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('security.*') ? 'active' : '' }}">
                 <a href="{{ route('security.index') }}">
                     <i class="fa-solid fa-shield-halved"></i>
-                    <span>Threat Center</span>
+                    <span>セキュリティ脅威 (Threats)</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('health.*') ? 'active' : '' }}">
+                <a href="{{ route('health.index') }}">
+                    <i class="fa-solid fa-heart-pulse" style="color: #10B981;"></i>
+                    <span>稼働状態 (System Health)</span>
                 </a>
             </li>
 
@@ -679,13 +793,13 @@
             <li class="menu-item {{ request()->routeIs('booking_analytics.*') ? 'active' : '' }}">
                 <a href="{{ route('booking_analytics.index') }}">
                     <i class="fa-solid fa-chart-line" style="color: #60A5FA;"></i>
-                    <span>Booking Analytics (BA+)</span>
+                    <span>予約分析 (BA+)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                 <a href="{{ route('reports.index') }}">
                     <i class="fa-solid fa-file-lines" style="color: #FBBF24;"></i>
-                    <span>Reports & Exports</span>
+                    <span>帳票出力 (Reports)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('analytics.*') ? 'active' : '' }}">
@@ -737,12 +851,62 @@
     <!-- Main Content Area -->
     <div class="main-wrapper">
         <header class="top-header">
-            <div class="header-title">
-                <h2>@yield('header_title', __('clearstay.app_name'))</h2>
-                <p>@yield('header_subtitle', __('clearstay.tagline'))</p>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <!-- Mobile Sidebar Hamburger Toggle -->
+                <button type="button" class="btn btn-sm btn-secondary mobile-menu-toggle" id="mobileMenuBtn" onclick="toggleMobileSidebar()" title="Toggle Navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="header-title">
+                    <h2>@yield('header_title', __('clearstay.app_name'))</h2>
+                    <p>@yield('header_subtitle', __('clearstay.tagline'))</p>
+                </div>
             </div>
 
             <div class="header-controls">
+                <!-- Global Command Palette Search (Ctrl+K) -->
+                <div class="search-trigger" onclick="openGlobalSearch()" style="cursor: pointer; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); min-width: 200px;" title="Press Ctrl+K to search">
+                    <i class="fa-solid fa-magnifying-glass text-primary"></i>
+                    <span style="flex: 1;">Search everything...</span>
+                    <kbd style="background: #e2e8f0; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Ctrl K</kbd>
+                </div>
+
+                <!-- Notification Bell & Drawer -->
+                <div class="notification-wrapper" style="position: relative;">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleNotificationDrawer()" id="notifBellBtn" style="padding: 7px 11px; position: relative;" title="System Notifications">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge" style="position: absolute; top: -4px; right: -4px; background: #EF4444; color: #fff; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">3</span>
+                    </button>
+                    
+                    <!-- Notification Dropdown Menu -->
+                    <div class="notification-dropdown" id="notifDropdown" style="display: none; position: absolute; right: 0; top: 40px; width: 340px; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; animation: modalPop 0.2s ease-out;">
+                        <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+                            <strong style="font-size: 13px; color: var(--text-main);"><i class="fa-solid fa-bell text-primary"></i> System Notifications</strong>
+                            <button type="button" onclick="clearNotifications()" style="border: none; background: transparent; color: #287F79; font-size: 11px; font-weight: 600; cursor: pointer;">Mark all read</button>
+                        </div>
+                        <div id="notifList" style="max-height: 280px; overflow-y: auto;">
+                            <a href="{{ route('channels.index') }}" style="display: block; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; transition: background 0.15s;">
+                                <div style="font-size: 11px; color: #10B981; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Channel Sync Completed</div>
+                                <div style="font-size: 12px; color: var(--text-main);">Booking.com & Agoda outbox events synced successfully.</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">2 minutes ago</div>
+                            </a>
+                            <a href="{{ route('security_governance.index') }}" style="display: block; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; transition: background 0.15s;">
+                                <div style="font-size: 11px; color: #6366F1; font-weight: 700;"><i class="fa-solid fa-brain"></i> AI Security Advisory</div>
+                                <div style="font-size: 12px; color: var(--text-main);">IEEE sweep generated advisory on TLS 1.3 enforcement.</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">15 minutes ago</div>
+                            </a>
+                            <a href="{{ route('experience_lab.index') }}" style="display: block; padding: 10px 14px; text-decoration: none; color: inherit; transition: background 0.15s;">
+                                <div style="font-size: 11px; color: #2DD4BF; font-weight: 700;"><i class="fa-solid fa-microscope"></i> Experience Lab Ready</div>
+                                <div style="font-size: 12px; color: var(--text-main);">ClearStay 3.0 Responsive Verification Engine online.</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Just now</div>
+                            </a>
+                        </div>
+                        <div style="padding: 8px; text-align: center; background: #f8fafc; border-top: 1px solid var(--border);">
+                            <a href="{{ route('event_trace.index') }}" style="font-size: 11px; color: #287F79; font-weight: 600; text-decoration: none;">View All System Traces &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Simple Mode Toggle -->
                 <form action="{{ route('simple_mode.toggle') }}" method="POST" style="margin: 0;">
                     @csrf
@@ -930,6 +1094,29 @@
         </div>
     </div>
 
+    <!-- Global Command Palette Modal (Ctrl+K) -->
+    <div id="globalSearchModal" class="search-modal-backdrop">
+        <div class="search-modal-dialog">
+            <div class="search-input-box">
+                <i class="fa-solid fa-magnifying-glass text-primary" style="font-size: 18px;"></i>
+                <input type="text" id="globalSearchInput" placeholder="Type a room, reservation code, partner, or command..." autocomplete="off">
+                <span style="font-size: 11px; color: var(--text-muted); background: #f1f5f9; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">ESC to exit</span>
+            </div>
+            
+            <div class="search-results-list" id="searchResultsContainer">
+                <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+                    <i class="fa-solid fa-keyboard fa-2x" style="opacity: 0.4; margin-bottom: 8px;"></i>
+                    <p style="font-size: 13px;">Search across ClearStay 3.0 operations, live reservations, and partners...</p>
+                </div>
+            </div>
+            
+            <div style="padding: 10px 16px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted);">
+                <span>Navigation: <kbd>&uarr;</kbd> <kbd>&darr;</kbd> to navigate, <kbd>&crarr;</kbd> to select</span>
+                <span style="color: #287F79; font-weight: 600;">ClearStay 3.0 Spotlight Engine</span>
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery & Chart.js -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -942,6 +1129,211 @@
                 'Accept': 'application/json'
             }
         });
+
+        // Register PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch((err) => {
+                    console.log('SW registration note:', err);
+                });
+            });
+        }
+
+        // Mobile Sidebar Toggle
+        function toggleMobileSidebar() {
+            $('#appSidebar').toggleClass('mobile-open');
+        }
+
+        // Notification Drawer Toggle
+        function toggleNotificationDrawer() {
+            $('#notifDropdown').toggle();
+        }
+
+        function clearNotifications() {
+            $('#notifBadge').fadeOut(200);
+            $('#notifList').html('<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 12px;"><i class="fa-solid fa-check-double text-success"></i> All notifications caught up!</div>');
+        }
+
+        // Close dropdowns on click outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.notification-wrapper').length) {
+                $('#notifDropdown').hide();
+            }
+        });
+
+        // Global Command Palette (Ctrl+K)
+        let searchDebounceTimer = null;
+
+        function openGlobalSearch() {
+            $('#globalSearchModal').addClass('active');
+            $('#globalSearchInput').val('').focus();
+            loadSearchQuery('');
+        }
+
+        function closeGlobalSearch() {
+            $('#globalSearchModal').removeClass('active');
+        }
+
+        // Keyboard Shortcut: Ctrl+K / Cmd+K and ESC
+        $(document).on('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                if ($('#globalSearchModal').hasClass('active')) {
+                    closeGlobalSearch();
+                } else {
+                    openGlobalSearch();
+                }
+            } else if (e.key === 'Escape') {
+                closeGlobalSearch();
+                closeReservationModal();
+            }
+        });
+
+        $('#globalSearchModal').on('click', function (e) {
+            if ($(e.target).is('#globalSearchModal')) {
+                closeGlobalSearch();
+            }
+        });
+
+        $('#globalSearchInput').on('input', function () {
+            const query = $(this).val();
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                loadSearchQuery(query);
+            }, 180);
+        });
+
+        function loadSearchQuery(q) {
+            $.ajax({
+                url: '{{ route("api.search") }}',
+                method: 'GET',
+                data: { q: q },
+                success: function (res) {
+                    if (res.success) {
+                        renderSearchResults(res.results, q);
+                    }
+                }
+            });
+        }
+
+        function renderSearchResults(data, query) {
+            const container = $('#searchResultsContainer');
+            container.empty();
+
+            if (data.quick_actions) {
+                container.append('<div class="search-category-header"><i class="fa-solid fa-bolt text-primary"></i> Quick Navigation & Tools</div>');
+                data.quick_actions.forEach(function (qa) {
+                    container.append(`
+                        <a href="${qa.url}" class="search-result-item">
+                            <div class="search-result-icon"><i class="fa-solid ${qa.icon}"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 600;">${qa.title}</div>
+                            </div>
+                            <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 10px;">${qa.badge}</span>
+                        </a>
+                    `);
+                });
+                return;
+            }
+
+            let hasAnyResult = false;
+
+            // Pages
+            if (data.pages && data.pages.length > 0) {
+                hasAnyResult = true;
+                container.append('<div class="search-category-header"><i class="fa-solid fa-compass text-primary"></i> System Pages</div>');
+                data.pages.forEach(function (p) {
+                    container.append(`
+                        <a href="${p.url}" class="search-result-item">
+                            <div class="search-result-icon"><i class="fa-solid ${p.icon}"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 600;">${p.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${p.category}</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: #cbd5e1;"></i>
+                        </a>
+                    `);
+                });
+            }
+
+            // Reservations
+            if (data.reservations && data.reservations.length > 0) {
+                hasAnyResult = true;
+                container.append('<div class="search-category-header"><i class="fa-solid fa-calendar-check text-primary"></i> Reservations</div>');
+                data.reservations.forEach(function (r) {
+                    container.append(`
+                        <div class="search-result-item" onclick="${r.action}; closeGlobalSearch();">
+                            <div class="search-result-icon" style="background: #ecfdf5; color: #059669;"><i class="fa-solid ${r.icon}"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 700; color: var(--primary);">${r.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${r.subtitle}</div>
+                            </div>
+                            <span class="badge badge-info" style="font-size: 10px;">Preview</span>
+                        </div>
+                    `);
+                });
+            }
+
+            // Rooms
+            if (data.rooms && data.rooms.length > 0) {
+                hasAnyResult = true;
+                container.append('<div class="search-category-header"><i class="fa-solid fa-door-open text-primary"></i> Rooms</div>');
+                data.rooms.forEach(function (rm) {
+                    container.append(`
+                        <a href="${rm.url}" class="search-result-item">
+                            <div class="search-result-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid ${rm.icon}"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 600;">${rm.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${rm.subtitle}</div>
+                            </div>
+                        </a>
+                    `);
+                });
+            }
+
+            // Channels
+            if (data.channels && data.channels.length > 0) {
+                hasAnyResult = true;
+                container.append('<div class="search-category-header"><i class="fa-solid fa-globe text-primary"></i> Channels & OTAs</div>');
+                data.channels.forEach(function (ch) {
+                    container.append(`
+                        <a href="${ch.url}" class="search-result-item">
+                            <div class="search-result-icon" style="background: #f0fdf4; color: #16a34a;"><i class="fa-solid ${ch.icon}"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 600;">${ch.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${ch.subtitle}</div>
+                            </div>
+                        </a>
+                    `);
+                });
+            }
+
+            // Partners
+            if (data.partners && data.partners.length > 0) {
+                hasAnyResult = true;
+                container.append('<div class="search-category-header"><i class="fa-solid fa-handshake text-primary"></i> Integration Partners</div>');
+                data.partners.forEach(function (pt) {
+                    container.append(`
+                        <a href="${pt.url}" class="search-result-item">
+                            <div class="search-result-icon" style="background: #eff6ff; color: #2563eb;"><i class="fa-solid ${pt.icon}"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 600;">${pt.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${pt.subtitle}</div>
+                            </div>
+                        </a>
+                    `);
+                });
+            }
+
+            if (!hasAnyResult) {
+                container.html(`
+                    <div style="padding: 32px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass fa-2x" style="opacity: 0.3; margin-bottom: 8px;"></i>
+                        <p style="font-size: 13px;">No results found for "${query}"</p>
+                    </div>
+                `);
+            }
+        }
 
         // Global Pop-up Preview Modal Handler
         function openReservationModal(reservationId) {

@@ -20,6 +20,8 @@ return [
         'logout' => 'Sign Out',
         'register' => 'Register Staff',
         'security' => 'Cybersecurity & WAF',
+        'experience_lab' => 'Responsive Experience Lab',
+        'health' => 'System Health',
         'language' => 'Language',
         'switch_hotel' => 'Switch Hotel',
     ],

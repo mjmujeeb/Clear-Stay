@@ -9,7 +9,9 @@ use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceTrustController;
 use App\Http\Controllers\EventTraceController;
+use App\Http\Controllers\ExperienceLabController;
 use App\Http\Controllers\GuestPortalController;
+use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\HousekeepingController;
 use App\Http\Controllers\InventoryReconciliationController;
 use App\Http\Controllers\LocaleController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\ReadinessCentreController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomBoardController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\SecurityGovernanceController;
 use App\Http\Controllers\SimpleModeController;
@@ -206,4 +209,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/export/sync-logs', [ReportsController::class, 'exportSyncLogsCsv'])->name('reports.export_sync_logs');
     Route::get('/reports/export/audit-logs', [ReportsController::class, 'exportAuditLogsCsv'])->name('reports.export_audit_logs');
     Route::get('/reports/export/inventory', [ReportsController::class, 'exportInventoryCsv'])->name('reports.export_inventory');
+
+    /*
+    |--------------------------------------------------------------------------
+    | ClearStay 3.0 Enterprise Upgrades & Responsive Experience Lab
+    |--------------------------------------------------------------------------
+    */
+    // Responsive Experience Lab
+    Route::get('/experience-lab', [ExperienceLabController::class, 'index'])->name('experience_lab.index');
+    Route::post('/experience-lab/validate', [ExperienceLabController::class, 'validateViewport'])->name('experience_lab.validate');
+    Route::post('/experience-lab/sweep', [ExperienceLabController::class, 'runSweep'])->name('experience_lab.sweep');
+    Route::get('/experience-lab/export-report', [ExperienceLabController::class, 'exportReport'])->name('experience_lab.export_report');
+
+    // Unified Global Search (Ctrl+K Command Palette)
+    Route::get('/api/search', [SearchController::class, 'search'])->name('api.search');
+
+    // System Health & Observability Hub
+    Route::get('/health', [HealthCheckController::class, 'index'])->name('health.index');
 });
