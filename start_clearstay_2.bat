@@ -20,9 +20,10 @@ echo   [Front Desk]       frontdesk.tokyo@clearstay.jp(Reservations & Simple Mod
 echo   [Housekeeping]     cleaner.tokyo@clearstay.jp  (Rooms & Tasks)
 echo   [Security Auditor] auditor@clearstay.jp        (Audit Logs & Trace Hub)
 echo ==============================================================================
-echo Starting local development server...
-echo Press Ctrl+C to terminate the server.
+echo Starting local development server and opening your browser...
+echo Press Ctrl+C to stop the server anytime.
 echo.
 
+start "" "http://127.0.0.1:8000"
 php artisan serve --host=127.0.0.1 --port=8000
 pause
