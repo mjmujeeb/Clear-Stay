@@ -216,4 +216,21 @@ return [
         'challenge_failed' => 'Security Challenge: Math verification answer is incorrect. Please try again.',
         'rate_limited' => 'Too many requests from your IP. Temporary cooldown in effect.',
     ],
+
+    'v2' => [
+        'tagline' => 'Smart Hotel Operations, Multi-Channel Distribution, Integration Assurance and Intelligent Access Governance Platform',
+        'simple_mode_on' => 'Simple Mode ON',
+        'simple_mode_off' => 'Simple Mode',
+        'overview' => 'Enterprise Overview',
+        'channels' => 'Distribution Channels',
+        'bulk_editor' => 'Bulk Change Studio',
+        'rates' => 'Smart Rate Studio',
+        'partner_assurance' => 'Partner Assurance Lab',
+        'event_trace' => 'EventTrace Hub',
+        'readiness' => 'Partner Readiness Centre',
+        'staff_governance' => 'Staff Access Governance',
+        'device_trust' => 'Device Trust Certificates',
+        'security_governance' => 'Security Intelligence',
+        'reports' => 'Executive Reports & CSV Exports',
+    ],
 ];

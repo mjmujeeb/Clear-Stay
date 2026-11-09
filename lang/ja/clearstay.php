@@ -216,4 +216,21 @@ return [
         'challenge_failed' => '認証失敗: 計算チャレンジの回答が正しくありません。もう一度お試しください。',
         'rate_limited' => 'このIPからのリクエストが多すぎます。しばらく時間をおいて再試行してください。',
     ],
+
+    'v2' => [
+        'tagline' => 'スマートホテル運営・マルチチャネル販売・システム連携・アクセス管理プラットフォーム',
+        'simple_mode_on' => '簡単モード ON',
+        'simple_mode_off' => '簡単モード',
+        'overview' => '統合オペレーション概要',
+        'channels' => '販売チャネル連携 (OTA)',
+        'bulk_editor' => '一括変更・即時ロールバック',
+        'rates' => 'スマート料金・需要予測',
+        'partner_assurance' => '連携パートナー検証ラボ',
+        'event_trace' => '電文トレース (EventTrace)',
+        'readiness' => '接続適合性レポート',
+        'staff_governance' => '従業員アクセス権限統制',
+        'device_trust' => '端末認証 (Zero-Trust)',
+        'security_governance' => 'セキュリティAIインテリジェンス',
+        'reports' => '経営分析・CSVエクスポート',
+    ],
 ];

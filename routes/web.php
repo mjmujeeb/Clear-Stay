@@ -2,15 +2,27 @@
 
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BulkEditorController;
+use App\Http\Controllers\ChannelManagerController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeviceTrustController;
+use App\Http\Controllers\EventTraceController;
 use App\Http\Controllers\GuestPortalController;
 use App\Http\Controllers\HousekeepingController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\OverviewController;
+use App\Http\Controllers\PartnerAssuranceController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\RateStudioController;
+use App\Http\Controllers\ReadinessCentreController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomBoardController;
 use App\Http\Controllers\SecurityController;
+use App\Http\Controllers\SecurityGovernanceController;
+use App\Http\Controllers\SimpleModeController;
+use App\Http\Controllers\StaffGovernanceController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,4 +109,80 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/security/2fa/setup', [SecurityController::class, 'setup2fa'])->name('security.2fa.setup');
         Route::post('/security/2fa/disable', [SecurityController::class, 'disable2fa'])->name('security.2fa.disable');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ClearStay 2.0 Enterprise Platform Routes
+    |--------------------------------------------------------------------------
+    */
+    // Simple Mode Toggle
+    Route::post('/simple-mode/toggle', [SimpleModeController::class, 'toggle'])->name('simple_mode.toggle');
+
+    // Pillar 1: Enterprise Unified Overview
+    Route::get('/overview', [OverviewController::class, 'index'])->name('overview.index');
+
+    // Pillar 2 & 3: Multi-Channel Distribution & Centralized Outbox Sync
+    Route::get('/channels', [ChannelManagerController::class, 'index'])->name('channels.index');
+    Route::post('/channels/{channel}/connect', [ChannelManagerController::class, 'connect'])->name('channels.connect');
+    Route::post('/channels/{channel}/disconnect', [ChannelManagerController::class, 'disconnect'])->name('channels.disconnect');
+    Route::post('/channels/{channel}/sync', [ChannelManagerController::class, 'syncNow'])->name('channels.sync');
+    Route::post('/channels/sync-all', [ChannelManagerController::class, 'syncAll'])->name('channels.sync_all');
+    Route::post('/channels/{channel}/simulate-error', [ChannelManagerController::class, 'simulateError'])->name('channels.simulate_error');
+    Route::post('/channels/retry-failed', [ChannelManagerController::class, 'retryFailed'])->name('channels.retry_failed');
+
+    // Bulk Change Studio & 1-Click Rollback
+    Route::get('/bulk-editor', [BulkEditorController::class, 'index'])->name('bulk_editor.index');
+    Route::post('/bulk-editor/preview', [BulkEditorController::class, 'preview'])->name('bulk_editor.preview');
+    Route::post('/bulk-editor/commit', [BulkEditorController::class, 'commit'])->name('bulk_editor.commit');
+    Route::post('/bulk-editor/rollback/{batch}', [BulkEditorController::class, 'rollback'])->name('bulk_editor.rollback');
+
+    // Pillar 4: Smart Rate Studio & Calendar Intelligence
+    Route::get('/rate-studio', [RateStudioController::class, 'index'])->name('rates.index');
+    Route::post('/rate-studio/plans', [RateStudioController::class, 'storePlan'])->name('rates.store_plan');
+    Route::post('/rate-studio/events', [RateStudioController::class, 'storeEvent'])->name('rates.store_event');
+    Route::post('/rate-studio/scan-parity', [RateStudioController::class, 'scanParity'])->name('rates.scan_parity');
+
+    // Pillar 5: Partner Assurance & Integration Quality Lab
+    Route::get('/partner-assurance', [PartnerAssuranceController::class, 'index'])->name('partner_assurance.index');
+    Route::get('/partner-assurance/{partner}', [PartnerAssuranceController::class, 'show'])->name('partner_assurance.show');
+    Route::post('/partner-assurance/{partner}/contract', [PartnerAssuranceController::class, 'uploadContract'])->name('partner_assurance.upload_contract');
+    Route::post('/partner-assurance/{partner}/validate-schema', [PartnerAssuranceController::class, 'validateSchema'])->name('partner_assurance.validate_schema');
+    Route::post('/partner-assurance/{partner}/run-scenarios', [PartnerAssuranceController::class, 'runScenarios'])->name('partner_assurance.run_scenarios');
+
+    // Pillar 8: EventTrace & Observability Hub
+    Route::get('/event-traces', [EventTraceController::class, 'index'])->name('event_trace.index');
+    Route::get('/event-traces/{trace}', [EventTraceController::class, 'show'])->name('event_trace.show');
+    Route::post('/event-traces/{trace}/replay', [EventTraceController::class, 'replay'])->name('event_trace.replay');
+
+    // Pillar 9: Partner Readiness Centre
+    Route::get('/readiness', [ReadinessCentreController::class, 'index'])->name('readiness.index');
+    Route::get('/readiness/{report}', [ReadinessCentreController::class, 'show'])->name('readiness.show');
+    Route::post('/readiness/{partner}/generate', [ReadinessCentreController::class, 'generate'])->name('readiness.generate');
+    Route::get('/readiness/{report}/export-csv', [ReadinessCentreController::class, 'exportCsv'])->name('readiness.export_csv');
+
+    // Pillar 6: Hybrid Access Governance & Manager Employee Controls
+    Route::get('/staff-governance', [StaffGovernanceController::class, 'index'])->name('staff.index');
+    Route::get('/staff-governance/{user}/edit', [StaffGovernanceController::class, 'edit'])->name('staff.edit');
+    Route::post('/staff-governance/{user}/role', [StaffGovernanceController::class, 'updateRole'])->name('staff.update_role');
+    Route::post('/staff-governance/{user}/permissions', [StaffGovernanceController::class, 'updatePermissions'])->name('staff.update_permissions');
+    Route::post('/staff-governance/{user}/expiry', [StaffGovernanceController::class, 'updateExpiry'])->name('staff.update_expiry');
+    Route::post('/staff-governance/{user}/suspend', [StaffGovernanceController::class, 'suspend'])->name('staff.suspend');
+    Route::post('/staff-governance/{user}/reactivate', [StaffGovernanceController::class, 'reactivate'])->name('staff.reactivate');
+    Route::post('/staff-governance/{user}/revoke', [StaffGovernanceController::class, 'revoke'])->name('staff.revoke');
+
+    // Device Trust Management
+    Route::get('/device-trust', [DeviceTrustController::class, 'index'])->name('device_trust.index');
+    Route::post('/device-trust/register-current', [DeviceTrustController::class, 'registerCurrent'])->name('device_trust.register_current');
+    Route::post('/device-trust/{device}/revoke', [DeviceTrustController::class, 'revoke'])->name('device_trust.revoke');
+
+    // Pillar 7: Security Intelligence & AI Governance
+    Route::get('/security-governance', [SecurityGovernanceController::class, 'index'])->name('security_governance.index');
+    Route::post('/security-governance/recommendations/{recommendation}', [SecurityGovernanceController::class, 'updateRecommendation'])->name('security_governance.update_recommendation');
+    Route::post('/security-governance/ai-review', [SecurityGovernanceController::class, 'generateAiReview'])->name('security_governance.generate_ai_review');
+
+    // Executive Reports & CSV Exports
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/sync-logs', [ReportsController::class, 'exportSyncLogsCsv'])->name('reports.export_sync_logs');
+    Route::get('/reports/export/audit-logs', [ReportsController::class, 'exportAuditLogsCsv'])->name('reports.export_audit_logs');
+    Route::get('/reports/export/inventory', [ReportsController::class, 'exportInventoryCsv'])->name('reports.export_inventory');
 });

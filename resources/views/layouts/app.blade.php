@@ -16,26 +16,26 @@
     
     <style>
         :root {
-            --primary: #0284c7;
-            --primary-dark: #0369a1;
-            --primary-light: #e0f2fe;
-            --secondary: #0f172a;
-            --sidebar-bg: #0b1329;
-            --sidebar-text: #94a3b8;
-            --sidebar-active: #38bdf8;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --border: #e2e8f0;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --success: #10b981;
-            --success-light: #d1fae5;
-            --warning: #f59e0b;
-            --warning-light: #fef3c7;
-            --danger: #ef4444;
-            --danger-light: #fee2e2;
-            --info: #3b82f6;
-            --info-light: #dbeafe;
+            --primary: #183B50;
+            --primary-dark: #0F2942;
+            --primary-accent: #287F79;
+            --accent-gold: #E8A64A;
+            --sidebar-bg: #0F1D2F;
+            --sidebar-text: #94A3B8;
+            --sidebar-active: #2DD4BF;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --info: #0284C7;
+            --info-light: #E0F2FE;
         }
 
         * {
@@ -516,25 +516,62 @@
                 padding: 16px;
             }
         }
+
+        /* Simple Mode Accessibility Styles */
+        body.simple-mode {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        body.simple-mode .card-body, body.simple-mode .table, body.simple-mode .page-content {
+            font-size: 17px;
+        }
+        body.simple-mode .btn {
+            padding: 12px 22px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        body.simple-mode .badge {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+        body.simple-mode .table th, body.simple-mode .table td {
+            padding: 15px 18px;
+        }
+        body.simple-mode .sidebar-menu .menu-item a {
+            font-size: 16px;
+            padding: 14px 16px;
+        }
+        body.simple-mode .sidebar {
+            width: 290px;
+        }
+        body.simple-mode .main-wrapper {
+            margin-left: 290px;
+        }
     </style>
 
     @stack('styles')
 </head>
-<body>
+<body class="{{ session('clearstay_simple_mode') ? 'simple-mode' : '' }}">
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">
-                <i class="fa-solid fa-hotel"></i>
+            <div class="brand-logo" style="background: linear-gradient(135deg, #287F79, #183B50); border: 1px solid rgba(232, 166, 74, 0.4);">
+                <i class="fa-solid fa-hotel" style="color: #E8A64A;"></i>
             </div>
             <div class="brand-text">
-                <h1>ClearStay</h1>
-                <span>Operations v1.0</span>
+                <h1>ClearStay 2.0</h1>
+                <span style="color: #2DD4BF;">Enterprise Platform</span>
             </div>
         </div>
 
         <ul class="sidebar-menu">
-            <li class="menu-header">Front Desk & Board</li>
+            <li class="menu-header">Core Operations</li>
+            <li class="menu-item {{ request()->routeIs('overview.*') ? 'active' : '' }}">
+                <a href="{{ route('overview.index') }}">
+                    <i class="fa-solid fa-compass" style="color: #38BDF8;"></i>
+                    <span>Unified Overview</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <a href="{{ route('dashboard') }}">
                     <i class="fa-solid fa-chart-line"></i>
@@ -553,8 +590,6 @@
                     <span>{{ __('clearstay.nav.reservations') }}</span>
                 </a>
             </li>
-
-            <li class="menu-header">Housekeeping & Operations</li>
             <li class="menu-item {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}">
                 <a href="{{ route('housekeeping.index') }}">
                     <i class="fa-solid fa-broom"></i>
@@ -562,8 +597,79 @@
                 </a>
             </li>
 
-            @if(auth()->user()->isManager())
-            <li class="menu-header">Management & Growth</li>
+            <li class="menu-header">Distribution & Revenue</li>
+            <li class="menu-item {{ request()->routeIs('channels.*') ? 'active' : '' }}">
+                <a href="{{ route('channels.index') }}">
+                    <i class="fa-solid fa-globe" style="color: #34D399;"></i>
+                    <span>Channels & OTAs</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('bulk_editor.*') ? 'active' : '' }}">
+                <a href="{{ route('bulk_editor.index') }}">
+                    <i class="fa-solid fa-layer-group" style="color: #FBBF24;"></i>
+                    <span>Bulk Change Studio</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('rates.*') ? 'active' : '' }}">
+                <a href="{{ route('rates.index') }}">
+                    <i class="fa-solid fa-tags" style="color: #F472B6;"></i>
+                    <span>Smart Rate Studio</span>
+                </a>
+            </li>
+
+            <li class="menu-header">Partner Assurance</li>
+            <li class="menu-item {{ request()->routeIs('partner_assurance.*') ? 'active' : '' }}">
+                <a href="{{ route('partner_assurance.index') }}">
+                    <i class="fa-solid fa-handshake" style="color: #60A5FA;"></i>
+                    <span>Partner Registry & Lab</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('event_trace.*') ? 'active' : '' }}">
+                <a href="{{ route('event_trace.index') }}">
+                    <i class="fa-solid fa-wave-square" style="color: #A78BFA;"></i>
+                    <span>EventTrace Hub</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('readiness.*') ? 'active' : '' }}">
+                <a href="{{ route('readiness.index') }}">
+                    <i class="fa-solid fa-certificate" style="color: #F59E0B;"></i>
+                    <span>Readiness Reports</span>
+                </a>
+            </li>
+
+            <li class="menu-header">Governance & Security</li>
+            <li class="menu-item {{ request()->routeIs('staff.*') ? 'active' : '' }}">
+                <a href="{{ route('staff.index') }}">
+                    <i class="fa-solid fa-user-shield" style="color: #38BDF8;"></i>
+                    <span>Staff Governance</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('device_trust.*') ? 'active' : '' }}">
+                <a href="{{ route('device_trust.index') }}">
+                    <i class="fa-solid fa-laptop-file" style="color: #34D399;"></i>
+                    <span>Device Trust</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('security_governance.*') ? 'active' : '' }}">
+                <a href="{{ route('security_governance.index') }}">
+                    <i class="fa-solid fa-brain" style="color: #EC4899;"></i>
+                    <span>Security Intelligence</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('security.*') ? 'active' : '' }}">
+                <a href="{{ route('security.index') }}">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Threat Center</span>
+                </a>
+            </li>
+
+            <li class="menu-header">Executive & Analytics</li>
+            <li class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                <a href="{{ route('reports.index') }}">
+                    <i class="fa-solid fa-file-lines" style="color: #FBBF24;"></i>
+                    <span>Reports & Exports</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('analytics.*') ? 'active' : '' }}">
                 <a href="{{ route('analytics.index') }}">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -576,31 +682,29 @@
                     <span>{{ __('clearstay.nav.csv_import') }}</span>
                 </a>
             </li>
-            <li class="menu-item {{ request()->routeIs('security.*') ? 'active' : '' }}">
-                <a href="{{ route('security.index') }}">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span>{{ __('clearstay.nav.security') }}</span>
-                </a>
-            </li>
-            @endif
 
             <li class="menu-header">Public Website</li>
             <li class="menu-item">
                 <a href="{{ route('public.home') }}" target="_blank">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    <span>{{ __('clearstay.nav.home') }} (Public)</span>
+                    <span>{{ __('clearstay.nav.home') }}</span>
                 </a>
             </li>
         </ul>
 
         <div class="sidebar-footer">
             <div class="user-pill">
-                <div class="user-avatar">
+                <div class="user-avatar" style="background: #183B50; color: #E8A64A; border: 1px solid #287F79;">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
                 <div class="user-info">
                     <div class="user-name">{{ auth()->user()->name }}</div>
-                    <div class="user-role">{{ auth()->user()->role }}</div>
+                    <div class="user-role" style="color: #2DD4BF;">
+                        {{ auth()->user()->role }}
+                        @if(auth()->user()->department)
+                            <span style="opacity: 0.7; font-size: 10px;">· {{ auth()->user()->department }}</span>
+                        @endif
+                    </div>
                 </div>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
@@ -621,6 +725,15 @@
             </div>
 
             <div class="header-controls">
+                <!-- Simple Mode Toggle -->
+                <form action="{{ route('simple_mode.toggle') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-sm" style="{{ session('clearstay_simple_mode') ? 'background: #E8A64A; color: #183B50; font-weight: 700; border: none;' : 'background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1;' }}" title="Toggle between High-Readability Simple Mode and Standard Full Mode">
+                        <i class="fa-solid fa-glasses"></i>
+                        <span>{{ session('clearstay_simple_mode') ? '簡単モード ON' : '簡単モード' }}</span>
+                    </button>
+                </form>
+
                 <!-- Multi-Tenant Hotel Switcher -->
                 <div class="hotel-selector">
                     <i class="fa-solid fa-building text-primary"></i>
@@ -629,7 +742,7 @@
                         <select name="hotel_id" onchange="document.getElementById('hotelSwitchForm').submit();">
                             @php
                                 $currentHotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
-                                $accessibleHotels = auth()->user()->isSuperAdmin() 
+                                $accessibleHotels = (auth()->user()->role === 'superadmin' || auth()->user()->role === 'owner')
                                     ? \App\Models\Hotel::where('is_active', true)->get() 
                                     : \App\Models\Hotel::where('id', auth()->user()->hotel_id)->get();
                             @endphp

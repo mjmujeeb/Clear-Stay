@@ -18,6 +18,19 @@ class SessionIntegrity
     {
         if (Auth::check()) {
             $user = Auth::user();
+
+            if (!$user->isAccountUsable()) {
+                $reason = $user->is_suspended
+                    ? 'Account suspended: ' . ($user->suspension_reason ?? 'Administrative action.')
+                    : 'Account access has expired.';
+
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->with('error', $reason);
+            }
+
             $currentFingerprint = hash('sha256', ($request->header('User-Agent') ?? '') . '|' . $this->getClientSubnet($request->ip()));
 
             if (!$request->session()->has('sec_device_fingerprint')) {
