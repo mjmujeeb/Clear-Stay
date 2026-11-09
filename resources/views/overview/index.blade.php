@@ -112,7 +112,7 @@
                     </div>
                 </div>
                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
-                    IEEE 802 Hybrid RBAC+ABAC active
+                    Context-Aware Hybrid Access Governance Active
                 </div>
             </div>
         </div>

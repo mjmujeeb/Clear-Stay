@@ -2,7 +2,7 @@
 
 @section('title', 'Security Intelligence & AI Governance - ClearStay 2.0')
 @section('header_title', 'Security Intelligence & AI Governance')
-@section('header_subtitle', 'IEEE 802 dynamic risk scoring (0-100), behavioral anomaly detection, and advisory AI governance recommendations.')
+@section('header_subtitle', 'Context-Aware Dynamic Risk Scoring (0–100), Behavioral Anomaly Detection, and Advisory AI Governance Recommendations.')
 
 @section('content')
 <div class="security-governance-container">
@@ -17,7 +17,7 @@
             <form action="{{ route('security_governance.generate_ai_review') }}" method="POST">
                 @csrf
                 <button type="submit" class="btn" style="background: #287F79; color: white; border: none; font-weight: 700;">
-                    <i class="fa-solid fa-brain"></i> Run IEEE AI Security Sweep
+                    <i class="fa-solid fa-brain"></i> Run Context-Aware Security Sweep
                 </button>
             </form>
         </div>
@@ -80,7 +80,7 @@
         @empty
         <div class="card" style="grid-column: 1 / -1;">
             <div class="card-body" style="padding: 24px; text-align: center; color: var(--text-muted);">
-                No active security recommendations. Click "Run IEEE AI Security Sweep" above to execute an advisory scan.
+                No active security recommendations. Click "Run Context-Aware Security Sweep" above to execute an advisory scan.
             </div>
         </div>
         @endforelse

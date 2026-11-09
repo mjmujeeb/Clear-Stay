@@ -20,10 +20,14 @@ class AiGovernanceRecommendation extends Model
         'severity',
         'status',
         'metadata',
+        'reviewed_by',
+        'reviewed_at',
+        'review_notes',
     ];
 
     protected $casts = [
         'metadata' => 'array',
+        'reviewed_at' => 'datetime',
     ];
 
     public function hotel(): BelongsTo
@@ -34,5 +38,37 @@ class AiGovernanceRecommendation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Confidence score accessor (e.g. 0.88 - 0.95).
+     */
+    public function getConfidenceScoreAttribute(): float
+    {
+        return (float) ($this->metadata['confidence_score'] ?? 0.88);
+    }
+
+    /**
+     * Associated risk score (0-100).
+     */
+    public function getRiskScoreAttribute(): int
+    {
+        return (int) ($this->metadata['risk_score'] ?? 20);
+    }
+
+    /**
+     * Suggested actionable steps.
+     */
+    public function getSuggestedActionsAttribute(): array
+    {
+        return (array) ($this->metadata['suggested_actions'] ?? [
+            'Review user role assignments in Staff Directory',
+            'Verify device certificate status in Device Trust Management'
+        ]);
     }
 }

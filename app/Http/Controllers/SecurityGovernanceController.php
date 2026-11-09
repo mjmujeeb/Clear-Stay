@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AiGovernanceRecommendation;
+use App\Models\AuditLog;
 use App\Models\AuthorizationDecision;
 use App\Models\SecurityRiskEvent;
 use App\Services\Governance\AIRecommendationService;
@@ -92,11 +93,22 @@ class SecurityGovernanceController extends Controller
         ]);
 
         AuthorizationDecision::create([
+            'hotel_id' => $hotelId,
             'user_id' => $currentUser->id,
             'action' => 'governance.ai_recommendation_' . $request->input('status'),
-            'decision' => 'allow',
-            'reason' => "AI recommendation '{$recommendation->title}' was {$request->input('status')} by {$currentUser->name}. Notes: {$request->input('review_notes')}",
-            'evaluated_at' => now(),
+            'decision' => 'ALLOW',
+            'explanation' => "AI recommendation '{$recommendation->title}' was {$request->input('status')} by {$currentUser->name}. Notes: {$request->input('review_notes')}",
+            'evaluated_context' => [
+                'recommendation_id' => $recommendation->id,
+                'status' => $request->input('status'),
+                'notes' => $request->input('review_notes'),
+                'ip' => $request->ip(),
+            ],
+        ]);
+
+        AuditLog::record('governance.recommendation_' . $request->input('status'), $recommendation, null, [
+            'status' => $request->input('status'),
+            'notes' => $request->input('review_notes'),
         ]);
 
         return back()->with('success', "AI Recommendation marked as {$request->input('status')}.");
@@ -117,19 +129,46 @@ class SecurityGovernanceController extends Controller
             return back()->with('error', 'Access denied: ' . $decision->getReason());
         }
 
-        $recommendation = $this->aiService->generateAdvisoryRecommendation(
-            user: $currentUser,
-            riskScore: 25,
-            anomalies: [
-                'type' => 'proactive_audit',
-                'description' => 'Periodic IEEE 802 context-aware security sweep across active property accounts.',
-            ],
-            context: [
-                'hotel_id' => $hotelId,
-                'ip' => $request->ip(),
-            ]
-        );
+        try {
+            $recommendation = $this->aiService->generateAdvisoryRecommendation(
+                user: $currentUser,
+                riskScore: 25,
+                anomalies: [
+                    'type' => 'proactive_audit',
+                    'description' => 'Periodic context-aware security sweep across active property accounts.',
+                ],
+                context: [
+                    'hotel_id' => $hotelId,
+                    'ip' => $request->ip(),
+                ]
+            );
 
-        return back()->with('success', "New AI Security Recommendation generated: '{$recommendation->title}' (Confidence: " . round($recommendation->confidence_score * 100) . "%)");
+            // Record audit log
+            AuditLog::record('governance.security_sweep_executed', $recommendation, null, [
+                'recommendation_id' => $recommendation->id,
+                'title' => $recommendation->title,
+                'severity' => $recommendation->severity,
+                'confidence' => $recommendation->confidence_score,
+            ]);
+
+            // Record authorization decision
+            AuthorizationDecision::create([
+                'hotel_id' => $hotelId,
+                'user_id' => $currentUser->id,
+                'action' => 'governance.security_sweep',
+                'decision' => 'ALLOW',
+                'explanation' => "Security sweep executed by {$currentUser->name}. Advisory generated: '{$recommendation->title}'",
+                'evaluated_context' => [
+                    'ip' => $request->ip(),
+                    'recommendation_id' => $recommendation->id,
+                    'confidence_score' => $recommendation->confidence_score,
+                ],
+            ]);
+
+            return back()->with('success', "New AI Security Recommendation generated: '{$recommendation->title}' (Confidence: " . round($recommendation->confidence_score * 100) . "%)");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('AI Security Sweep failed: ' . $e->getMessage(), ['exception' => $e]);
+            return back()->with('error', 'Unable to complete security sweep: ' . $e->getMessage());
+        }
     }
 }
