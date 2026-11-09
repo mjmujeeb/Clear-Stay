@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 07: Double-Booking Prevention Engine
+
+2
+00:00:04.500 --> 00:00:08.500
+行ロックによる二重予約完全防止
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Database-Level SELECT ... FOR UPDATE Row Locking
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Atomic Date-Range Overlap SQL Predicates
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Prevention of Race Conditions under High Concurrency
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Zero Reliance on Client-Side Frontend Checks
+

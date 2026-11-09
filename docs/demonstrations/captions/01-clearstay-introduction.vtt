@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 01: ClearStay Complete Introduction
+
+2
+00:00:04.500 --> 00:00:08.500
+ClearStay 全体概要とアーキテクチャ
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Multi-Tenant Hotel Context Isolation (Tokyo, Kyoto, Osaka)
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Global Navigation & Command Palette (Ctrl+K)
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Live Operational KPIs (Occupancy, ADR, RevPAR)
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Bilingual Japanese / English Real-time Toggle
+

@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 02: Login, User Roles and Navigation
+
+2
+00:00:04.500 --> 00:00:08.500
+ログイン・ユーザー権限ロールとナビゲーション
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Six-Role Architecture: Admin, SecAdmin, Manager, FrontDesk, Housekeeping, Auditor
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Least-Privilege Scoping per Persona
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Contextual Navigation Filtering
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Multi-Factor Authentication & Audit Logging
+

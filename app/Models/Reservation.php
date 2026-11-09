@@ -70,6 +70,11 @@ class Reservation extends Model
         return $this->belongsTo(Room::class);
     }
 
+    public function roomType()
+    {
+        return $this->hasOneThrough(RoomType::class, Room::class, 'id', 'id', 'room_id', 'room_type_id');
+    }
+
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);

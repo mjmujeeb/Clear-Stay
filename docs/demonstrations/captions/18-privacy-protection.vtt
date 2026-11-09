@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 18: Privacy & Guest Data Protection (DPDP Act)
+
+2
+00:00:04.500 --> 00:00:08.500
+DPDP個人情報保護とマスキング解除監査
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Default Masking of Phone, Email, and Card Tokens
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Just-in-Time Audited Unmasking with Reason Entry
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Immutable Logging to Privacy Access Ledger
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Tenant Isolation: Tokyo Staff cannot access Kyoto Guests
+

@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 15: Permission Elevation Warnings & Risk Scoring
+
+2
+00:00:04.500 --> 00:00:08.500
+権限昇格リスク評価と警告インターフェイス
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Dynamic Risk Evaluation: Low, Medium, High, Critical
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Explanatory Contextual Warning Cards
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Mandatory Justification Prompt
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Immediate Blocking of Self-Escalation Requests
+

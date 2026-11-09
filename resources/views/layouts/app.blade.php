@@ -1963,7 +1963,30 @@
         document.addEventListener('mouseout', function(e) {
             const el = e.target.closest('[data-tooltip]');
             if (el && !tooltipBubble.classList.contains('touch-active')) {
+                // WCAG 2.2 1.4.13: Hoverable - moving pointer over the tooltip bubble does not dismiss it
+                if (e.relatedTarget && (e.relatedTarget.closest('#clearstayTooltipBubble') || e.relatedTarget.closest('[data-tooltip]'))) {
+                    return;
+                }
                 hideClearstayTooltip();
+            }
+        });
+
+        // WCAG 2.2 1.4.13: Keep tooltip open when hovering the bubble itself
+        tooltipBubble.addEventListener('mouseleave', function(e) {
+            if (!tooltipBubble.classList.contains('touch-active')) {
+                if (e.relatedTarget && e.relatedTarget.closest('[data-tooltip]')) {
+                    return;
+                }
+                hideClearstayTooltip();
+            }
+        });
+
+        // WCAG 2.2 1.4.13: Dismissible via Escape key without moving focus
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                if (tooltipBubble && tooltipBubble.classList.contains('active')) {
+                    hideClearstayTooltip();
+                }
             }
         });
 

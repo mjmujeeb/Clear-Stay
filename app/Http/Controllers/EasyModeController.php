@@ -289,11 +289,194 @@ class EasyModeController extends Controller
             'status' => 'confirmed',
             'payment_status' => 'paid',
             'guest_portal_token' => \Illuminate\Support\Str::random(32),
-            'notes' => 'Created via Easy Mode (かんたん操作)',
+            'special_requests' => 'Created via Easy Mode (かんたん操作)',
         ]);
 
         return redirect()->route('easy_mode.reservations')
             ->with('success', "かんたんモードで予約を登録しました / Reservation {$confirmationCode} created successfully in Easy Mode!");
+    }
+
+    /**
+     * Guided Operation 7: Dedicated 5-Step Receptionist Check-In Wizard.
+     */
+    public function checkinWizard(Request $request)
+    {
+        $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
+        $today = Carbon::today()->toDateString();
+
+        $selectedId = $request->query('reservation_id');
+        $selectedReservation = null;
+        if ($selectedId) {
+            $selectedReservation = Reservation::with(['guest', 'room', 'room.roomType'])
+                ->where('hotel_id', $hotelId)
+                ->find($selectedId);
+        }
+
+        $todayArrivals = Reservation::with(['guest', 'room', 'room.roomType'])
+            ->where('hotel_id', $hotelId)
+            ->whereDate('check_in_date', $today)
+            ->where('status', 'confirmed')
+            ->orderBy('id', 'desc')
+            ->take(12)
+            ->get();
+
+        $availableRooms = Room::with('roomType')
+            ->where('hotel_id', $hotelId)
+            ->where('status', 'clean')
+            ->where('is_occupied', false)
+            ->orderBy('room_number')
+            ->get();
+
+        return view('easy_mode.checkin_wizard', compact(
+            'selectedReservation',
+            'todayArrivals',
+            'availableRooms',
+            'today'
+        ));
+    }
+
+    /**
+     * JSON search endpoint for Check-In Wizard live lookup.
+     */
+    public function searchReservationApi(Request $request)
+    {
+        $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
+        $q = trim($request->input('q', ''));
+
+        if (empty($q)) {
+            return response()->json(['results' => []]);
+        }
+
+        $results = Reservation::with(['guest', 'room', 'room.roomType'])
+            ->where('hotel_id', $hotelId)
+            ->whereIn('status', ['confirmed', 'checked_in'])
+            ->where(function ($sub) use ($q) {
+                $sub->where('confirmation_code', 'LIKE', "%{$q}%")
+                    ->orWhereHas('guest', function ($gq) use ($q) {
+                        $gq->where('first_name', 'LIKE', "%{$q}%")
+                           ->orWhere('last_name', 'LIKE', "%{$q}%")
+                           ->orWhere('phone', 'LIKE', "%{$q}%")
+                           ->orWhere('passport_or_id', 'LIKE', "%{$q}%");
+                    });
+            })
+            ->take(10)
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'confirmation_code' => $r->confirmation_code,
+                    'guest_name' => $r->guest ? "{$r->guest->first_name} {$r->guest->last_name}" : 'Unknown Guest',
+                    'phone' => $r->guest->phone ?? '—',
+                    'passport_or_id' => $r->guest->passport_or_id ?? '—',
+                    'room_number' => $r->room->room_number ?? 'Unassigned',
+                    'room_id' => $r->room_id,
+                    'room_type' => $r->room->roomType->name ?? 'Standard',
+                    'check_in_date' => $r->check_in_date ? $r->check_in_date->format('Y-m-d') : '',
+                    'check_out_date' => $r->check_out_date ? $r->check_out_date->format('Y-m-d') : '',
+                    'nights' => $r->nights ?? 1,
+                    'total_price' => number_format((float)$r->total_price),
+                    'status' => $r->status,
+                ];
+            });
+
+        return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Complete the Check-In Wizard transaction.
+     */
+    public function completeCheckinWizard(Request $request)
+    {
+        $request->validate([
+            'reservation_id' => 'required|exists:reservations,id',
+            'room_id' => 'required|exists:rooms,id',
+            'keycards_issued' => 'nullable|integer|min:1|max:4',
+            'passport_or_id' => 'nullable|string|max:50',
+            'guest_phone' => 'nullable|string|max:30',
+        ]);
+
+        $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
+        $reservationId = $request->input('reservation_id');
+        $roomId = $request->input('room_id');
+        $keycards = $request->input('keycards_issued', 1);
+
+        $result = DB::transaction(function () use ($hotelId, $reservationId, $roomId, $keycards, $request) {
+            $reservation = Reservation::with('guest')
+                ->where('hotel_id', $hotelId)
+                ->lockForUpdate()
+                ->findOrFail($reservationId);
+
+            if ($reservation->status === 'checked_in') {
+                return [
+                    'success' => true,
+                    'already_checked_in' => true,
+                    'reservation' => $reservation,
+                    'message' => 'This reservation is already checked in.',
+                ];
+            }
+
+            $room = Room::where('hotel_id', $hotelId)
+                ->lockForUpdate()
+                ->findOrFail($roomId);
+
+            // Update guest identity if provided
+            if ($reservation->guest) {
+                if ($request->filled('passport_or_id')) {
+                    $reservation->guest->passport_or_id = $request->input('passport_or_id');
+                }
+                if ($request->filled('guest_phone')) {
+                    $reservation->guest->phone = $request->input('guest_phone');
+                }
+                $reservation->guest->save();
+            }
+
+            // Update reservation
+            $reservation->room_id = $room->id;
+            $reservation->status = 'checked_in';
+            $reservation->checked_in_at = now();
+            $specialNotes = $reservation->special_requests ?: '';
+            $reservation->special_requests = trim($specialNotes . " [Easy Mode Check-In: {$keycards} keycard(s) issued at " . now()->format('H:i') . ']');
+            $reservation->save();
+
+            // Mark room occupied
+            $room->is_occupied = true;
+            $room->save();
+
+            // Record in Inventory Ledger if available
+            if (class_exists(\App\Models\InventoryLedgerEntry::class)) {
+                \App\Models\InventoryLedgerEntry::create([
+                    'hotel_id' => $hotelId,
+                    'room_type_id' => $room->room_type_id,
+                    'room_id' => $room->id,
+                    'reservation_id' => $reservation->id,
+                    'stay_date' => $reservation->check_in_date ?? now()->toDateString(),
+                    'previous_availability' => 1,
+                    'new_availability' => 0,
+                    'delta' => -1,
+                    'operation_type' => 'CHECK_IN_OCCUPIED',
+                    'source' => 'EASY_MODE_WIZARD',
+                    'actor_type' => 'USER',
+                    'actor_user_id' => auth()->id() ?? 1,
+                    'correlation_id' => 'EZ-WIZ-' . $reservation->id . '-' . time(),
+                    'idempotency_key' => 'idemp-ezcheckin-' . $reservation->id . '-' . now()->toDateString(),
+                    'notes' => "Check-in completed via 5-step Easy Mode Wizard for {$reservation->confirmation_code} (Room {$room->room_number}, {$keycards} keys issued)",
+                ]);
+            }
+
+            return [
+                'success' => true,
+                'already_checked_in' => false,
+                'reservation' => $reservation->fresh(['guest', 'room', 'room.roomType']),
+                'message' => 'Check-in completed successfully!',
+            ];
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json($result);
+        }
+
+        return redirect()->route('easy_mode.checkin_wizard', ['reservation_id' => $reservationId])
+            ->with('success', "チェックイン完了！ 部屋番号 {$result['reservation']->room->room_number} の鍵 ({$keycards}枚) をお渡しください / Check-in complete! Hand over {$keycards} room key(s).");
     }
 
     /**

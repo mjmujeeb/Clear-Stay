@@ -30,6 +30,7 @@ use App\Http\Controllers\RateStudioController;
 use App\Http\Controllers\ReadinessCentreController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReservationIntegrityController;
 use App\Http\Controllers\RoomBoardController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SecurityController;
@@ -236,6 +237,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Easy Mode — Simplified Hotel Operations (Senior & Nontechnical Staff)
     Route::get('/easy-mode', [EasyModeController::class, 'index'])->name('easy_mode.index');
+    Route::get('/easy-mode/checkin-wizard', [EasyModeController::class, 'checkinWizard'])->name('easy_mode.checkin_wizard');
+    Route::get('/easy-mode/checkin-wizard/search', [EasyModeController::class, 'searchReservationApi'])->name('easy_mode.checkin_wizard.search');
+    Route::post('/easy-mode/checkin-wizard/complete', [EasyModeController::class, 'completeCheckinWizard'])->name('easy_mode.checkin_wizard.complete');
     Route::get('/easy-mode/create', [EasyModeController::class, 'create'])->name('easy_mode.create');
     Route::post('/easy-mode/store', [EasyModeController::class, 'store'])->name('easy_mode.store');
     Route::get('/easy-mode/arrivals', [EasyModeController::class, 'arrivals'])->name('easy_mode.arrivals');
@@ -279,6 +283,16 @@ Route::middleware(['auth'])->group(function () {
     // Learning Centre & Demonstration Video Library
     Route::get('/learning-centre', [LearningCentreController::class, 'index'])->name('learning_centre.index');
     Route::get('/videos/{filename}', [LearningCentreController::class, 'streamVideo'])->name('learning_centre.video_stream');
+    Route::get('/captions/{filename}', [LearningCentreController::class, 'streamCaption'])->name('learning_centre.caption_stream');
+    Route::get('/posters/{filename}', [LearningCentreController::class, 'streamPoster'])->name('learning_centre.poster_stream');
+
+    // Reservation Integrity & Capacity Intelligence
+    Route::get('/reservation-integrity', [ReservationIntegrityController::class, 'index'])->name('reservation_integrity.index');
+    Route::post('/reservation-integrity/simulate', [ReservationIntegrityController::class, 'simulateConcurrency'])->name('reservation_integrity.simulate');
+    Route::post('/reservation-integrity/idempotency', [ReservationIntegrityController::class, 'testIdempotency'])->name('reservation_integrity.idempotency');
+    Route::get('/reservation-integrity/calculate-overbooking', [ReservationIntegrityController::class, 'calculateOverbooking'])->name('reservation_integrity.calculate_overbooking');
+    Route::post('/reservation-integrity/policy', [ReservationIntegrityController::class, 'updatePolicy'])->name('reservation_integrity.update_policy');
+    Route::post('/reservation-integrity/reassign', [ReservationIntegrityController::class, 'reassignRoom'])->name('reservation_integrity.reassign_room');
 
     // Onboarding & Guided Tours API
     Route::get('/api/onboarding/status', [OnboardingController::class, 'status'])->name('onboarding.status');

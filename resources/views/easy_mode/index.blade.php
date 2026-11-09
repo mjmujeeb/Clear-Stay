@@ -144,18 +144,36 @@
     </div>
 </div>
 
+<!-- Receptionist 5-Step Guided Check-In Wizard Banner -->
+<div style="background: linear-gradient(135deg, #0F1D2F 0%, #1F6B66 100%); border-radius: 20px; padding: 28px 32px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 28px; box-shadow: 0 10px 24px rgba(15, 29, 47, 0.15);">
+    <div style="max-width: 650px;">
+        <span style="background: rgba(255, 255, 255, 0.2); color: #A7F3D0; font-size: 13px; font-weight: 800; text-transform: uppercase; padding: 4px 12px; border-radius: 8px; letter-spacing: 0.05em;">
+            <i class="fa-solid fa-sparkles"></i> 4.1 新機能 / Guided Receptionist Flow
+        </span>
+        <h3 style="font-size: 26px; font-weight: 900; margin-top: 10px; margin-bottom: 6px; color: #ffffff;">
+            5ステップ・かんたんチェックイン案内 (Guided Check-In Wizard)
+        </h3>
+        <p style="font-size: 16px; color: #E2E8F0; line-height: 1.5; margin: 0;">
+            シニアスタッフや外国人スタッフでも迷わない直感型ウィザード。検索・本人確認・部屋割当・鍵受渡確認まで1画面で完了。
+        </p>
+    </div>
+    <a href="{{ route('easy_mode.checkin_wizard') }}" class="easy-btn" style="background: #10B981; color: #064E3B; font-weight: 900; font-size: 20px; padding: 16px 36px; border-radius: 14px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+        <i class="fa-solid fa-route"></i> ウィザードを開始する &rarr;
+    </a>
+</div>
+
 <!-- Main 5 Core Operations -->
 <div class="task-grid">
     
     <!-- Task 1: Check In -->
-    <a href="{{ route('easy_mode.arrivals') }}" class="task-tile">
+    <a href="{{ route('easy_mode.checkin_wizard') }}" class="task-tile" style="border-color: #10B981;">
         <div class="task-icon-circle" style="background: #D1FAE5; color: #047857;">
             <i class="fa-solid fa-user-check"></i>
         </div>
-        <div class="task-title">1. チェックイン受付</div>
-        <div class="task-desc">本日ご到着のお客様の受付を行います。お名前とお部屋番号を確認して1タッチで入室完了。</div>
+        <div class="task-title">1. チェックイン受付 (5ステップ)</div>
+        <div class="task-desc">本日ご到着のお客様の受付を行います。ガイドに従って本人確認と鍵の準備を確実に実行。</div>
         <div class="task-badge" style="background: #059669; color: #ffffff;">
-            到着予定 {{ $todayArrivalsCount }} 件 &rarr;
+            到着予定 {{ $todayArrivalsCount }} 件 (案内付き) &rarr;
         </div>
     </a>
 

@@ -1,17 +1,16 @@
-# Demonstration 01: ClearStay 3.0 Platform Overview & Architecture
+# Demonstration Transcript: 01 — ClearStay Complete Introduction
 
-## Objective
-Provide an executive and technical overview of the ClearStay 3.0 enterprise hotel distribution platform, designed to reflect the standards and engineering responsibilities of Temairazu, Inc. (TEMAIRAZU).
+**Japanese Title**: ClearStay 全体概要とアーキテクチャ
+**Category**: PLATFORM TOUR
+**Estimated Duration**: 02:45
 
-## Key Themes
-- Enterprise Multi-Tenant Architecture (Hotels, Room Types, Central Inventory).
-- Real-Time Distribution Engine (OTA, GDS, Direct Booking Channels).
-- High-Performance UI/UX designed for hospitality professionals.
-- Senior-Friendly Easy Mode interface.
-- Developer & QA Responsive Experience Lab.
+## Operational Walkthrough Steps
 
-## Walkthrough Steps
-1. **Header & Navigation**: Access global search (Ctrl + K), system health indicators, and mode switcher.
-2. **Key Metric Tiles**: Review Occupancy Rate (84.2%), ADR (¥24,850), RevPAR (¥20,923), and Active Channels (4/4 Connected).
-3. **Distribution Grid**: Inspect real-time 14-day rate & allocation matrix with instant channel status.
-4. **Audit & Safety**: Note outbox sync queues and audit log trackers verifying ACID compliance.
+- **1. Multi-Tenant Hotel Context Isolation (Tokyo, Kyoto, Osaka)**
+- **2. Global Navigation & Command Palette (Ctrl+K)**
+- **3. Live Operational KPIs (Occupancy, ADR, RevPAR)**
+- **4. Bilingual Japanese / English Real-time Toggle**
+
+## Architecture Notes
+
+This feature executes real database transactions, preserves tenant isolation, and maintains immutable audit logs for enterprise review at Temairazu, Inc.

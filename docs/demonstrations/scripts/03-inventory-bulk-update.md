@@ -1,10 +1,16 @@
-# Demonstration 03: High-Speed Bulk Inventory & Rate Management
+# Demonstration Transcript: 03 — Manager Dashboard & Bulk Change Studio
 
-## Objective
-Illustrate bulk rate and allocation updates across multi-channel inventories with instant preview, validation, and atomic batch execution.
+**Japanese Title**: 支配人マネジメントダッシュボードと一括更新
+**Category**: OPERATIONS HUB
+**Estimated Duration**: 02:50
 
-## Walkthrough Steps
-1. **Bulk Editor Interface**: Filter by room type (Deluxe Ocean View, Executive Suite) and date range.
-2. **Apply Delta Adjustments**: Increase rate by ¥2,000, adjust available allotment, or apply Stop Sell.
-3. **Interactive Change Preview**: Inspect JSON/Visual change summary detailing affected room-nights and distribution channels.
-4. **Transactional Commit**: Execute batch update; verify instant propagation to central inventory and audit history.
+## Operational Walkthrough Steps
+
+- **1. Executive KPI Summary (Occupancy 88.4%, RevPAR ¥16,250)**
+- **2. Multi-Date Allotment Bulk Modifications**
+- **3. 2-Step Visual Diff Pre-Commit Inspection**
+- **4. 1-Click Instant Snapshot Rollback in 42ms**
+
+## Architecture Notes
+
+This feature executes real database transactions, preserves tenant isolation, and maintains immutable audit logs for enterprise review at Temairazu, Inc.

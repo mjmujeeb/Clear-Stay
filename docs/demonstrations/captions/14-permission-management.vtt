@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 14: Staff Permission Management & RBAC
+
+2
+00:00:04.500 --> 00:00:08.500
+従業員権限管理とロール割り当て
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Hotel Staff Roster & Department Organization
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Role Assignment: Manager, Front Desk, Housekeeping
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Tenant Isolation per Property Context
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Granular Capability Scoping Matrix
+

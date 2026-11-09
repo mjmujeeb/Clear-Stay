@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 20: Desktop versus Smartphone Demonstration
+
+2
+00:00:04.500 --> 00:00:08.500
+PC・スマホ画面の並行表示・比較実演
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Side-by-Side Dual Frame Preview (1440px vs 390px)
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Zero Horizontal Character Wrapping in Mobile Header
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Responsive Table Swipe Wrappers
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Touch Target Minimums Exceeding 52px
+

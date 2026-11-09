@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', '採用面接デモンストレーションセンター (Interview Demo) - ClearStay 4.0')
-@section('header_title', '採用面接実演センター (Interview Demo Hub)')
-@section('header_subtitle', '手間いらず株式会社 (TEMAIRAZU) Webアプリケーションエンジニア実務能力実証・10の重要シナリオ')
+@section('title', __('clearstay.demo_hub.page_title'))
+@section('header_title', __('clearstay.demo_hub.header_title'))
+@section('header_subtitle', __('clearstay.demo_hub.header_subtitle'))
 
 @section('content')
 <div style="display: flex; flex-direction: column; gap: 24px;">
@@ -13,22 +13,22 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                 <div>
                     <span class="badge" style="background: rgba(45, 212, 191, 0.2); color: #2DD4BF; font-weight: 800; letter-spacing: 0.05em;">
-                        TEMAIRAZU PORTFOLIO DEMONSTRATION
+                        {{ __('clearstay.demo_hub.badge') }}
                     </span>
                     <h2 style="font-size: 24px; font-weight: 800; margin-top: 8px;">
-                        ClearStay 4.0 エンタープライズ機能・10大実演シナリオ
+                        {{ __('clearstay.demo_hub.hero_title') }}
                     </h2>
                     <p style="font-size: 14px; color: #94A3B8; max-width: 800px; margin-top: 4px; line-height: 1.5;">
-                        OTA販売チャネル連携、排他行ロックによる重複予約防止、一括在庫ロールバック、2名承認アクセス統制、DPDP個人情報保護、および高齢者向けかんたん操作の10シナリオを1クリックで実演検証できます。
+                        {{ __('clearstay.demo_hub.hero_desc') }}
                     </p>
                 </div>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <a href="{{ route('experience_lab.index') }}" class="btn btn-sm btn-secondary" style="font-weight: 700;">
-                        <i class="fa-solid fa-microscope" style="color: #2DD4BF;"></i> 体験ラボを開く
+                        <i class="fa-solid fa-microscope" style="color: #2DD4BF;"></i> {{ __('clearstay.demo_hub.btn_lab') }}
                     </a>
                     <a href="{{ route('easy_mode.index') }}" class="btn btn-sm" style="background: #E8A64A; color: #183B50; font-weight: 800;">
-                        <i class="fa-solid fa-person-shelter"></i> かんたん操作
+                        <i class="fa-solid fa-person-shelter"></i> {{ __('clearstay.demo_hub.btn_easy') }}
                     </a>
                 </div>
             </div>
@@ -38,11 +38,18 @@
     <!-- 10 Scenarios Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
         @foreach($scenarios as $sc)
+            @php
+                $sId = $sc['id'];
+                $sTitle = __("clearstay.demo_hub.scenarios.{$sId}.title");
+                $sCat = __("clearstay.demo_hub.scenarios.{$sId}.category");
+                $sDesc = __("clearstay.demo_hub.scenarios.{$sId}.description");
+                $sBadge = __("clearstay.demo_hub.scenarios.{$sId}.badge");
+            @endphp
             <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #287F79;">
                 <div class="card-body" style="padding: 22px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <span class="badge" style="background: #E6F3F2; color: #287F79; font-weight: 800; font-size: 11px;">
-                            {{ $sc['badge'] }}
+                            {{ $sBadge }}
                         </span>
                         <div style="width: 36px; height: 36px; border-radius: 8px; background: #f1f5f9; color: #183B50; display: flex; align-items: center; justify-content: center; font-size: 16px;">
                             <i class="fa-solid {{ $sc['icon'] }}"></i>
@@ -50,19 +57,19 @@
                     </div>
 
                     <h3 style="font-size: 16px; font-weight: 800; color: #183B50; margin-bottom: 6px;">
-                        {{ $sc['title'] }}
+                        {{ $sTitle }}
                     </h3>
                     <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
-                        {{ $sc['category'] }}
+                        {{ $sCat }}
                     </div>
                     <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 18px;">
-                        {{ $sc['description'] }}
+                        {{ $sDesc }}
                     </p>
                 </div>
 
                 <div style="padding: 14px 22px; background: #f8fafc; border-top: 1px solid var(--border);">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="executeInterviewScenario({{ $sc['id'] }})" style="width: 100%; justify-content: center; background: #287F79; font-weight: 700;">
-                        <i class="fa-solid fa-play"></i> このシナリオを実演実行する
+                    <button type="button" class="btn btn-sm btn-primary" onclick="executeInterviewScenario({{ $sId }})" style="width: 100%; justify-content: center; background: #287F79; font-weight: 700;">
+                        <i class="fa-solid fa-play"></i> {{ __('clearstay.demo_hub.run_scenario') }}
                     </button>
                 </div>
             </div>
@@ -73,9 +80,9 @@
     <div class="card" style="border: 1px solid #1E293B; background: #0B1320; color: #F8FAFC;">
         <div class="card-header" style="background: #0F1D2F; border-bottom: 1px solid #1E293B; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="color: #2DD4BF; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-circle-nodes"></i> 実演結果コンソール (Live Scenario Verification Output)
+                <i class="fa-solid fa-circle-nodes"></i> {{ __('clearstay.demo_hub.telemetry_title') }}
             </h3>
-            <span id="demoStatusBadge" style="font-size: 12px; color: #94A3B8;">待機中 (Select a scenario above to execute)</span>
+            <span id="demoStatusBadge" style="font-size: 12px; color: #94A3B8;">{{ __('clearstay.demo_hub.no_run_yet') }}</span>
         </div>
         <div class="card-body" style="padding: 20px;">
             <div id="demoVisualBox" style="margin-bottom: 16px; display: none;">
@@ -85,7 +92,7 @@
                 </div>
             </div>
 
-            <pre id="demoJsonOutput" style="background: #050A14; border: 1px solid #1E293B; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; color: #38BDF8; overflow-x: auto; max-height: 380px;">// Scenario execution telemetry will display here.</pre>
+            <pre id="demoJsonOutput" style="background: #050A14; border: 1px solid #1E293B; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; color: #38BDF8; overflow-x: auto; max-height: 380px;">// {{ __('clearstay.demo_hub.no_run_yet') }}</pre>
         </div>
     </div>
 
@@ -94,7 +101,7 @@
 @push('scripts')
 <script>
     function executeInterviewScenario(id) {
-        $('#demoStatusBadge').html('<i class="fa-solid fa-spinner fa-spin"></i> シナリオ実行中...');
+        $('#demoStatusBadge').html('<i class="fa-solid fa-spinner fa-spin"></i> {{ __("clearstay.demo_hub.running") }}');
         $('#demoVisualBox').hide();
         $('#demoJsonOutput').text('Executing scenario #' + id + ' across ClearStay database and service layer...');
 
@@ -111,7 +118,7 @@
             },
             success: function(res) {
                 if (res.success) {
-                    $('#demoStatusBadge').html('<span style="color: #2DD4BF;"><i class="fa-solid fa-circle-check"></i> 実行成功 (Pass)</span>');
+                    $('#demoStatusBadge').html('<span style="color: #2DD4BF;"><i class="fa-solid fa-circle-check"></i> Status: SUCCESS (Verified)</span>');
                     const d = res.data;
                     $('#demoTitle').text(d.title || ('Scenario #' + id + ' Execution Result'));
                     $('#demoSummary').text(d.summary || 'Scenario completed successfully with all backend assertions verified.');
@@ -120,7 +127,7 @@
                 }
             },
             error: function(xhr) {
-                $('#demoStatusBadge').html('<span style="color: #EF4444;"><i class="fa-solid fa-circle-xmark"></i> 実行エラー</span>');
+                $('#demoStatusBadge').html('<span style="color: #EF4444;"><i class="fa-solid fa-circle-xmark"></i> Execution Error</span>');
                 $('#demoJsonOutput').text(JSON.stringify(xhr.responseJSON || xhr.responseText, null, 2));
             }
         });

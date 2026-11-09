@@ -40,10 +40,10 @@ class InterviewDemoHubTest extends TestCase
     public function test_interview_demo_hub_renders_all_10_scenarios(): void
     {
         $response = $this->actingAs($this->manager)
-            ->get(route('interview_demo.index'));
+            ->get(route('interview_demo.index', ['locale' => 'en']));
 
         $response->assertStatus(200);
-        $response->assertSee('採用面接実演センター');
+        $response->assertSee('Interview Demonstration Hub');
         $response->assertSee('01 — Multi-Channel Inventory Sync');
         $response->assertSee('02 — Concurrency-Safe Date Change');
         $response->assertSee('03 — Bulk Change Studio & 1-Click Rollback');

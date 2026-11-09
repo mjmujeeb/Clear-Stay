@@ -44,11 +44,11 @@ class LearningCentreAndOnboardingTest extends TestCase
 
     public function test_learning_centre_hub_renders_successfully(): void
     {
-        $response = $this->actingAs($this->user)->get('/learning-centre');
+        $response = $this->actingAs($this->user)->get('/learning-centre?locale=en');
 
         $response->assertStatus(200);
         $response->assertSee('Learning Centre');
-        $response->assertSee('Platform Overview');
+        $response->assertSee('ClearStay Complete Introduction');
         $response->assertSee('Reservation');
         $response->assertSee('Bulk Change');
         $response->assertSee('Synchronization');

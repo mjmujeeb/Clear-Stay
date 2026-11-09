@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 08: Concurrent Reservation Simulation Lab
+
+2
+00:00:04.500 --> 00:00:08.500
+同時アクセス並行予約シミュレーション
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Simulating 10 Simultaneous Guests for 1 Room
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Exactly 1 Reservation Accepted, 9 Graceful 409 Conflicts
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Idempotency Key Deduplication for Webhooks & Retries
+
+6
+00:00:24.000 --> 00:00:28.000
+4. Immutable Inventory Ledger Audit Entry
+

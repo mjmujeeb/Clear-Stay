@@ -1,0 +1,26 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.000
+ClearStay 11: Bulk Change Studio and Snapshot Rollback
+
+2
+00:00:04.500 --> 00:00:08.500
+一括更新スタジオと即時ロールバック
+
+3
+00:00:09.000 --> 00:00:13.000
+1. Multi-Date Allotment Matrix Updates
+
+4
+00:00:14.000 --> 00:00:18.000
+2. Visual Pre-Commit Diff Table
+
+5
+00:00:19.000 --> 00:00:23.000
+3. Atomic Snapshot Creation
+
+6
+00:00:24.000 --> 00:00:28.000
+4. 1-Click Rollback Execution
+
