@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             ClearStaySeeder::class,
             ClearStay2EnterpriseSeeder::class,
             ClearStayTemairazuSeeder::class,
+            ClearStay4AccessGovernanceSeeder::class,
         ]);
     }
 }

@@ -219,6 +219,84 @@ class EasyModeController extends Controller
     }
 
     /**
+     * Guided Operation 6: Easy Mode Create New Reservation Form.
+     */
+    public function create(Request $request)
+    {
+        $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
+        $rooms = Room::with('roomType')
+            ->where('hotel_id', $hotelId)
+            ->orderBy('room_number')
+            ->get();
+
+        $today = Carbon::today()->toDateString();
+        $tomorrow = Carbon::tomorrow()->toDateString();
+
+        return view('easy_mode.create', compact('rooms', 'today', 'tomorrow'));
+    }
+
+    /**
+     * Store new reservation created via Easy Mode.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'guest_name' => 'required|string|min:2|max:100',
+            'guest_phone' => 'nullable|string|max:30',
+            'room_id' => 'required|exists:rooms,id',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+        ]);
+
+        $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
+        $room = Room::with('roomType')->where('hotel_id', $hotelId)->findOrFail($request->input('room_id'));
+
+        $checkIn = Carbon::parse($request->input('check_in_date'));
+        $checkOut = Carbon::parse($request->input('check_out_date'));
+        $nights = max(1, $checkIn->diffInDays($checkOut));
+
+        $nameParts = explode(' ', trim($request->input('guest_name')), 2);
+        $firstName = $nameParts[0];
+        $lastName = $nameParts[1] ?? 'Guest';
+
+        $guest = Guest::firstOrCreate(
+            [
+                'hotel_id' => $hotelId,
+                'email' => strtolower($firstName . '.' . $lastName . '@guest.clearstay.jp'),
+            ],
+            [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'phone' => $request->input('guest_phone') ?: '+81-90-0000-' . rand(1000, 9999),
+            ]
+        );
+
+        $pricePerNight = $room->roomType->base_price ?? 15000;
+        $totalPrice = $pricePerNight * $nights;
+        $confirmationCode = 'CS-EZ-' . strtoupper(\Illuminate\Support\Str::random(6));
+
+        $res = Reservation::create([
+            'hotel_id' => $hotelId,
+            'guest_id' => $guest->id,
+            'room_id' => $room->id,
+            'confirmation_code' => $confirmationCode,
+            'check_in_date' => $checkIn->toDateString(),
+            'check_out_date' => $checkOut->toDateString(),
+            'nights' => $nights,
+            'adults' => 1,
+            'children' => 0,
+            'total_price' => $totalPrice,
+            'status' => 'confirmed',
+            'payment_status' => 'paid',
+            'guest_portal_token' => \Illuminate\Support\Str::random(32),
+            'notes' => 'Created via Easy Mode (かんたん操作)',
+        ]);
+
+        return redirect()->route('easy_mode.reservations')
+            ->with('success', "かんたんモードで予約を登録しました / Reservation {$confirmationCode} created successfully in Easy Mode!");
+    }
+
+    /**
      * Toggle Easy Mode Session State.
      */
     public function toggle(Request $request)

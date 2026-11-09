@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AccessGovernanceController;
+use App\Http\Controllers\AccessibilityController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingAnalyticsController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\ExperienceLabController;
 use App\Http\Controllers\GuestPortalController;
 use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\HousekeepingController;
+use App\Http\Controllers\InterviewDemoController;
 use App\Http\Controllers\InventoryReconciliationController;
 use App\Http\Controllers\LearningCentreController;
 use App\Http\Controllers\LocaleController;
@@ -21,6 +24,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\PartnerAssuranceController;
 use App\Http\Controllers\PaymentReconciliationController;
+use App\Http\Controllers\PrivacyCentreController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RateStudioController;
 use App\Http\Controllers\ReadinessCentreController;
@@ -232,6 +236,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Easy Mode — Simplified Hotel Operations (Senior & Nontechnical Staff)
     Route::get('/easy-mode', [EasyModeController::class, 'index'])->name('easy_mode.index');
+    Route::get('/easy-mode/create', [EasyModeController::class, 'create'])->name('easy_mode.create');
+    Route::post('/easy-mode/store', [EasyModeController::class, 'store'])->name('easy_mode.store');
     Route::get('/easy-mode/arrivals', [EasyModeController::class, 'arrivals'])->name('easy_mode.arrivals');
     Route::post('/easy-mode/check-in/{id}', [EasyModeController::class, 'checkIn'])->name('easy_mode.check_in');
     Route::get('/easy-mode/departures', [EasyModeController::class, 'departures'])->name('easy_mode.departures');
@@ -240,6 +246,35 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/easy-mode/rooms/{id}/status', [EasyModeController::class, 'updateRoomStatus'])->name('easy_mode.update_room_status');
     Route::get('/easy-mode/reservations', [EasyModeController::class, 'reservations'])->name('easy_mode.reservations');
     Route::post('/easy-mode/toggle', [EasyModeController::class, 'toggle'])->name('easy_mode.toggle');
+
+    /*
+    |--------------------------------------------------------------------------
+    | ClearStay 4.0 Enterprise Governance, Privacy & Accessibility Routes
+    |--------------------------------------------------------------------------
+    */
+    // Six-Role Access Governance & Manager Permission Elevation
+    Route::get('/access-governance', [AccessGovernanceController::class, 'index'])->name('access_governance.index');
+    Route::post('/access-governance/evaluate-risk', [AccessGovernanceController::class, 'evaluateRisk'])->name('access_governance.evaluate_risk');
+    Route::post('/access-governance/grant', [AccessGovernanceController::class, 'submitGrant'])->name('access_governance.grant');
+    Route::post('/access-governance/requests/{id}/approve', [AccessGovernanceController::class, 'approveRequest'])->name('access_governance.approve_request');
+    Route::post('/access-governance/requests/{id}/reject', [AccessGovernanceController::class, 'rejectRequest'])->name('access_governance.reject_request');
+    Route::post('/access-governance/revoke/{id}', [AccessGovernanceController::class, 'revokePermission'])->name('access_governance.revoke');
+    Route::get('/access-governance/demo', [AccessGovernanceController::class, 'demo'])->name('access_governance.demo');
+    Route::post('/access-governance/demo/scenario/{scenarioId}', [AccessGovernanceController::class, 'runScenario'])->name('access_governance.run_scenario');
+    Route::post('/access-governance/demo/switch/{role}', [AccessGovernanceController::class, 'switchDemoUser'])->name('access_governance.switch_demo_user');
+
+    // Privacy & Data Protection Centre (DPDP Act 2023 / Rules 2025)
+    Route::get('/privacy-centre', [PrivacyCentreController::class, 'index'])->name('privacy_centre.index');
+    Route::post('/privacy-centre/unmask/{guestId}', [PrivacyCentreController::class, 'unmask'])->name('privacy_centre.unmask');
+    Route::get('/privacy-centre/export-audit', [PrivacyCentreController::class, 'exportAuditReport'])->name('privacy_centre.export_audit');
+
+    // Universal Accessibility Centre (WCAG 2.2 AA)
+    Route::get('/accessibility', [AccessibilityController::class, 'index'])->name('accessibility.index');
+    Route::post('/accessibility/update', [AccessibilityController::class, 'update'])->name('accessibility.update');
+
+    // Interview Demonstration Centre (10 Core Scenarios)
+    Route::get('/demo-centre', [InterviewDemoController::class, 'index'])->name('interview_demo.index');
+    Route::post('/demo-centre/scenario/{id}', [InterviewDemoController::class, 'executeScenario'])->name('interview_demo.execute');
 
     // Learning Centre & Demonstration Video Library
     Route::get('/learning-centre', [LearningCentreController::class, 'index'])->name('learning_centre.index');

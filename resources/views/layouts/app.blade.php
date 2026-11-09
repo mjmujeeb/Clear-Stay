@@ -503,6 +503,99 @@
             gap: 12px;
         }
 
+        /* Accessibility & Contrast Profiles */
+        .skip-link {
+            position: absolute;
+            top: -60px;
+            left: 14px;
+            background: #287F79;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            z-index: 10000;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: top 0.2s ease;
+        }
+        .skip-link:focus {
+            top: 14px;
+            outline: 3px solid #E8A64A;
+        }
+
+        /* Fluid Font Scaling (WCAG 1.4.10 Reflow Tested) */
+        body.font-scale-125 { font-size: 110%; }
+        body.font-scale-150 { font-size: 125%; }
+        body.font-scale-200 { font-size: 140%; }
+        body.font-scale-300 { font-size: 160%; }
+
+        /* Motion Preference */
+        body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        /* Contrast Themes (WCAG 2.2 AA / AAA) */
+        body.theme-high_contrast_light {
+            --bg: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --text-main: #000000;
+            --text-muted: #1F2937;
+            --border: #000000;
+            --primary: #000000;
+            --primary-dark: #111111;
+        }
+        body.theme-high_contrast_light .card,
+        body.theme-high_contrast_light .top-header,
+        body.theme-high_contrast_light table.data-table th,
+        body.theme-high_contrast_light table.data-table td {
+            border-color: #000000 !important;
+        }
+
+        body.theme-high_contrast_dark {
+            --bg: #050505;
+            --card-bg: #111111;
+            --text-main: #FFFFFF;
+            --text-muted: #CBD5E1;
+            --border: #334155;
+            --primary: #FBBF24;
+            --primary-dark: #F59E0B;
+        }
+        body.theme-high_contrast_dark .top-header {
+            background: #111111 !important;
+            border-color: #334155 !important;
+        }
+        body.theme-high_contrast_dark .card {
+            background: #111111 !important;
+            border-color: #334155 !important;
+        }
+        body.theme-high_contrast_dark .data-table tr:hover td {
+            background: #1E293B !important;
+        }
+
+        body.theme-monochrome {
+            filter: grayscale(100%);
+        }
+
+        body.theme-colorblind .badge-clean { background: #DBEAFE !important; color: #1E40AF !important; }
+        body.theme-colorblind .badge-dirty { background: #FEF3C7 !important; color: #92400E !important; }
+
+        /* Critical Header Wrapping & Mobile Responsiveness Fix */
+        .btn, .btn-sm, .badge, .lang-switch a {
+            white-space: nowrap !important;
+            flex-shrink: 0;
+        }
+
+        .mobile-sidebar-controls {
+            display: none;
+            padding: 14px 16px;
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-direction: column;
+            gap: 12px;
+        }
+
         /* Mobile Responsive */
         .mobile-menu-toggle {
             display: none;
@@ -524,10 +617,54 @@
             .page-content {
                 padding: 16px;
             }
-            .search-trigger {
-                min-width: 130px !important;
+            .mobile-sidebar-controls {
+                display: flex;
             }
-            .search-trigger kbd {
+        }
+
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 8px 12px !important;
+                min-height: 54px;
+            }
+            .header-title h2 {
+                font-size: 15px !important;
+                max-width: 140px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .header-title p {
+                display: none !important;
+            }
+            .header-controls {
+                gap: 6px !important;
+            }
+            .search-trigger {
+                min-width: 36px !important;
+                width: 36px !important;
+                height: 36px !important;
+                padding: 0 !important;
+                justify-content: center !important;
+                border-radius: 8px !important;
+            }
+            .search-trigger span, .search-trigger kbd {
+                display: none !important;
+            }
+            .hide-on-mobile {
+                display: none !important;
+            }
+            .hotel-selector-header {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title h2 {
+                max-width: 105px !important;
+                font-size: 14px !important;
+            }
+            .hide-on-xs {
                 display: none !important;
             }
         }
@@ -783,7 +920,19 @@
 
     @stack('styles')
 </head>
-<body class="{{ session('clearstay_simple_mode') ? 'simple-mode' : '' }}">
+@php
+    $contrastTheme = session('clearstay_contrast_theme', auth()->user()?->contrast_theme ?? 'standard');
+    $fontScale = session('clearstay_font_scale', auth()->user()?->font_scale ?? 100);
+    $reducedMotion = session('clearstay_reduced_motion', auth()->user()?->reduced_motion ?? false);
+    $currentHotelId = session('current_hotel_id') ?? auth()->user()?->hotel_id;
+    $accessibleHotels = (auth()->user() && (auth()->user()->role === 'superadmin' || auth()->user()->role === 'owner'))
+        ? \App\Models\Hotel::where('is_active', true)->get() 
+        : \App\Models\Hotel::where('id', $currentHotelId ?? 1)->get();
+@endphp
+<body class="{{ session('clearstay_simple_mode') ? 'simple-mode' : '' }} theme-{{ $contrastTheme }} font-scale-{{ $fontScale }} {{ $reducedMotion ? 'reduced-motion' : '' }}">
+    <!-- Skip to Main Content Link (WCAG 2.4.1) -->
+    <a href="#mainContent" class="skip-link">本文へスキップ (Skip to main content)</a>
+
     <!-- Sidebar -->
     <aside class="sidebar" id="appSidebar">
         <div class="sidebar-brand">
@@ -791,13 +940,46 @@
                 <i class="fa-solid fa-hotel" style="color: #E8A64A;"></i>
             </div>
             <div class="brand-text">
-                <h1>ClearStay 3.0</h1>
+                <h1>ClearStay 4.0</h1>
                 <span style="color: #2DD4BF;">Enterprise Suite</span>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer Controls (Visible on mobile screens <= 900px) -->
+        <div class="mobile-sidebar-controls">
+            <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">
+                <i class="fa-solid fa-building"></i> プロパティ切替 (Property)
+            </div>
+            <form action="{{ route('hotel.switch') }}" method="POST" id="drawerHotelSwitchForm">
+                @csrf
+                <select name="hotel_id" onchange="document.getElementById('drawerHotelSwitchForm').submit();" style="width: 100%; padding: 8px 10px; border-radius: 6px; background: #1E293B; color: #ffffff; border: 1px solid #334155; font-size: 12px; font-weight: 600;">
+                    @foreach($accessibleHotels as $h)
+                        <option value="{{ $h->id }}" {{ $currentHotelId == $h->id ? 'selected' : '' }}>
+                            {{ $h->name }} ({{ $h->city }})
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <div class="lang-switch">
+                    <a href="{{ route('locale.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
+                    <a href="{{ route('locale.switch', 'ja') }}" class="{{ app()->getLocale() === 'ja' ? 'active' : '' }}">日本語</a>
+                </div>
+                <a href="{{ route('learning_centre.index') }}" class="btn btn-sm" style="background: rgba(40, 127, 121, 0.3); color: #2DD4BF; border: 1px solid #287F79; font-size: 11px;">
+                    <i class="fa-solid fa-film"></i> 動画ガイド
+                </a>
             </div>
         </div>
 
         <ul class="sidebar-menu">
             <li class="menu-header">Quality Assurance & Tools</li>
+            <li class="menu-item {{ request()->routeIs('interview_demo.*') ? 'active' : '' }}">
+                <a href="{{ route('interview_demo.index') }}" data-tooltip="Interactive live interview demonstration hub showcasing 10 core engineering workflows.">
+                    <i class="fa-solid fa-bullhorn" style="color: #E8A64A;"></i>
+                    <span>面接実演 (Interview Hub)</span>
+                    <span class="badge" style="background: #E8A64A; color: #183B50; font-size: 10px; font-weight: 800; margin-left: auto; padding: 2px 6px;">10 Demos</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('experience_lab.*') ? 'active' : '' }}">
                 <a href="{{ route('experience_lab.index') }}" data-tooltip="QA & developer environment for testing responsive viewports (360px-1920px), zero-clipping scaling, and automated responsive audits.">
                     <i class="fa-solid fa-microscope" style="color: #2DD4BF;"></i>
@@ -905,10 +1087,37 @@
             </li>
 
             <li class="menu-header">Governance & Security</li>
+            <li class="menu-item {{ request()->routeIs('access_governance.index') ? 'active' : '' }}">
+                <a href="{{ route('access_governance.index') }}" data-tooltip="Manager-controlled permission elevation, two-person approval, and temporary access control.">
+                    <i class="fa-solid fa-user-shield" style="color: #2DD4BF;"></i>
+                    <span>アクセス統制 (Access Control)</span>
+                    <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">PoLP</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('access_governance.demo') ? 'active' : '' }}">
+                <a href="{{ route('access_governance.demo') }}" data-tooltip="Live 5-scenario security demonstration with role simulation and blocked privilege escalation.">
+                    <i class="fa-solid fa-play-circle" style="color: #38BDF8;"></i>
+                    <span>5シナリオ検証 (Live Demo)</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('privacy_centre.*') ? 'active' : '' }}">
+                <a href="{{ route('privacy_centre.index') }}" data-tooltip="Privacy-by-Design centre enforcing DPDP Act 2023, default PII masking, and audited unmasking.">
+                    <i class="fa-solid fa-user-lock" style="color: #A78BFA;"></i>
+                    <span>プライバシー統制 (Privacy)</span>
+                    <span class="badge" style="background: #6366F1; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">DPDP</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('accessibility.*') ? 'active' : '' }}">
+                <a href="{{ route('accessibility.index') }}" data-tooltip="WCAG 2.2 AA Universal Accessibility engine with contrast profiles and 100%-300% reflow scaling.">
+                    <i class="fa-solid fa-universal-access" style="color: #F472B6;"></i>
+                    <span>アクセシビリティ (a11y)</span>
+                    <span class="badge" style="background: #DB2777; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">WCAG AA</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('staff.*') ? 'active' : '' }}">
                 <a href="{{ route('staff.index') }}">
-                    <i class="fa-solid fa-user-shield" style="color: #38BDF8;"></i>
-                    <span>権限管理 (Staff Access)</span>
+                    <i class="fa-solid fa-users-gear" style="color: #38BDF8;"></i>
+                    <span>全従業員一覧 (Staff Roster)</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('device_trust.*') ? 'active' : '' }}">
@@ -1057,24 +1266,24 @@
                 <!-- Easy Mode Quick Switch -->
                 <a href="{{ route('easy_mode.index') }}" class="btn btn-sm" style="background: #183B50; color: #E8A64A; border: 1px solid #287F79; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Switch to Senior & Nontechnical Easy Mode: larger typography, 52px+ buttons, and 1-touch arrivals/departures.">
                     <i class="fa-solid fa-person-shelter"></i>
-                    <span>かんたん操作</span>
+                    <span class="hide-on-xs">かんたん操作</span>
                 </a>
 
-                <!-- Learning Centre Videos -->
-                <a href="{{ route('learning_centre.index') }}" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Watch 8 recorded video walkthroughs demonstrating full reservation, bulk update, and QA workflows.">
+                <!-- Learning Centre Videos (Hidden on mobile header; in sidebar drawer) -->
+                <a href="{{ route('learning_centre.index') }}" class="btn btn-sm btn-secondary hide-on-mobile" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Watch 8 recorded video walkthroughs demonstrating full reservation, bulk update, and QA workflows.">
                     <i class="fa-solid fa-film" style="color: #287F79;"></i>
                     <span>動画ガイド</span>
                 </a>
 
-                <!-- Onboarding Setup Guide Trigger -->
-                <button type="button" class="btn btn-sm btn-secondary" onclick="openOnboardingModal()" id="btnOnboardingTrigger" style="display: inline-flex; align-items: center; gap: 6px;" data-tooltip="Track the 7-step enterprise setup checklist reflecting live database state.">
+                <!-- Onboarding Setup Guide Trigger (Hidden on mobile header; in sidebar drawer) -->
+                <button type="button" class="btn btn-sm btn-secondary hide-on-mobile" onclick="openOnboardingModal()" id="btnOnboardingTrigger" style="display: inline-flex; align-items: center; gap: 6px;" data-tooltip="Track the 7-step enterprise setup checklist reflecting live database state.">
                     <i class="fa-solid fa-rocket" style="color: #E8A64A;"></i>
                     <span>ガイド</span>
                     <span class="badge" id="onboardingHeaderBadge" style="background: #287F79; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px;">...</span>
                 </button>
 
-                <!-- Multi-Tenant Hotel Switcher -->
-                <div class="hotel-selector">
+                <!-- Multi-Tenant Hotel Switcher (Hidden on mobile header; in sidebar drawer) -->
+                <div class="hotel-selector hotel-selector-header">
                     <i class="fa-solid fa-building text-primary"></i>
                     <form action="{{ route('hotel.switch') }}" method="POST" id="hotelSwitchForm">
                         @csrf
@@ -1094,15 +1303,15 @@
                     </form>
                 </div>
 
-                <!-- Language Switcher -->
-                <div class="lang-switch">
+                <!-- Language Switcher (Hidden on extra small devices; mirrored in sidebar drawer) -->
+                <div class="lang-switch hide-on-xs">
                     <a href="{{ route('locale.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
                     <a href="{{ route('locale.switch', 'ja') }}" class="{{ app()->getLocale() === 'ja' ? 'active' : '' }}">日本語</a>
                 </div>
             </div>
         </header>
 
-        <main class="page-content">
+        <main class="page-content" id="mainContent" tabindex="-1">
             @if(session('success'))
                 <div class="alert alert-success">
                     <i class="fa-solid fa-circle-check"></i>

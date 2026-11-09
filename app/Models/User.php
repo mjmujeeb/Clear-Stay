@@ -70,6 +70,8 @@ class User extends Authenticatable
             'two_factor_recovery_codes' => 'array',
             'last_login_at' => 'datetime',
             'lockout_until' => 'datetime',
+            'font_scale' => 'integer',
+            'reduced_motion' => 'boolean',
         ];
     }
 
@@ -98,6 +100,16 @@ class User extends Authenticatable
         return $this->hasMany(TrustedDevice::class);
     }
 
+    public function permissionRequests(): HasMany
+    {
+        return $this->hasMany(PermissionRequest::class);
+    }
+
+    public function privacyAccessLogs(): HasMany
+    {
+        return $this->hasMany(PrivacyAccessLog::class);
+    }
+
     // Role checks
     public function isSuperAdmin(): bool
     {
@@ -117,6 +129,21 @@ class User extends Authenticatable
     public function isHousekeeping(): bool
     {
         return in_array($this->role, ['superadmin', 'manager', 'housekeeping', 'cleaner']);
+    }
+
+    public function isSecurityAdmin(): bool
+    {
+        return in_array($this->role, ['superadmin', 'security_admin', 'secadmin']);
+    }
+
+    public function isSecurityAuditor(): bool
+    {
+        return in_array($this->role, ['auditor', 'security_auditor']);
+    }
+
+    public function isQATester(): bool
+    {
+        return in_array($this->role, ['qa', 'qa_engineer', 'tester']);
     }
 
     public function isMaintenance(): bool
@@ -275,7 +302,7 @@ class User extends Authenticatable
         }
 
         // Integration Engineer / QA
-        if (in_array($role, ['integration_engineer', 'qa_engineer'])) {
+        if (in_array($role, ['integration_engineer', 'qa_engineer', 'qa', 'tester'])) {
             return in_array($perm, [
                 'partners.view',
                 'partners.test',
@@ -283,6 +310,33 @@ class User extends Authenticatable
                 'simulation.run',
                 'event_trace.view',
                 'readiness.view',
+                'qa.sandbox.execute',
+                'experience_lab.view',
+            ]);
+        }
+
+        // Security Auditor (Read-only immutable access review)
+        if (in_array($role, ['auditor', 'security_auditor'])) {
+            return in_array($perm, [
+                'security.audit.immutable_read',
+                'reports.view',
+                'event_trace.view',
+                'governance.staff_view',
+                'security.view',
+                'audit.view',
+            ]);
+        }
+
+        // Security Administrator (Policy governance & two-person approvals)
+        if (in_array($role, ['security_admin', 'secadmin'])) {
+            return in_array($perm, [
+                'security.elevation.approve',
+                'governance.staff_view',
+                'governance.staff_manage',
+                'governance.permissions_grant',
+                'governance.access_suspend',
+                'device.manage',
+                'security.view',
             ]);
         }
 

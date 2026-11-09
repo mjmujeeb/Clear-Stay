@@ -195,12 +195,24 @@
         </div>
     </a>
 
-    <!-- Task 5: Easy Video & Guide -->
+    <!-- Task 5: Easy New Reservation -->
+    <a href="{{ route('easy_mode.create') }}" class="task-tile" style="border-color: #287F79;">
+        <div class="task-icon-circle" style="background: #D1FAE5; color: #065F46;">
+            <i class="fa-solid fa-calendar-plus"></i>
+        </div>
+        <div class="task-title">5. 新規予約の登録</div>
+        <div class="task-desc">お名前、電話番号、お部屋を選んでワンタッチで新しい宿泊予約を作成できます。</div>
+        <div class="task-badge" style="background: #287F79; color: #ffffff;">
+            予約を作成する &rarr;
+        </div>
+    </a>
+
+    <!-- Task 6: Easy Video & Guide -->
     <a href="{{ route('learning_centre.index') }}" class="task-tile">
         <div class="task-icon-circle" style="background: #E0F2FE; color: #0284C7;">
             <i class="fa-solid fa-circle-play"></i>
         </div>
-        <div class="task-title">5. 動画でみる使い方</div>
+        <div class="task-title">6. 動画でみる使い方</div>
         <div class="task-desc">フロント操作の手順を動画と大きな図で分かりやすく解説しています。いつでも確認可能。</div>
         <div class="task-badge" style="background: #0284C7; color: #ffffff;">
             操作ビデオを見る &rarr;
