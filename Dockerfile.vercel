@@ -113,6 +113,14 @@ RUN { \
     echo 'opcache.enable_cli=1'; \
 } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
+# Ensure PHP-FPM passes all Vercel/Docker environment variables to worker processes
+RUN { \
+    echo '[www]'; \
+    echo 'clear_env = no'; \
+    echo 'catch_workers_output = yes'; \
+    echo 'decorate_workers_output = no'; \
+} > /usr/local/etc/php-fpm.d/zz-docker.conf
+
 # ------------------------------------------------------------
 # 8. NGINX CONFIGURATION (Default Port 80 for Vercel)
 # ------------------------------------------------------------

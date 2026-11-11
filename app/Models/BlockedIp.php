@@ -28,19 +28,24 @@ class BlockedIp extends Model
      */
     public static function isBlocked(string $ip): bool
     {
-        $record = self::where('ip_address', $ip)->first();
+        try {
+            $record = self::where('ip_address', $ip)->first();
 
-        if (!$record) {
+            if (!$record) {
+                return false;
+            }
+
+            // If expires_at is in the past, unblock
+            if ($record->expires_at && $record->expires_at->isPast()) {
+                $record->delete();
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            // Fail open if database is temporarily unavailable or during schema initialization
             return false;
         }
-
-        // If expires_at is in the past, unblock
-        if ($record->expires_at && $record->expires_at->isPast()) {
-            $record->delete();
-            return false;
-        }
-
-        return true;
     }
 
     /**

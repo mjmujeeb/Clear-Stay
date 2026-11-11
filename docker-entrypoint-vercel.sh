@@ -52,8 +52,19 @@ mkdir -p \
 # Persistent PostgreSQL is recommended for Vercel
 # ------------------------------------------------------------
 DB_CONNECTION="${DB_CONNECTION:-pgsql}"
-export DB_CONNECTION
 
+# If pgsql is requested but no external connection URL/Host is supplied in the
+# Vercel environment, fall back to SQLite to prevent a container crash on 127.0.0.1.
+if [ "$DB_CONNECTION" = "pgsql" ] && [ -z "${DATABASE_URL:-}" ] && [ -z "${DB_URL:-}" ] && [ -z "${POSTGRES_URL:-}" ] && [ -z "${DB_HOST:-}" ]; then
+    echo "=========================================================="
+    echo " Notice: DB_CONNECTION=pgsql but no DATABASE_URL was found."
+    echo " Initializing local SQLite fallback to keep service online."
+    echo " Add DATABASE_URL to Vercel Project Settings to use Neon."
+    echo "=========================================================="
+    DB_CONNECTION="sqlite"
+fi
+
+export DB_CONNECTION
 echo "Configured database driver: ${DB_CONNECTION}"
 
 if [ "$DB_CONNECTION" = "sqlite" ]; then

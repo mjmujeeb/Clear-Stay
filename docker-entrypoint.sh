@@ -40,6 +40,13 @@ fi
 # 3. DATABASE CONFIGURATION & INITIALIZATION
 # ------------------------------------------------------------
 DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+
+if [ "$DB_CONNECTION" = "pgsql" ] && [ -z "${DATABASE_URL:-}" ] && [ -z "${DB_URL:-}" ] && [ -z "${POSTGRES_URL:-}" ] && [ -z "${DB_HOST:-}" ]; then
+    echo "Notice: DB_CONNECTION=pgsql but no DATABASE_URL or DB_HOST was provided."
+    echo "Falling back to local SQLite to ensure application boots safely."
+    DB_CONNECTION="sqlite"
+fi
+
 export DB_CONNECTION
 
 if [ "$DB_CONNECTION" = "sqlite" ]; then

@@ -58,4 +58,22 @@ class FreshDatabaseTest extends TestCase
         $response = $this->get('/up');
         $response->assertStatus(200);
     }
+
+    public function test_health_status_probe_returns_json(): void
+    {
+        $response = $this->get('/up/status');
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'status',
+            'app_env',
+            'app_debug',
+            'has_app_key',
+            'database' => [
+                'driver',
+                'status',
+            ],
+            'session',
+            'cache',
+        ]);
+    }
 }
