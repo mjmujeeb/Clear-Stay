@@ -1,38 +1,179 @@
+
 #!/bin/sh
-set -e
 
-# Generate APP_KEY if not configured
-if [ -z "$APP_KEY" ]; then
-    echo "Generating application encryption key..."
-    php artisan key:generate --force
+# ============================================================
+# CLEARSTAY 4.1 ENTERPRISE
+# PRODUCTION DOCKER ENTRYPOINT
+#
+# Platform: Render / Railway / Fly.io / AWS ECS
+# Framework: Laravel
+# Runtime: PHP 8.3-FPM + Nginx + Supervisor
+# Database: SQLite / MySQL / PostgreSQL
+# ============================================================
+
+set -eu
+
+# ------------------------------------------------------------
+# 1. APPLICATION DIRECTORY
+# ------------------------------------------------------------
+
+cd /var/www/html
+
+echo "================================================"
+echo " CLEARSTAY 4.1 ENTERPRISE INITIALIZATION"
+echo "================================================"
+
+# ------------------------------------------------------------
+# 2. VERIFY APPLICATION ENCRYPTION KEY
+# ------------------------------------------------------------
+
+if [ -z "${APP_KEY:-}" ]; then
+    echo "ERROR: APP_KEY is not configured."
+    echo "Configure APP_KEY in Render environment variables."
+    exit 1
 fi
 
-# Setup SQLite database if DB_CONNECTION is sqlite
-if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
-    DB_PATH=${DB_DATABASE:-/var/www/html/database/database.sqlite}
+echo "Application encryption key detected."
+
+# ------------------------------------------------------------
+# 3. DATABASE CONFIGURATION
+# ------------------------------------------------------------
+
+DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+export DB_CONNECTION
+
+if [ "$DB_CONNECTION" = "sqlite" ]; then
+
+    DB_PATH="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
+
+    # Convert relative database paths to absolute paths.
+
+    case "$DB_PATH" in
+        /*)
+            ;;
+        *)
+            DB_PATH="/var/www/html/$DB_PATH"
+            ;;
+    esac
+
+    # Export the normalized path for Laravel.
+
+    DB_DATABASE="$DB_PATH"
+    export DB_DATABASE
+
+    echo "Preparing SQLite database: $DB_PATH"
+
     mkdir -p "$(dirname "$DB_PATH")"
+
     if [ ! -f "$DB_PATH" ]; then
-        echo "Creating SQLite database file at $DB_PATH..."
+        echo "Creating SQLite database file..."
         touch "$DB_PATH"
-        chown www-data:www-data "$DB_PATH"
-        chmod 664 "$DB_PATH"
     fi
+
+    chown www-data:www-data "$DB_PATH"
+    chmod 664 "$DB_PATH"
+
+    chown www-data:www-data "$(dirname "$DB_PATH")"
+
+    echo "SQLite database ready."
+
 fi
 
-# Run database migrations safely
-echo "Executing database migrations..."
+# ------------------------------------------------------------
+# 4. PREPARE LARAVEL STORAGE
+# ------------------------------------------------------------
+
+echo "Preparing Laravel storage directories..."
+
+mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache
+
+chown -R www-data:www-data \
+    storage \
+    bootstrap/cache
+
+chmod -R 775 \
+    storage \
+    bootstrap/cache
+
+echo "Laravel storage permissions configured."
+
+# ------------------------------------------------------------
+# 5. RUN DATABASE MIGRATIONS
+# ------------------------------------------------------------
+
+echo "================================================"
+echo " EXECUTING DATABASE MIGRATIONS"
+echo "================================================"
+
 php artisan migrate --force --no-interaction
 
-# Check if users table has data, seed if empty
-USER_COUNT=$(php -r "require 'vendor/autoload.php'; \$app = require_once 'bootstrap/app.php'; \$kernel = \$app->make(Illuminate\Contracts\Console\Kernel::class); \$kernel->bootstrap(); echo App\Models\User::count();" 2>/dev/null || echo "0")
+echo "Database migrations completed successfully."
 
-if [ "$USER_COUNT" = "0" ]; then
-    echo "Seeding initial demonstration users and hotel inventory..."
-    php artisan db:seed --force --no-interaction 2>/dev/null || true
+# ------------------------------------------------------------
+# 6. OPTIONAL DEMONSTRATION DATA SEEDING
+# ------------------------------------------------------------
+
+# Demo seeders are disabled by default.
+#
+# Set RUN_DEMO_SEEDERS=true only when initializing
+# a fresh demonstration database.
+#
+# IMPORTANT:
+# Do not enable this on an existing production database
+# unless all seeders have been verified as safe to rerun.
+
+if [ "${RUN_DEMO_SEEDERS:-false}" = "true" ]; then
+
+    echo "================================================"
+    echo " INITIALIZING DEMONSTRATION DATA"
+    echo "================================================"
+
+    php artisan db:seed --force --no-interaction
+
+    echo "Demonstration data initialized successfully."
+
+else
+
+    echo "Automatic demonstration seeding skipped."
+
 fi
 
-# Ensure storage permissions
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# ------------------------------------------------------------
+# 7. VERIFY STORAGE PERMISSIONS
+# ------------------------------------------------------------
 
-echo "ClearStay Enterprise container initialization complete. Starting services..."
+echo "Verifying Laravel storage permissions..."
+
+chown -R www-data:www-data \
+    storage \
+    bootstrap/cache
+
+# ------------------------------------------------------------
+# 8. VERIFY STARTUP COMMAND
+# ------------------------------------------------------------
+
+if [ "$#" -eq 0 ]; then
+    echo "ERROR: No application startup command supplied."
+    exit 1
+fi
+
+echo "Startup command configured."
+
+# ------------------------------------------------------------
+# 9. START APPLICATION SERVICES
+# ------------------------------------------------------------
+
+echo "================================================"
+echo " CLEARSTAY INITIALIZATION COMPLETE"
+echo "================================================"
+
+echo "Starting PHP-FPM and Nginx through Supervisor..."
+
+# Replace entrypoint process with Supervisor.
+
 exec "$@"

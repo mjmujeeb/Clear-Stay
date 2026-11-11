@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+!.env.production.example
+.git
+node_modules
+vendor
+database/*.sqlite
+storage/logs/*
+.DS_Store

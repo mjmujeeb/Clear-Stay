@@ -1,20 +1,16 @@
 
 # ============================================================
 # CLEARSTAY 4.1 ENTERPRISE - PRODUCTION DOCKERFILE
-# Optimized for Render, Railway, Fly.io, AWS ECS and Cloud Run
+# Render / Railway / Fly.io / AWS ECS / Google Cloud Run
 # PHP 8.3 | Laravel | Nginx | PHP-FPM | Supervisor
 # ============================================================
 
 FROM php:8.3-fpm-alpine
 
-# ------------------------------------------------------------
-# 1. SET WORKING DIRECTORY
-# ------------------------------------------------------------
-
 WORKDIR /var/www/html
 
 # ------------------------------------------------------------
-# 2. INSTALL SYSTEM DEPENDENCIES
+# 1. INSTALL SYSTEM DEPENDENCIES
 # ------------------------------------------------------------
 
 RUN apk add --no-cache \
@@ -35,7 +31,7 @@ RUN apk add --no-cache \
     $PHPIZE_DEPS
 
 # ------------------------------------------------------------
-# 3. CONFIGURE AND INSTALL PHP EXTENSIONS
+# 2. INSTALL PHP EXTENSIONS
 # ------------------------------------------------------------
 
 RUN docker-php-ext-configure gd \
@@ -54,25 +50,26 @@ RUN docker-php-ext-configure gd \
         opcache \
         pcntl
 
-# Verify PHP and PHP-FPM executables exist
+# Verify PHP and PHP-FPM
+
 RUN php -v \
     && php-fpm -v \
     && test -x /usr/local/sbin/php-fpm
 
 # ------------------------------------------------------------
-# 4. INSTALL COMPOSER
+# 3. INSTALL COMPOSER
 # ------------------------------------------------------------
 
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 # ------------------------------------------------------------
-# 5. COPY PROJECT FILES
+# 4. COPY APPLICATION
 # ------------------------------------------------------------
 
 COPY . /var/www/html
 
 # ------------------------------------------------------------
-# 6. INSTALL PRODUCTION DEPENDENCIES
+# 5. INSTALL PRODUCTION DEPENDENCIES
 # ------------------------------------------------------------
 
 RUN composer install \
@@ -83,7 +80,7 @@ RUN composer install \
     --no-progress
 
 # ------------------------------------------------------------
-# 7. CONFIGURE LARAVEL DIRECTORIES AND PERMISSIONS
+# 6. PREPARE LARAVEL DIRECTORIES
 # ------------------------------------------------------------
 
 RUN mkdir -p \
@@ -93,6 +90,8 @@ RUN mkdir -p \
     /var/www/html/storage/logs \
     /var/www/html/bootstrap/cache \
     /var/www/html/database \
+    /run/nginx \
+    /var/log/supervisor \
     && chown -R www-data:www-data \
         /var/www/html/storage \
         /var/www/html/bootstrap/cache \
@@ -103,7 +102,7 @@ RUN mkdir -p \
         /var/www/html/database
 
 # ------------------------------------------------------------
-# 8. CONFIGURE OPCACHE FOR PRODUCTION
+# 7. PRODUCTION OPCACHE
 # ------------------------------------------------------------
 
 RUN { \
@@ -117,86 +116,85 @@ RUN { \
 } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 # ------------------------------------------------------------
-# 9. CONFIGURE NGINX
+# 8. NGINX CONFIGURATION
 # ------------------------------------------------------------
 
-RUN { \
-    echo 'server {'; \
-    echo '    listen 8080 default_server;'; \
-    echo '    server_name _;'; \
-    echo '    root /var/www/html/public;'; \
-    echo '    index index.php index.html;'; \
-    echo '    charset utf-8;'; \
-    echo ''; \
-    echo '    location / {'; \
-    echo '        try_files $uri $uri/ /index.php?$query_string;'; \
-    echo '    }'; \
-    echo ''; \
-    echo '    location = /favicon.ico {'; \
-    echo '        access_log off;'; \
-    echo '        log_not_found off;'; \
-    echo '    }'; \
-    echo ''; \
-    echo '    location = /robots.txt {'; \
-    echo '        access_log off;'; \
-    echo '        log_not_found off;'; \
-    echo '    }'; \
-    echo ''; \
-    echo '    error_page 404 /index.php;'; \
-    echo ''; \
-    echo '    location ~ \.php$ {'; \
-    echo '        try_files $uri =404;'; \
-    echo '        fastcgi_pass 127.0.0.1:9000;'; \
-    echo '        fastcgi_index index.php;'; \
-    echo '        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;'; \
-    echo '        include fastcgi_params;'; \
-    echo '        fastcgi_hide_header X-Powered-By;'; \
-    echo '    }'; \
-    echo ''; \
-    echo '    location ~ /\.(?!well-known).* {'; \
-    echo '        deny all;'; \
-    echo '    }'; \
-    echo '}'; \
-} > /etc/nginx/http.d/default.conf
+RUN cat > /etc/nginx/http.d/default.conf <<'NGINX'
+server {
+    listen 8080 default_server;
+    server_name _;
+
+    root /var/www/html/public;
+    index index.php index.html;
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+
+    location = /robots.txt {
+        access_log off;
+        log_not_found off;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+NGINX
 
 # ------------------------------------------------------------
-# 10. CONFIGURE SUPERVISOR
+# 9. SUPERVISOR CONFIGURATION
 # ------------------------------------------------------------
 
-RUN { \
-    echo '[supervisord]'; \
-    echo 'nodaemon=true'; \
-    echo 'user=root'; \
-    echo 'logfile=/dev/null'; \
-    echo 'pidfile=/var/run/supervisord.pid'; \
-    echo ''; \
-    echo '[program:php-fpm]'; \
-    echo 'command=/usr/local/sbin/php-fpm -F'; \
-    echo 'directory=/var/www/html'; \
-    echo 'autostart=true'; \
-    echo 'autorestart=true'; \
-    echo 'startsecs=2'; \
-    echo 'priority=10'; \
-    echo 'stdout_logfile=/dev/stdout'; \
-    echo 'stdout_logfile_maxbytes=0'; \
-    echo 'stderr_logfile=/dev/stderr'; \
-    echo 'stderr_logfile_maxbytes=0'; \
-    echo ''; \
-    echo '[program:nginx]'; \
-    echo 'command=/usr/sbin/nginx -g "daemon off;"'; \
-    echo 'directory=/var/www/html'; \
-    echo 'autostart=true'; \
-    echo 'autorestart=true'; \
-    echo 'startsecs=2'; \
-    echo 'priority=20'; \
-    echo 'stdout_logfile=/dev/stdout'; \
-    echo 'stdout_logfile_maxbytes=0'; \
-    echo 'stderr_logfile=/dev/stderr'; \
-    echo 'stderr_logfile_maxbytes=0'; \
-} > /etc/supervisord.conf
+RUN cat > /etc/supervisord.conf <<'SUPERVISOR'
+[supervisord]
+nodaemon=true
+user=root
+logfile=/dev/null
+pidfile=/var/run/supervisord.pid
+
+[program:php-fpm]
+command=/usr/local/sbin/php-fpm -F
+directory=/var/www/html
+autostart=true
+autorestart=true
+startsecs=2
+priority=10
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+directory=/var/www/html
+autostart=true
+autorestart=true
+startsecs=2
+priority=20
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+SUPERVISOR
 
 # ------------------------------------------------------------
-# 11. CONFIGURE ENTRYPOINT
+# 10. COPY ENTRYPOINT
 # ------------------------------------------------------------
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
@@ -204,24 +202,24 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # ------------------------------------------------------------
-# 12. EXPOSE APPLICATION PORT
+# 11. EXPOSE APPLICATION PORT
 # ------------------------------------------------------------
 
 EXPOSE 8080
 
 # ------------------------------------------------------------
-# 13. HEALTH CHECK
+# 12. HEALTH CHECK
 # ------------------------------------------------------------
 
 HEALTHCHECK \
     --interval=30s \
     --timeout=5s \
-    --start-period=30s \
+    --start-period=60s \
     --retries=3 \
     CMD curl -fsS http://127.0.0.1:8080/up || exit 1
 
 # ------------------------------------------------------------
-# 14. START APPLICATION
+# 13. START APPLICATION
 # ------------------------------------------------------------
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
