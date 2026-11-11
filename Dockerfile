@@ -1,7 +1,7 @@
 
 # ============================================================
 # CLEARSTAY 4.1 ENTERPRISE - PRODUCTION DOCKERFILE
-# Render / Railway / Fly.io / AWS ECS / Google Cloud Run
+# Platform: Render / Railway / Fly.io / AWS ECS
 # PHP 8.3 | Laravel | Nginx | PHP-FPM | Supervisor
 # ============================================================
 
@@ -50,7 +50,7 @@ RUN docker-php-ext-configure gd \
         opcache \
         pcntl
 
-# Verify PHP and PHP-FPM
+# Verify PHP and PHP-FPM installation
 
 RUN php -v \
     && php-fpm -v \
@@ -194,12 +194,17 @@ stderr_logfile_maxbytes=0
 SUPERVISOR
 
 # ------------------------------------------------------------
-# 10. COPY ENTRYPOINT
+# 10. COPY AND FIX ENTRYPOINT
 # ------------------------------------------------------------
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Remove Windows CRLF line endings and make script executable
+
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && test -x /usr/local/bin/docker-entrypoint.sh \
+    && head -n 1 /usr/local/bin/docker-entrypoint.sh | grep -qx '#!/bin/sh'
 
 # ------------------------------------------------------------
 # 11. EXPOSE APPLICATION PORT
@@ -208,7 +213,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 8080
 
 # ------------------------------------------------------------
-# 12. HEALTH CHECK
+# 12. DOCKER HEALTH CHECK
 # ------------------------------------------------------------
 
 HEALTHCHECK \

@@ -56,7 +56,7 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
             ;;
     esac
 
-    # Export the normalized path for Laravel.
+    # Export normalized database path for Laravel.
 
     DB_DATABASE="$DB_PATH"
     export DB_DATABASE
@@ -123,9 +123,8 @@ echo "Database migrations completed successfully."
 # Set RUN_DEMO_SEEDERS=true only when initializing
 # a fresh demonstration database.
 #
-# IMPORTANT:
 # Do not enable this on an existing production database
-# unless all seeders have been verified as safe to rerun.
+# unless all seeders are verified as safe to rerun.
 
 if [ "${RUN_DEMO_SEEDERS:-false}" = "true" ]; then
 
