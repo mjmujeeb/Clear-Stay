@@ -47,14 +47,26 @@ return Application::configure(basePath: dirname(__DIR__))
                     }
                 }
 
+                $rawUrl = (string) (env('DATABASE_URL') ?: env('DB_URL') ?: env('POSTGRES_URL') ?: '');
+                $cleanUrl = trim($rawUrl, "\"' \t\n\r");
+                $parsed = parse_url($cleanUrl);
+                $urlHost = $parsed['host'] ?? null;
+                $urlScheme = $parsed['scheme'] ?? null;
+
                 return response()->json([
                     'status' => $dbStatus === 'connected' ? 'ok' : 'degraded',
+                    'commit' => 'dfc642d-v2',
                     'app_env' => config('app.env'),
                     'app_debug' => config('app.debug'),
                     'has_app_key' => !empty(config('app.key')),
                     'database' => [
                         'driver' => $dbDriver,
                         'host' => $dbHost,
+                        'resolved_url_host' => $urlHost,
+                        'url_scheme' => $urlScheme,
+                        'has_DATABASE_URL' => !empty(env('DATABASE_URL')),
+                        'has_POSTGRES_URL' => !empty(env('POSTGRES_URL')),
+                        'has_DB_HOST' => !empty(env('DB_HOST')),
                         'has_url' => $hasUrl,
                         'status' => $dbStatus,
                         'error' => $dbError,
