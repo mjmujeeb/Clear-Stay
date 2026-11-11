@@ -1,21 +1,11 @@
-
 #!/bin/sh
-
 # ============================================================
-# CLEARSTAY 4.1 ENTERPRISE
-# PRODUCTION DOCKER ENTRYPOINT
-#
+# CLEARSTAY 4.1 ENTERPRISE - PRODUCTION DOCKER ENTRYPOINT
 # Platform: Render / Railway / Fly.io / AWS ECS
-# Framework: Laravel
-# Runtime: PHP 8.3-FPM + Nginx + Supervisor
-# Database: SQLite / MySQL / PostgreSQL
+# Framework: Laravel 13 | PHP 8.3-FPM + Nginx + Supervisor
 # ============================================================
 
 set -eu
-
-# ------------------------------------------------------------
-# 1. APPLICATION DIRECTORY
-# ------------------------------------------------------------
 
 cd /var/www/html
 
@@ -24,29 +14,36 @@ echo " CLEARSTAY 4.1 ENTERPRISE INITIALIZATION"
 echo "================================================"
 
 # ------------------------------------------------------------
-# 2. VERIFY APPLICATION ENCRYPTION KEY
+# 1. VERIFY / PRESERVE APPLICATION ENCRYPTION KEY
 # ------------------------------------------------------------
-
 if [ -z "${APP_KEY:-}" ]; then
-    echo "ERROR: APP_KEY is not configured."
-    echo "Configure APP_KEY in Render environment variables."
-    exit 1
+    echo "Notice: APP_KEY not detected in environment."
+    echo "Generating new production application key..."
+    php artisan key:generate --force --no-interaction
+else
+    echo "Application encryption key verified."
 fi
 
-echo "Application encryption key detected."
+# ------------------------------------------------------------
+# 2. DYNAMIC PORT & NGINX CONFIGURATION (Render / Cloud Port)
+# ------------------------------------------------------------
+PORT="${PORT:-10000}"
+export PORT
+echo "Configuring Nginx to listen on port ${PORT}..."
+
+if [ -f /etc/nginx/http.d/default.conf ]; then
+    sed -i "s/listen [0-9]\+ default_server;/listen ${PORT} default_server;/" /etc/nginx/http.d/default.conf
+    echo "Nginx configured for port ${PORT}."
+fi
 
 # ------------------------------------------------------------
-# 3. DATABASE CONFIGURATION
+# 3. DATABASE CONFIGURATION & INITIALIZATION
 # ------------------------------------------------------------
-
 DB_CONNECTION="${DB_CONNECTION:-sqlite}"
 export DB_CONNECTION
 
 if [ "$DB_CONNECTION" = "sqlite" ]; then
-
     DB_PATH="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
-
-    # Convert relative database paths to absolute paths.
 
     case "$DB_PATH" in
         /*)
@@ -56,34 +53,32 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
             ;;
     esac
 
-    # Export normalized database path for Laravel.
-
     DB_DATABASE="$DB_PATH"
     export DB_DATABASE
 
-    echo "Preparing SQLite database: $DB_PATH"
-
+    echo "Preparing SQLite database at: $DB_PATH"
     mkdir -p "$(dirname "$DB_PATH")"
 
     if [ ! -f "$DB_PATH" ]; then
-        echo "Creating SQLite database file..."
+        echo "Creating initial SQLite database file..."
         touch "$DB_PATH"
+    else
+        echo "Existing SQLite database preserved."
     fi
 
     chown www-data:www-data "$DB_PATH"
     chmod 664 "$DB_PATH"
-
     chown www-data:www-data "$(dirname "$DB_PATH")"
-
+    chmod 775 "$(dirname "$DB_PATH")"
     echo "SQLite database ready."
-
+else
+    echo "Using external database connection: ${DB_CONNECTION}"
 fi
 
 # ------------------------------------------------------------
-# 4. PREPARE LARAVEL STORAGE
+# 4. PREPARE STORAGE & CACHE DIRECTORIES
 # ------------------------------------------------------------
-
-echo "Preparing Laravel storage directories..."
+echo "Configuring Laravel storage and cache directories..."
 
 mkdir -p \
     storage/framework/cache \
@@ -92,20 +87,13 @@ mkdir -p \
     storage/logs \
     bootstrap/cache
 
-chown -R www-data:www-data \
-    storage \
-    bootstrap/cache
-
-chmod -R 775 \
-    storage \
-    bootstrap/cache
-
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 echo "Laravel storage permissions configured."
 
 # ------------------------------------------------------------
-# 5. RUN DATABASE MIGRATIONS
+# 5. RUN DATABASE MIGRATIONS (NON-DESTRUCTIVE)
 # ------------------------------------------------------------
-
 echo "================================================"
 echo " EXECUTING DATABASE MIGRATIONS"
 echo "================================================"
@@ -115,64 +103,39 @@ php artisan migrate --force --no-interaction
 echo "Database migrations completed successfully."
 
 # ------------------------------------------------------------
-# 6. OPTIONAL DEMONSTRATION DATA SEEDING
+# 6. DEMONSTRATION SEEDING (DISABLED BY DEFAULT IN PROD)
 # ------------------------------------------------------------
-
-# Demo seeders are disabled by default.
-#
-# Set RUN_DEMO_SEEDERS=true only when initializing
-# a fresh demonstration database.
-#
-# Do not enable this on an existing production database
-# unless all seeders are verified as safe to rerun.
-
 if [ "${RUN_DEMO_SEEDERS:-false}" = "true" ]; then
-
     echo "================================================"
-    echo " INITIALIZING DEMONSTRATION DATA"
+    echo " INITIALIZING DEMONSTRATION DATA (OPT-IN)"
     echo "================================================"
-
     php artisan db:seed --force --no-interaction
-
     echo "Demonstration data initialized successfully."
-
 else
-
-    echo "Automatic demonstration seeding skipped."
-
+    echo "Automatic demonstration seeding skipped (production safe)."
 fi
 
 # ------------------------------------------------------------
-# 7. VERIFY STORAGE PERMISSIONS
+# 7. OPTIMIZE CONFIGURATION AND ROUTES CACHE
 # ------------------------------------------------------------
-
-echo "Verifying Laravel storage permissions..."
-
-chown -R www-data:www-data \
-    storage \
-    bootstrap/cache
+if [ "${APP_ENV:-production}" = "production" ]; then
+    echo "Optimizing Laravel cache for production..."
+    php artisan config:cache --no-interaction || true
+    php artisan route:cache --no-interaction || true
+    php artisan view:cache --no-interaction || true
+fi
 
 # ------------------------------------------------------------
-# 8. VERIFY STARTUP COMMAND
+# 8. VERIFY STARTUP COMMAND & EXECUTE
 # ------------------------------------------------------------
-
 if [ "$#" -eq 0 ]; then
     echo "ERROR: No application startup command supplied."
     exit 1
 fi
 
-echo "Startup command configured."
-
-# ------------------------------------------------------------
-# 9. START APPLICATION SERVICES
-# ------------------------------------------------------------
-
 echo "================================================"
 echo " CLEARSTAY INITIALIZATION COMPLETE"
+echo " Starting services on port ${PORT}..."
 echo "================================================"
-
-echo "Starting PHP-FPM and Nginx through Supervisor..."
-
-# Replace entrypoint process with Supervisor.
 
 exec "$@"

@@ -209,4 +209,10 @@ class GlobalSearchAndHealthTest extends TestCase
         $manifestContent = json_decode(file_get_contents($manifestPath), true);
         $this->assertEquals('ClearStay 3.0', $manifestContent['short_name']);
     }
+
+    public function test_render_healthcheck_up_endpoint_returns_200_ok()
+    {
+        $response = $this->get('/up');
+        $response->assertStatus(200);
+    }
 }

@@ -1,8 +1,7 @@
-
 # ============================================================
 # CLEARSTAY 4.1 ENTERPRISE - PRODUCTION DOCKERFILE
 # Platform: Render / Railway / Fly.io / AWS ECS
-# PHP 8.3 | Laravel | Nginx | PHP-FPM | Supervisor
+# PHP 8.3 | Laravel 13 | Nginx | PHP-FPM | Supervisor
 # ============================================================
 
 FROM php:8.3-fpm-alpine
@@ -51,7 +50,6 @@ RUN docker-php-ext-configure gd \
         pcntl
 
 # Verify PHP and PHP-FPM installation
-
 RUN php -v \
     && php-fpm -v \
     && test -x /usr/local/sbin/php-fpm
@@ -116,12 +114,12 @@ RUN { \
 } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 # ------------------------------------------------------------
-# 8. NGINX CONFIGURATION
+# 8. NGINX CONFIGURATION (Default Port 10000 for Render)
 # ------------------------------------------------------------
 
 RUN cat > /etc/nginx/http.d/default.conf <<'NGINX'
 server {
-    listen 8080 default_server;
+    listen 10000 default_server;
     server_name _;
 
     root /var/www/html/public;
@@ -194,39 +192,35 @@ stderr_logfile_maxbytes=0
 SUPERVISOR
 
 # ------------------------------------------------------------
-# 10. COPY AND FIX ENTRYPOINT
+# 10. COPY AND PREPARE ENTRYPOINT
 # ------------------------------------------------------------
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-# Remove Windows CRLF line endings and make script executable
-
-RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
-    && chmod +x /usr/local/bin/docker-entrypoint.sh \
+# Strip any potential Windows CRLF line endings, set permissions, and validate shebang
+RUN tr -d '\r' < /usr/local/bin/docker-entrypoint.sh > /usr/local/bin/docker-entrypoint.sh.tmp \
+    && mv /usr/local/bin/docker-entrypoint.sh.tmp /usr/local/bin/docker-entrypoint.sh \
+    && chmod 755 /usr/local/bin/docker-entrypoint.sh \
     && test -x /usr/local/bin/docker-entrypoint.sh \
     && head -n 1 /usr/local/bin/docker-entrypoint.sh | grep -qx '#!/bin/sh'
 
 # ------------------------------------------------------------
-# 11. EXPOSE APPLICATION PORT
+# 11. EXPOSE PORTS
 # ------------------------------------------------------------
 
-EXPOSE 8080
+EXPOSE 10000 8080
 
 # ------------------------------------------------------------
 # 12. DOCKER HEALTH CHECK
 # ------------------------------------------------------------
 
-HEALTHCHECK \
-    --interval=30s \
-    --timeout=5s \
-    --start-period=60s \
-    --retries=3 \
-    CMD curl -fsS http://127.0.0.1:8080/up || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD sh -c 'curl -fsS http://127.0.0.1:${PORT:-10000}/up || exit 1'
 
 # ------------------------------------------------------------
-# 13. START APPLICATION
+# 13. START APPLICATION VIA ENTRYPOINT & SUPERVISOR
 # ------------------------------------------------------------
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
