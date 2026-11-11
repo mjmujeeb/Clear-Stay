@@ -23,7 +23,7 @@
             </div>
         @endif
 
-        <form action="{{ route('login.2fa.post') }}" method="POST">
+        <form action="{{ route('login.2fa.post', [], false) }}" method="POST">
             @csrf
 
             <!-- Bot Defense / Time-Lock -->

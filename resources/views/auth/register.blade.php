@@ -18,7 +18,7 @@
             </div>
         @endif
 
-        <form action="{{ route('register.post') }}" method="POST">
+        <form action="{{ route('register.post', [], false) }}" method="POST">
             @csrf
 
             <!-- ClearShield Bot Defense & Human Verification -->

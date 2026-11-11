@@ -21,7 +21,7 @@
             </div>
         @endif
 
-        <form action="{{ route('login.post') }}" method="POST">
+        <form action="{{ route('login.post', [], false) }}" method="POST">
             @csrf
 
             <!-- ClearShield Bot Defense & Human Verification -->

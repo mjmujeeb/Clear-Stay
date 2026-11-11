@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IntegrationPartner extends Model
 {
@@ -45,5 +46,11 @@ class IntegrationPartner extends Model
     public function readinessReports(): HasMany
     {
         return $this->hasMany(PartnerReadinessReport::class, 'partner_id');
+    }
+
+    public function latestReadinessReport(): HasOne
+    {
+        return $this->hasOne(PartnerReadinessReport::class, 'partner_id')
+            ->latestOfMany();
     }
 }

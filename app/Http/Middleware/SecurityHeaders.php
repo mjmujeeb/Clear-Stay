@@ -23,8 +23,8 @@ class SecurityHeaders
             $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
             $response->header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
-            // Content-Security-Policy accommodating CDN resources
-            $csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://code.jquery.com https://cdn.jsdelivr.net; img-src 'self' data: https:;";
+            // Content-Security-Policy accommodating CDN resources with automatic HTTPS upgrades
+            $csp = "upgrade-insecure-requests; default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://code.jquery.com https://cdn.jsdelivr.net; img-src 'self' data: https:;";
             $response->header('Content-Security-Policy', $csp);
         }
 

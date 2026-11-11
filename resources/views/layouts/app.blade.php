@@ -972,41 +972,41 @@
         </div>
 
         <ul class="sidebar-menu">
-            <li class="menu-header">Quality Assurance & Tools</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? '品質保証 & 開発ツール' : 'Quality Assurance & Tools' }}</li>
             <li class="menu-item {{ request()->routeIs('interview_demo.*') ? 'active' : '' }}">
                 <a href="{{ route('interview_demo.index') }}" data-tooltip="Interactive live interview demonstration hub showcasing 10 core engineering workflows.">
                     <i class="fa-solid fa-bullhorn" style="color: #E8A64A;"></i>
-                    <span>面接実演 (Interview Hub)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '面接実演' : 'Interview Hub' }}</span>
                     <span class="badge" style="background: #E8A64A; color: #183B50; font-size: 10px; font-weight: 800; margin-left: auto; padding: 2px 6px;">10 Demos</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('experience_lab.*') ? 'active' : '' }}">
                 <a href="{{ route('experience_lab.index') }}" data-tooltip="QA & developer environment for testing responsive viewports (360px-1920px), zero-clipping scaling, and automated responsive audits.">
                     <i class="fa-solid fa-microscope" style="color: #2DD4BF;"></i>
-                    <span>体験ラボ (Experience Lab)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '体験ラボ' : 'Experience Lab' }}</span>
                     <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">QA</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('easy_mode.*') ? 'active' : '' }}">
                 <a href="{{ route('easy_mode.index') }}" data-tooltip="Senior & nontechnical staff operational mode with 18px+ typography and 1-touch arrivals/departures/cleanliness workflows.">
                     <i class="fa-solid fa-person-shelter" style="color: #FBBF24;"></i>
-                    <span>かんたん操作 (Easy Mode)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'かんたん操作' : 'Easy Mode' }}</span>
                     <span class="badge" style="background: #E8A64A; color: #183B50; font-size: 10px; font-weight: 700; margin-left: auto; padding: 2px 6px;">Staff</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('learning_centre.*') ? 'active' : '' }}">
                 <a href="{{ route('learning_centre.index') }}" data-tooltip="Interactive video learning library containing 8 recorded walkthroughs of core hotel operations and QA features.">
                     <i class="fa-solid fa-graduation-cap" style="color: #38BDF8;"></i>
-                    <span>学習センター (Learning)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '学習センター' : 'Learning Centre' }}</span>
                     <span class="badge" style="background: #0284C7; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">8 Videos</span>
                 </a>
             </li>
 
-            <li class="menu-header">Core Operations</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? 'コア業務' : 'Core Operations' }}</li>
             <li class="menu-item {{ request()->routeIs('overview.*') ? 'active' : '' }}">
                 <a href="{{ route('overview.index') }}">
                     <i class="fa-solid fa-compass" style="color: #38BDF8;"></i>
-                    <span>統合画面 (Overview)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '統合画面' : 'Overview' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -1018,144 +1018,144 @@
             <li class="menu-item {{ request()->routeIs('board.index') ? 'active' : '' }}">
                 <a href="{{ route('board.index') }}">
                     <i class="fa-solid fa-border-all"></i>
-                    <span>空室ボード (Room Board)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '空室ボード' : 'Room Board' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('reservations.*') ? 'active' : '' }}">
                 <a href="{{ route('reservations.index') }}">
                     <i class="fa-solid fa-calendar-check"></i>
-                    <span>予約管理 (Reservations)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '予約管理' : 'Reservations' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}">
                 <a href="{{ route('housekeeping.index') }}">
                     <i class="fa-solid fa-broom"></i>
-                    <span>清掃管理 (Housekeeping)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '清掃管理' : 'Housekeeping' }}</span>
                 </a>
             </li>
 
-            <li class="menu-header">Distribution & Revenue</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? '流通 & 収益管理' : 'Distribution & Revenue' }}</li>
             <li class="menu-item {{ request()->routeIs('channels.*') ? 'active' : '' }}">
                 <a href="{{ route('channels.index') }}">
                     <i class="fa-solid fa-globe" style="color: #34D399;"></i>
-                    <span>チャネル連携 (Channels)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'チャネル連携' : 'Channels' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('bulk_editor.*') ? 'active' : '' }}">
                 <a href="{{ route('bulk_editor.index') }}">
                     <i class="fa-solid fa-layer-group" style="color: #FBBF24;"></i>
-                    <span>一括更新 (Bulk Studio)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '一括更新' : 'Bulk Studio' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('rates.*') ? 'active' : '' }}">
                 <a href="{{ route('rates.index') }}">
                     <i class="fa-solid fa-tags" style="color: #F472B6;"></i>
-                    <span>料金管理 (Rate Studio)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '料金管理' : 'Rate Studio' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('inventory_reconciliation.*') ? 'active' : '' }}">
                 <a href="{{ route('inventory_reconciliation.index') }}">
                     <i class="fa-solid fa-arrows-split-up-and-left" style="color: #2DD4BF;"></i>
-                    <span>在庫照合 (Inventory)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '在庫照合' : 'Inventory' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('payment_reconciliation.*') ? 'active' : '' }}">
                 <a href="{{ route('payment_reconciliation.index') }}">
                     <i class="fa-solid fa-building-columns" style="color: #38BDF8;"></i>
-                    <span>決済照合 (Payment)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '決済照合' : 'Payment' }}</span>
                 </a>
             </li>
 
-            <li class="menu-header">Partner Assurance</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? 'パートナー品質' : 'Partner Assurance' }}</li>
             <li class="menu-item {{ request()->routeIs('partner_assurance.*') ? 'active' : '' }}">
                 <a href="{{ route('partner_assurance.index') }}">
                     <i class="fa-solid fa-handshake" style="color: #60A5FA;"></i>
-                    <span>パートナー品質 (Assurance)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'パートナー品質' : 'Partner Assurance' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('event_trace.*') ? 'active' : '' }}">
                 <a href="{{ route('event_trace.index') }}">
                     <i class="fa-solid fa-wave-square" style="color: #A78BFA;"></i>
-                    <span>イベント追跡 (EventTrace)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'イベント追跡' : 'Event Trace' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('readiness.*') ? 'active' : '' }}">
                 <a href="{{ route('readiness.index') }}">
                     <i class="fa-solid fa-certificate" style="color: #F59E0B;"></i>
-                    <span>接続準備 (Readiness)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '接続準備' : 'Readiness' }}</span>
                 </a>
             </li>
 
-            <li class="menu-header">Governance & Security</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? 'ガバナンス & セキュリティ' : 'Governance & Security' }}</li>
             <li class="menu-item {{ request()->routeIs('access_governance.index') ? 'active' : '' }}">
                 <a href="{{ route('access_governance.index') }}" data-tooltip="Manager-controlled permission elevation, two-person approval, and temporary access control.">
                     <i class="fa-solid fa-user-shield" style="color: #2DD4BF;"></i>
-                    <span>アクセス統制 (Access Control)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'アクセス統制' : 'Access Control' }}</span>
                     <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">PoLP</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('access_governance.demo') ? 'active' : '' }}">
                 <a href="{{ route('access_governance.demo') }}" data-tooltip="Live 5-scenario security demonstration with role simulation and blocked privilege escalation.">
                     <i class="fa-solid fa-play-circle" style="color: #38BDF8;"></i>
-                    <span>5シナリオ検証 (Live Demo)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '5シナリオ検証' : 'Live Demo' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('privacy_centre.*') ? 'active' : '' }}">
                 <a href="{{ route('privacy_centre.index') }}" data-tooltip="Privacy-by-Design centre enforcing DPDP Act 2023, default PII masking, and audited unmasking.">
                     <i class="fa-solid fa-user-lock" style="color: #A78BFA;"></i>
-                    <span>プライバシー統制 (Privacy)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'プライバシー統制' : 'Privacy' }}</span>
                     <span class="badge" style="background: #6366F1; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">DPDP</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('accessibility.*') ? 'active' : '' }}">
                 <a href="{{ route('accessibility.index') }}" data-tooltip="WCAG 2.2 AA Universal Accessibility engine with contrast profiles and 100%-300% reflow scaling.">
                     <i class="fa-solid fa-universal-access" style="color: #F472B6;"></i>
-                    <span>アクセシビリティ (a11y)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'アクセシビリティ' : 'Accessibility (a11y)' }}</span>
                     <span class="badge" style="background: #DB2777; color: #fff; font-size: 10px; margin-left: auto; padding: 2px 6px;">WCAG AA</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('staff.*') ? 'active' : '' }}">
                 <a href="{{ route('staff.index') }}">
                     <i class="fa-solid fa-users-gear" style="color: #38BDF8;"></i>
-                    <span>全従業員一覧 (Staff Roster)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '全従業員一覧' : 'Staff Roster' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('device_trust.*') ? 'active' : '' }}">
                 <a href="{{ route('device_trust.index') }}">
                     <i class="fa-solid fa-laptop-file" style="color: #34D399;"></i>
-                    <span>端末信頼性 (Device Trust)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '端末信頼性' : 'Device Trust' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('security_governance.*') ? 'active' : '' }}">
                 <a href="{{ route('security_governance.index') }}">
                     <i class="fa-solid fa-brain" style="color: #EC4899;"></i>
-                    <span>AIガバナンス (Security AI)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'AIガバナンス' : 'Security AI' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('security.*') ? 'active' : '' }}">
                 <a href="{{ route('security.index') }}">
                     <i class="fa-solid fa-shield-halved"></i>
-                    <span>セキュリティ脅威 (Threats)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? 'セキュリティ脅威' : 'Threat Intelligence' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('health.*') ? 'active' : '' }}">
                 <a href="{{ route('health.index') }}">
                     <i class="fa-solid fa-heart-pulse" style="color: #10B981;"></i>
-                    <span>稼働状態 (System Health)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '稼働状態' : 'System Health' }}</span>
                 </a>
             </li>
 
-            <li class="menu-header">Executive & Analytics</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? '経営分析 & レポート' : 'Executive & Analytics' }}</li>
             <li class="menu-item {{ request()->routeIs('booking_analytics.*') ? 'active' : '' }}">
                 <a href="{{ route('booking_analytics.index') }}">
                     <i class="fa-solid fa-chart-line" style="color: #60A5FA;"></i>
-                    <span>予約分析 (BA+)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '予約分析' : 'Booking Analytics' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                 <a href="{{ route('reports.index') }}">
                     <i class="fa-solid fa-file-lines" style="color: #FBBF24;"></i>
-                    <span>帳票出力 (Reports)</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '帳票出力' : 'Reports Studio' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('analytics.*') ? 'active' : '' }}">
@@ -1171,7 +1171,7 @@
                 </a>
             </li>
 
-            <li class="menu-header">Public Website</li>
+            <li class="menu-header">{{ app()->getLocale() === 'ja' ? '公開サイト' : 'Public Website' }}</li>
             <li class="menu-item">
                 <a href="{{ route('public.home') }}" target="_blank">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>

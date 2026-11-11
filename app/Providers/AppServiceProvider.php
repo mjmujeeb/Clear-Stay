@@ -27,9 +27,13 @@ class AppServiceProvider extends ServiceProvider
             (request()->header('x-forwarded-proto') === 'https') ||
             (request()->header('cf-visitor') && str_contains(request()->header('cf-visitor'), 'https')) ||
             str_contains(request()->getHost(), 'trycloudflare.com') ||
+            str_contains(request()->header('host', ''), 'trycloudflare.com') ||
             app()->environment('production')
         ) {
             URL::forceScheme('https');
+            if (isset($this->app['request'])) {
+                $this->app['request']->server->set('HTTPS', 'on');
+            }
         }
     }
 }
