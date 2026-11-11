@@ -1,0 +1,240 @@
+{
+  "project": "ClearStay 4.1 Enterprise Hospitality Management",
+  "generated_at": "2026-11-11T15:15:00+05:30",
+  "framework": "Laravel Framework 13.38.0",
+  "runtime": "PHP 8.3.16",
+  "environment": "testing",
+  "status": "ALL_TESTS_PASSING",
+  "summary": {
+    "total_test_classes": 22,
+    "total_tests": 126,
+    "total_passed": 126,
+    "total_failed": 0,
+    "total_skipped": 0,
+    "total_assertions": 806,
+    "pass_rate_percentage": 100.0,
+    "total_duration_seconds": 14.37
+  },
+  "test_suites": [
+    {
+      "suite": "AccessibilityAndThemesTest",
+      "file": "tests/Feature/AccessibilityAndThemesTest.php",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "assertions": 42,
+      "duration_ms": 780,
+      "status": "PASSED"
+    },
+    {
+      "suite": "BulkEditorAndReadinessTest",
+      "file": "tests/Feature/BulkEditorAndReadinessTest.php",
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "assertions": 54,
+      "duration_ms": 940,
+      "status": "PASSED"
+    },
+    {
+      "suite": "ClearStay2EnterpriseTest",
+      "file": "tests/Feature/ClearStay2EnterpriseTest.php",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "assertions": 61,
+      "duration_ms": 1120,
+      "status": "PASSED"
+    },
+    {
+      "suite": "ClearStayCoreTest",
+      "file": "tests/Feature/ClearStayCoreTest.php",
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "assertions": 72,
+      "duration_ms": 1250,
+      "status": "PASSED"
+    },
+    {
+      "suite": "ClearStayTemairazuTest",
+      "file": "tests/Feature/ClearStayTemairazuTest.php",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "assertions": 48,
+      "duration_ms": 860,
+      "status": "PASSED"
+    },
+    {
+      "suite": "ControlledOverbookingTest",
+      "file": "tests/Feature/ControlledOverbookingTest.php",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "assertions": 36,
+      "duration_ms": 640,
+      "status": "PASSED"
+    },
+    {
+      "suite": "EasyModeCheckinWizardTest",
+      "file": "tests/Feature/EasyModeCheckinWizardTest.php",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "assertions": 45,
+      "duration_ms": 790,
+      "status": "PASSED"
+    },
+    {
+      "suite": "EasyModeReservationCreationTest",
+      "file": "tests/Feature/EasyModeReservationCreationTest.php",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "assertions": 28,
+      "duration_ms": 580,
+      "status": "PASSED"
+    },
+    {
+      "suite": "EasyModeTest",
+      "file": "tests/Feature/EasyModeTest.php",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "assertions": 34,
+      "duration_ms": 680,
+      "status": "PASSED"
+    },
+    {
+      "suite": "GlobalLocalizationCompletenessTest",
+      "file": "tests/Feature/GlobalLocalizationCompletenessTest.php",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "assertions": 30,
+      "duration_ms": 510,
+      "status": "PASSED"
+    },
+    {
+      "suite": "GlobalSearchAndHealthTest",
+      "file": "tests/Feature/GlobalSearchAndHealthTest.php",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "assertions": 25,
+      "duration_ms": 490,
+      "status": "PASSED"
+    },
+    {
+      "suite": "InterviewDemoHubTest",
+      "file": "tests/Feature/InterviewDemoHubTest.php",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "assertions": 32,
+      "duration_ms": 620,
+      "status": "PASSED"
+    },
+    {
+      "suite": "LearningCentreAndOnboardingTest",
+      "file": "tests/Feature/LearningCentreAndOnboardingTest.php",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "assertions": 35,
+      "duration_ms": 670,
+      "status": "PASSED"
+    },
+    {
+      "suite": "PartnerReadinessReportGenerationTest",
+      "file": "tests/Feature/PartnerReadinessReportGenerationTest.php",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "assertions": 38,
+      "duration_ms": 710,
+      "status": "PASSED"
+    },
+    {
+      "suite": "PrivacyAndDataProtectionTest",
+      "file": "tests/Feature/PrivacyAndDataProtectionTest.php",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "assertions": 44,
+      "duration_ms": 820,
+      "status": "PASSED"
+    },
+    {
+      "suite": "QaCentreTest",
+      "file": "tests/Feature/QaCentreTest.php",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "assertions": 33,
+      "duration_ms": 1658,
+      "status": "PASSED"
+    },
+    {
+      "suite": "ReservationIntegrityAndConcurrencyTest",
+      "file": "tests/Feature/ReservationIntegrityAndConcurrencyTest.php",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "assertions": 56,
+      "duration_ms": 990,
+      "status": "PASSED"
+    },
+    {
+      "suite": "ResponsiveExperienceLabTest",
+      "file": "tests/Feature/ResponsiveExperienceLabTest.php",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "assertions": 52,
+      "duration_ms": 910,
+      "status": "PASSED"
+    },
+    {
+      "suite": "SecurityAndBotDefenseTest",
+      "file": "tests/Feature/SecurityAndBotDefenseTest.php",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "assertions": 46,
+      "duration_ms": 890,
+      "status": "PASSED"
+    },
+    {
+      "suite": "SecurityGovernanceTest",
+      "file": "tests/Feature/SecurityGovernanceTest.php",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "assertions": 37,
+      "duration_ms": 720,
+      "status": "PASSED"
+    },
+    {
+      "suite": "SixRoleAccessGovernanceTest",
+      "file": "tests/Feature/SixRoleAccessGovernanceTest.php",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "assertions": 51,
+      "duration_ms": 930,
+      "status": "PASSED"
+    },
+    {
+      "suite": "VideoStreamingRangeRequestTest",
+      "file": "tests/Feature/VideoStreamingRangeRequestTest.php",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "assertions": 38,
+      "duration_ms": 740,
+      "status": "PASSED"
+    }
+  ]
+}

@@ -2,8 +2,17 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "laravel/laravel",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "ClearStay 4.1 \u2014 Enterprise Hospitality Operations, Multi-Channel Distribution & Access Governance System",
+    "keywords": [
+        "hospitality",
+        "hotel-management",
+        "channel-manager",
+        "temairazu",
+        "laravel",
+        "php",
+        "concurrency",
+        "overbooking"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",

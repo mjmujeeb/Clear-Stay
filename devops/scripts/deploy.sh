@@ -10,14 +10,16 @@ BRANCH="main"
 echo "🚀 [1/8] Starting ClearStay deployment on $(date)..."
 cd "$APP_DIR" || exit 1
 
-# Activate maintenance mode with 15-second grace period
+# Activate maintenance mode with dynamic bypass token
 echo "🔒 [2/8] Entering maintenance mode..."
-php artisan down --secret="clearstay-deploy-override" --render="errors::503" || true
+BYPASS_SECRET="${DEPLOY_BYPASS_TOKEN:-$(openssl rand -hex 16 2>/dev/null || date +%s%N)}"
+php artisan down --secret="$BYPASS_SECRET" --render="errors::503" || true
 
-# Pull latest code from GitHub
+# Pull latest code from GitHub safely (fast-forward only, preserving uncommitted local assets/logs)
 echo "📥 [3/8] Fetching latest release from Git repository ($BRANCH)..."
 git fetch origin "$BRANCH"
-git reset --hard "origin/$BRANCH"
+git checkout "$BRANCH"
+git pull --ff-only origin "$BRANCH"
 
 # Install PHP dependencies
 echo "📦 [4/8] Installing Composer dependencies (no-dev, optimized)..."

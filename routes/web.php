@@ -26,6 +26,7 @@ use App\Http\Controllers\PartnerAssuranceController;
 use App\Http\Controllers\PaymentReconciliationController;
 use App\Http\Controllers\PrivacyCentreController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\QaCentreController;
 use App\Http\Controllers\RateStudioController;
 use App\Http\Controllers\ReadinessCentreController;
 use App\Http\Controllers\ReportsController;
@@ -298,4 +299,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/onboarding/status', [OnboardingController::class, 'status'])->name('onboarding.status');
     Route::post('/api/onboarding/dismiss', [OnboardingController::class, 'dismiss'])->name('onboarding.dismiss');
     Route::post('/api/onboarding/reset', [OnboardingController::class, 'reset'])->name('onboarding.reset');
+
+    // Application Quality Assurance Centre (Automated Testing & Feature Verification)
+    Route::get('/qa-centre', [QaCentreController::class, 'index'])->name('qa.index');
+    Route::post('/qa-centre/run/{suite}', [QaCentreController::class, 'runSuite'])->name('qa.run_suite');
+    Route::get('/qa-centre/export', [QaCentreController::class, 'exportReport'])->name('qa.export');
 });

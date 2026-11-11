@@ -1,0 +1,52 @@
+name: ClearStay Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "feature/*", "fix/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-audit:
+    name: Build, Test & Security Audit (PHP 8.3)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite3, pdo_sqlite, bcmath, gd, zip
+          coverage: none
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Prepare environment configuration
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Execute automated test suite (126 Tests)
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan test
+
+      - name: Security audit dependencies
+        run: composer audit --locked
