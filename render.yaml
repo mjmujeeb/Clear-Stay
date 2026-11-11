@@ -3,10 +3,12 @@ services:
     name: clearstay-hospitality
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
     region: oregon
     healthCheckPath: /up
     envVars:
+      - key: APP_NAME
+        value: "ClearStay Enterprise Hospitality"
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
@@ -16,15 +18,12 @@ services:
       - key: APP_FALLBACK_LOCALE
         value: en
       - key: DB_CONNECTION
-        value: pgsql
-      - key: DATABASE_URL
-        fromDatabase:
-          name: clearstay-db
-          property: connectionString
-
-databases:
-  - name: clearstay-db
-    plan: starter
-    region: oregon
-    databaseName: clearstay_prod
-    user: clearstay_user
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync

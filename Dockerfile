@@ -116,6 +116,10 @@ RUN { \
     echo 'stderr_logfile_maxbytes=0'; \
 } > /etc/supervisord.conf
 
+# Make entrypoint script executable
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expose port 8080 (standard for Cloud Run, Railway, Render)
 EXPOSE 8080
 
@@ -123,5 +127,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://127.0.0.1:8080/up || exit 1
 
-# Start container with supervisord
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
