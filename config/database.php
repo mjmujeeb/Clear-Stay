@@ -3,6 +3,33 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+// Extract and normalize PostgreSQL connection parameters (Neon / Cloud SQL / Supabase)
+$pgUrl = env('DB_URL', env('DATABASE_URL', env('POSTGRES_URL')));
+$pgHost = env('DB_HOST', '127.0.0.1');
+$pgPort = env('DB_PORT', '5432');
+$pgDatabase = env('DB_DATABASE', 'laravel');
+$pgUser = env('DB_USERNAME', 'root');
+$pgPass = env('DB_PASSWORD', '');
+$pgSslMode = env('DB_SSLMODE', 'require');
+
+if (!empty($pgUrl)) {
+    $cleanPgUrl = trim((string) $pgUrl, "\"' \t\n\r");
+    $parsedPgUrl = parse_url($cleanPgUrl);
+    if ($parsedPgUrl && isset($parsedPgUrl['host'])) {
+        $pgHost = $parsedPgUrl['host'];
+        $pgPort = isset($parsedPgUrl['port']) ? (string) $parsedPgUrl['port'] : '5432';
+        $pgDatabase = isset($parsedPgUrl['path']) ? ltrim($parsedPgUrl['path'], '/') : $pgDatabase;
+        $pgUser = isset($parsedPgUrl['user']) ? urldecode($parsedPgUrl['user']) : $pgUser;
+        $pgPass = isset($parsedPgUrl['pass']) ? urldecode($parsedPgUrl['pass']) : $pgPass;
+        if (isset($parsedPgUrl['query'])) {
+            parse_str($parsedPgUrl['query'], $pgQueryParams);
+            if (isset($pgQueryParams['sslmode'])) {
+                $pgSslMode = $pgQueryParams['sslmode'];
+            }
+        }
+    }
+}
+
 return [
 
     /*
@@ -86,17 +113,17 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DB_URL', env('DATABASE_URL', env('POSTGRES_URL'))),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'url' => !empty($pgUrl) ? trim((string) $pgUrl, "\"' \t\n\r") : null,
+            'host' => $pgHost,
+            'port' => $pgPort,
+            'database' => $pgDatabase,
+            'username' => $pgUser,
+            'password' => $pgPass,
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => env('DB_SCHEMA', 'public'),
-            'sslmode' => env('DB_SSLMODE', 'require'),
+            'sslmode' => $pgSslMode,
         ],
 
         'sqlsrv' => [
