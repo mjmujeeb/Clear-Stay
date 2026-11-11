@@ -13,6 +13,11 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Enforce HTTPS across non-local public traffic (Cloudflare Tunnels, Render, Cloudflare, Production)
+        if (!$request->isSecure() && !in_array($request->getHost(), ['127.0.0.1', 'localhost', '::1'])) {
+            return redirect()->secure($request->getRequestUri(), 301);
+        }
+
         $response = $next($request);
 
         // Don't modify streaming responses
@@ -22,6 +27,7 @@ class SecurityHeaders
             $response->header('X-XSS-Protection', '1; mode=block');
             $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
             $response->header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+            $response->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
             // Content-Security-Policy accommodating CDN resources with automatic HTTPS upgrades
             $csp = "upgrade-insecure-requests; default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://code.jquery.com https://cdn.jsdelivr.net; img-src 'self' data: https:;";

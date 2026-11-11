@@ -1,7 +1,9 @@
 * text=auto eol=lf
 *.sh text eol=lf
 docker-entrypoint.sh text eol=lf
+docker-entrypoint-vercel.sh text eol=lf
 Dockerfile text eol=lf
+Dockerfile.vercel text eol=lf
 
 *.blade.php diff=html
 *.css diff=css
