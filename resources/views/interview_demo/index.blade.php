@@ -36,7 +36,7 @@
     </div>
 
     <!-- 10 Scenarios Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+    <div class="demo-scenarios-grid">
         @foreach($scenarios as $sc)
             @php
                 $sId = $sc['id'];

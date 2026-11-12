@@ -41,7 +41,12 @@ fi
 # ------------------------------------------------------------
 # 3. DATABASE CONFIGURATION & INITIALIZATION
 # ------------------------------------------------------------
-DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+if [ -n "${DATABASE_URL:-}" ] || [ -n "${DB_URL:-}" ] || [ -n "${POSTGRES_URL:-}" ]; then
+    echo "Detected PostgreSQL database connection string in environment. Enforcing DB_CONNECTION=pgsql."
+    DB_CONNECTION="pgsql"
+else
+    DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+fi
 
 if [ "$DB_CONNECTION" = "pgsql" ] && [ -z "${DATABASE_URL:-}" ] && [ -z "${DB_URL:-}" ] && [ -z "${POSTGRES_URL:-}" ] && [ -z "${DB_HOST:-}" ]; then
     echo "Notice: DB_CONNECTION=pgsql but no DATABASE_URL or DB_HOST was provided."

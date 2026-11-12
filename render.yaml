@@ -24,7 +24,7 @@ services:
       - key: APP_FALLBACK_LOCALE
         value: en
       - key: DB_CONNECTION
-        value: sqlite
+        value: pgsql
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
       - key: SESSION_DRIVER

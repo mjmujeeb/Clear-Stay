@@ -63,7 +63,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', (!empty(env('DATABASE_URL')) || !empty(env('DB_URL')) || !empty(env('POSTGRES_URL'))) ? 'pgsql' : 'sqlite'),
 
     /*
     |--------------------------------------------------------------------------

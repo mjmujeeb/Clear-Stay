@@ -55,13 +55,12 @@
             background-color: var(--bg);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            max-width: 100vw;
+            margin: 0;
+            padding: 0;
+            width: 100%;
             overflow-x: hidden;
             padding-top: var(--sat);
-            padding-right: var(--sar);
             padding-bottom: var(--sab);
-            padding-left: var(--sal);
         }
 
         /* Sidebar */
@@ -212,40 +211,89 @@
         /* Main Content */
         .main-wrapper {
             margin-left: 260px;
-            flex: 1;
+            width: calc(100% - 260px);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             min-width: 0;
+            background: var(--bg);
         }
 
         /* Top Header */
         .top-header {
             background: var(--card-bg);
             border-bottom: 1px solid var(--border);
-            padding: 14px 28px;
+            padding: 12px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 90;
+            gap: 16px;
+            min-height: 64px;
+            box-sizing: border-box;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .header-title {
+            min-width: 0;
+            flex: 1;
         }
 
         .header-title h2 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--text-main);
+            margin: 0;
+            line-height: 1.3;
+            white-space: normal;
+            word-break: keep-all;
+            overflow-wrap: break-word;
         }
 
         .header-title p {
             font-size: 12px;
             color: var(--text-muted);
+            margin: 2px 0 0 0;
+            line-height: 1.3;
+            white-space: normal;
         }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .search-trigger {
+            cursor: pointer;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            width: 170px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .search-trigger:hover {
+            border-color: #94a3b8;
+            background: #ffffff;
+            color: var(--text-main);
         }
 
         .hotel-selector {
@@ -257,6 +305,8 @@
             border-radius: 8px;
             border: 1px solid var(--border);
             font-size: 13px;
+            max-width: 220px;
+            flex-shrink: 0;
         }
 
         .hotel-selector select {
@@ -267,6 +317,8 @@
             color: var(--text-main);
             outline: none;
             cursor: pointer;
+            max-width: 180px;
+            text-overflow: ellipsis;
         }
 
         .lang-switch {
@@ -275,6 +327,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .lang-switch a {
@@ -293,8 +346,11 @@
 
         /* Page Body */
         .page-content {
-            padding: 28px;
+            padding: 24px 28px;
             flex: 1;
+            width: 100%;
+            box-sizing: border-box;
+            max-width: 100%;
         }
 
         /* Alert notifications */
@@ -640,6 +696,62 @@
             gap: 24px;
         }
 
+        .demo-scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+        @media (min-width: 1900px) {
+            .demo-scenarios-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        @media (max-width: 1100px) {
+            .demo-scenarios-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 700px) {
+            .demo-scenarios-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 1. Large Laptops & Desktops <= 1400px: compact header buttons to preserve title width */
+        @media (max-width: 1400px) {
+            .header-btn-text {
+                display: none;
+            }
+            .search-trigger {
+                width: 140px;
+            }
+            .hotel-selector {
+                max-width: 200px;
+            }
+            .hotel-selector select {
+                max-width: 165px;
+            }
+        }
+
+        /* 2. Laptops & Small Desktops <= 1180px */
+        @media (max-width: 1180px) {
+            .search-trigger {
+                width: 36px;
+                height: 36px;
+                padding: 0;
+                justify-content: center;
+            }
+            .search-trigger span,
+            .search-trigger kbd {
+                display: none;
+            }
+            .hide-on-compact-header {
+                display: none !important;
+            }
+        }
+
+        /* 3. Tablets & Mobile <= 900px */
         @media (max-width: 900px) {
             .mobile-menu-toggle {
                 display: inline-flex !important;
@@ -654,6 +766,7 @@
             }
             .main-wrapper {
                 margin-left: 0;
+                width: 100%;
             }
             .page-content {
                 padding: 16px;
@@ -665,16 +778,20 @@
                 grid-template-columns: 1fr !important;
                 gap: 16px !important;
             }
+            .hotel-selector-header {
+                display: none !important;
+            }
         }
 
+        /* 4. Small Tablets & Phones <= 768px */
         @media (max-width: 768px) {
             .top-header {
-                padding: 8px 12px !important;
-                min-height: 54px;
+                padding: 8px 14px !important;
+                min-height: 56px;
             }
             .header-title h2 {
                 font-size: 15px !important;
-                max-width: 140px;
+                max-width: 220px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -685,21 +802,7 @@
             .header-controls {
                 gap: 6px !important;
             }
-            .search-trigger {
-                min-width: 36px !important;
-                width: 36px !important;
-                height: 36px !important;
-                padding: 0 !important;
-                justify-content: center !important;
-                border-radius: 8px !important;
-            }
-            .search-trigger span, .search-trigger kbd {
-                display: none !important;
-            }
             .hide-on-mobile {
-                display: none !important;
-            }
-            .hotel-selector-header {
                 display: none !important;
             }
             /* Automatic responsive stacking for multi-column grids */
@@ -717,20 +820,18 @@
                 max-width: calc(100vw - 24px) !important;
                 margin: 12px !important;
             }
-        }
-
-        @media (max-width: 600px) {
-            [style*="minmax(300px"],
-            [style*="minmax(320px"],
-            [style*="minmax(340px"],
-            [style*="minmax(360px"] {
-                grid-template-columns: 1fr !important;
+            .next-step-floater {
+                left: 12px !important;
+                right: 12px !important;
+                bottom: 12px !important;
+                max-width: none !important;
             }
         }
 
+        /* 5. Mobile Devices <= 480px */
         @media (max-width: 480px) {
             .header-title h2 {
-                max-width: 105px !important;
+                max-width: 140px !important;
                 font-size: 14px !important;
             }
             .hide-on-xs {
@@ -738,11 +839,6 @@
             }
             .btn {
                 min-height: 40px;
-            }
-        }
-            }
-            .hide-on-xs {
-                display: none !important;
             }
         }
 
@@ -941,7 +1037,7 @@
             position: fixed;
             bottom: 24px;
             right: 24px;
-            z-index: 990;
+            z-index: 85;
             background: #ffffff;
             border: 1px solid var(--border);
             border-left: 4px solid #287F79;
@@ -1287,7 +1383,7 @@
     <!-- Main Content Area -->
     <div class="main-wrapper">
         <header class="top-header">
-            <div style="display: flex; align-items: center; gap: 14px;">
+            <div class="header-left">
                 <!-- Mobile Sidebar Hamburger Toggle -->
                 <button type="button" class="btn btn-sm btn-secondary mobile-menu-toggle" id="mobileMenuBtn" onclick="toggleMobileSidebar()" title="Toggle Navigation" aria-label="Toggle navigation menu">
                     <i class="fa-solid fa-bars"></i>
@@ -1301,9 +1397,9 @@
 
             <div class="header-controls">
                 <!-- Global Command Palette Search (Ctrl+K) -->
-                <div class="search-trigger" onclick="openGlobalSearch()" style="cursor: pointer; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); min-width: 200px;" title="Press Ctrl+K to search">
+                <div class="search-trigger" onclick="openGlobalSearch()" title="Press Ctrl+K to search">
                     <i class="fa-solid fa-magnifying-glass text-primary"></i>
-                    <span style="flex: 1;">Search everything...</span>
+                    <span>Search everything...</span>
                     <kbd style="background: #e2e8f0; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Ctrl K</kbd>
                 </div>
 
@@ -1344,21 +1440,21 @@
                 </div>
 
                 <!-- Easy Mode Quick Switch -->
-                <a href="{{ route('easy_mode.index') }}" class="btn btn-sm" style="background: #183B50; color: #E8A64A; border: 1px solid #287F79; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Switch to Senior & Nontechnical Easy Mode: larger typography, 52px+ buttons, and 1-touch arrivals/departures.">
+                <a href="{{ route('easy_mode.index') }}" class="btn btn-sm hide-on-compact-header" style="background: #183B50; color: #E8A64A; border: 1px solid #287F79; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Switch to Senior & Nontechnical Easy Mode: larger typography, 52px+ buttons, and 1-touch arrivals/departures.">
                     <i class="fa-solid fa-person-shelter"></i>
-                    <span class="hide-on-xs">かんたん操作</span>
+                    <span class="header-btn-text">かんたん操作</span>
                 </a>
 
-                <!-- Learning Centre Videos (Hidden on mobile header; in sidebar drawer) -->
-                <a href="{{ route('learning_centre.index') }}" class="btn btn-sm btn-secondary hide-on-mobile" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Watch 8 recorded video walkthroughs demonstrating full reservation, bulk update, and QA workflows.">
+                <!-- Learning Centre Videos (Hidden on compact header; in sidebar drawer) -->
+                <a href="{{ route('learning_centre.index') }}" class="btn btn-sm btn-secondary hide-on-compact-header" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" data-tooltip="Watch 8 recorded video walkthroughs demonstrating full reservation, bulk update, and QA workflows.">
                     <i class="fa-solid fa-film" style="color: #287F79;"></i>
-                    <span>動画ガイド</span>
+                    <span class="header-btn-text">動画ガイド</span>
                 </a>
 
-                <!-- Onboarding Setup Guide Trigger (Hidden on mobile header; in sidebar drawer) -->
-                <button type="button" class="btn btn-sm btn-secondary hide-on-mobile" onclick="openOnboardingModal()" id="btnOnboardingTrigger" style="display: inline-flex; align-items: center; gap: 6px;" data-tooltip="Track the 7-step enterprise setup checklist reflecting live database state.">
+                <!-- Onboarding Setup Guide Trigger (Hidden on compact header; in sidebar drawer) -->
+                <button type="button" class="btn btn-sm btn-secondary hide-on-compact-header" onclick="openOnboardingModal()" id="btnOnboardingTrigger" style="display: inline-flex; align-items: center; gap: 6px;" data-tooltip="Track the 7-step enterprise setup checklist reflecting live database state.">
                     <i class="fa-solid fa-rocket" style="color: #E8A64A;"></i>
-                    <span>ガイド</span>
+                    <span class="header-btn-text">ガイド</span>
                     <span class="badge" id="onboardingHeaderBadge" style="background: #287F79; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px;">...</span>
                 </button>
 
@@ -1376,15 +1472,15 @@
                             @endphp
                             @foreach($accessibleHotels as $h)
                                 <option value="{{ $h->id }}" {{ $currentHotelId == $h->id ? 'selected' : '' }}>
-                                    {{ $h->name }} ({{ $h->city }})
+                                    {{ $h->name }}
                                 </option>
                             @endforeach
                         </select>
                     </form>
                 </div>
 
-                <!-- Language Switcher (Hidden on extra small devices; mirrored in sidebar drawer) -->
-                <div class="lang-switch hide-on-xs">
+                <!-- Language Switcher -->
+                <div class="lang-switch">
                     <a href="{{ route('locale.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
                     <a href="{{ route('locale.switch', 'ja') }}" class="{{ app()->getLocale() === 'ja' ? 'active' : '' }}">日本語</a>
                 </div>
@@ -1618,7 +1714,7 @@
     </div>
 
     <!-- Global Command Palette Modal (Ctrl+K) -->
-    <div id="globalSearchModal" class="search-modal-backdrop">
+    <div id="globalSearchModal" class="search-modal-backdrop" style="display: none;" aria-hidden="true">
         <div class="search-modal-dialog">
             <div class="search-input-box">
                 <i class="fa-solid fa-magnifying-glass text-primary" style="font-size: 18px;"></i>
@@ -1689,13 +1785,13 @@
         let searchDebounceTimer = null;
 
         function openGlobalSearch() {
-            $('#globalSearchModal').addClass('active');
+            $('#globalSearchModal').css('display', 'flex').addClass('active').attr('aria-hidden', 'false');
             $('#globalSearchInput').val('').focus();
             loadSearchQuery('');
         }
 
         function closeGlobalSearch() {
-            $('#globalSearchModal').removeClass('active');
+            $('#globalSearchModal').removeClass('active').css('display', 'none').attr('aria-hidden', 'true');
         }
 
         // Keyboard Shortcut: Ctrl+K / Cmd+K and ESC

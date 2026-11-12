@@ -153,6 +153,13 @@ export default defineConfig({
       },
     },
     {
+      name: 'Desktop - 1648x928',
+      use: {
+        viewport: { width: 1648, height: 928 },
+        deviceScaleFactor: 1,
+      },
+    },
+    {
       name: 'Desktop - 1080p FHD (1920x1080)',
       use: {
         viewport: { width: 1920, height: 1080 },
