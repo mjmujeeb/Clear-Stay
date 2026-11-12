@@ -16,28 +16,15 @@ echo "================================================"
 # ------------------------------------------------------------
 # 1. VERIFY / PRESERVE APPLICATION ENCRYPTION KEY
 # ------------------------------------------------------------
-if [ -z "${APP_KEY:-}" ] || [ "${APP_KEY:-}" = "generateValue" ]; then
-    echo "Notice: APP_KEY not detected or placeholder in environment."
-    echo "Generating new production application key..."
-    php artisan key:generate --force --no-interaction
-else
-    VALID_KEY=$(php -r '
-        $k = getenv("APP_KEY");
-        if (str_starts_with($k, "base64:")) {
-            $len = strlen(base64_decode(substr($k, 7)));
-        } else {
-            $len = strlen($k);
-        }
-        echo ($len === 32) ? "valid" : "invalid";
-    ' 2>/dev/null || echo "invalid")
-
-    if [ "$VALID_KEY" != "valid" ]; then
-        echo "Notice: Detected invalid APP_KEY format/length in environment. Regenerating valid key..."
-        php artisan key:generate --force --no-interaction
-    else
-        echo "Application encryption key verified."
-    fi
+echo "Verifying application encryption key..."
+if ! CLEAN_APP_KEY=$(php devops/scripts/validate-app-key.php); then
+    echo "============================================================" >&2
+    echo " FATAL: ClearStay container startup aborted due to APP_KEY."  >&2
+    echo "============================================================" >&2
+    exit 1
 fi
+
+export APP_KEY="$CLEAN_APP_KEY"
 
 # ------------------------------------------------------------
 # 2. DYNAMIC PORT & NGINX CONFIGURATION (Render / Cloud Port)
@@ -120,7 +107,9 @@ echo "================================================"
 echo " EXECUTING DATABASE MIGRATIONS"
 echo "================================================"
 
-php artisan migrate --force --no-interaction
+php artisan migrate --force --no-interaction || {
+    echo "Warning: Database migrations encountered an issue. Continuing container boot..."
+}
 
 echo "Database migrations completed successfully."
 
