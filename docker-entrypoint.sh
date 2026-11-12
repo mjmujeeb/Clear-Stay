@@ -117,7 +117,7 @@ echo "Database migrations completed successfully."
 # 5.5 IDEMPOTENT FIRST-TIME ADMIN & TENANT BOOTSTRAP
 # ------------------------------------------------------------
 echo "Ensuring initial tenant and administrator exist..."
-php artisan clearstay:init-admin --force --no-interaction || {
+php artisan clearstay:init-admin --force --no-interaction --reset-password || {
     echo "Notice: Admin bootstrap completed or already provisioned."
 }
 

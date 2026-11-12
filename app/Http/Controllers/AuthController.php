@@ -10,6 +10,7 @@ use App\Services\BotDefenseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -154,52 +155,106 @@ class AuthController extends Controller
     public function showRegister()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            $user = Auth::user();
+            if ($user->isSuperAdmin()) {
+                $hotels = Hotel::where('is_active', true)->orderBy('name')->get();
+                return view('auth.register', compact('hotels'));
+            } elseif ($user->isManager()) {
+                $hotels = Hotel::where('is_active', true)->where('id', $user->hotel_id)->get();
+                return view('auth.register', compact('hotels'));
+            } else {
+                return redirect()->route('dashboard')->with('error', 'Unauthorized: Only administrators and property managers can register new staff.');
+            }
         }
-        $hotels = Hotel::where('is_active', true)->get();
+
+        $hotels = Hotel::where('is_active', true)->orderBy('name')->get();
         return view('auth.register', compact('hotels'));
     }
 
     public function register(Request $request)
     {
-        // Bot Verification with mandatory human challenge on public registration
-        $botCheck = $this->botDefenseService->verifyForm($request, true);
-        if (!$botCheck['success']) {
-            throw ValidationException::withMessages([
-                '_cs_challenge_answer' => [$botCheck['message']],
-            ]);
+        $isAuthenticatedAdmin = Auth::check();
+        $currentUser = Auth::user();
+
+        if ($isAuthenticatedAdmin) {
+            if (!$currentUser->isSuperAdmin() && !$currentUser->isManager()) {
+                abort(403, 'Unauthorized.');
+            }
+        } else {
+            // Bot Verification with mandatory human challenge on unauthenticated public registration
+            $botCheck = $this->botDefenseService->verifyForm($request, true);
+            if (!$botCheck['success']) {
+                throw ValidationException::withMessages([
+                    '_cs_challenge_answer' => [$botCheck['message']],
+                ]);
+            }
         }
+
+        $messages = [
+            'email.unique' => 'This email address is already registered. Please sign in or use another email.',
+            'hotel_id.required' => 'An assigned property is required for staff registration.',
+            'hotel_id.exists' => 'The selected property does not exist or is inactive.',
+            'password.confirmed' => 'The password confirmation does not match.',
+            'password.min' => 'The password must be at least 8 characters.',
+        ];
 
         $request->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email|max:150|unique:users',
-            'password' => 'required|min:8|confirmed',
-            'hotel_id' => 'nullable|exists:hotels,id',
-            'role' => 'required|in:manager,frontdesk,housekeeping',
+            'email' => 'required|email|max:150|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'hotel_id' => 'required|exists:hotels,id',
+            'role' => 'required|in:manager,frontdesk,housekeeping,revenue,qa',
             'locale' => 'required|in:en,ja',
-        ]);
+        ], $messages);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'hotel_id' => $request->hotel_id,
-            'role' => $request->role,
-            'locale' => $request->locale,
-            'is_active' => true,
-            'last_login_at' => now(),
-            'last_login_ip' => $request->ip(),
-        ]);
-
-        Auth::login($user);
-
-        if ($user->hotel_id) {
-            session(['current_hotel_id' => $user->hotel_id]);
+        // Verify hotel is active
+        $hotel = Hotel::where('id', $request->hotel_id)->where('is_active', true)->first();
+        if (!$hotel) {
+            throw ValidationException::withMessages([
+                'hotel_id' => ['The selected property does not exist or is inactive.'],
+            ]);
         }
-        session(['locale' => $user->locale]);
 
-        AuditLog::record('auth.register', $user);
-        SecurityIncident::log('auth.staff_registered', 'low', ['email' => $user->email], $request);
+        // Multi-tenancy check: If manager, cannot assign to another hotel
+        if ($isAuthenticatedAdmin && !$currentUser->isSuperAdmin() && $currentUser->hotel_id !== intval($request->hotel_id)) {
+            abort(403, 'Managers may only register staff for their assigned property.');
+        }
+
+        $user = DB::transaction(function () use ($request, $hotel) {
+            return User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'hotel_id' => $hotel->id,
+                'role' => $request->role,
+                'locale' => $request->locale,
+                'is_active' => true,
+                'is_suspended' => false,
+                'email_verified_at' => now(),
+                'last_login_at' => null,
+            ]);
+        });
+
+        AuditLog::record('auth.register', $user, null, [
+            'creator_id' => $isAuthenticatedAdmin ? $currentUser->id : null,
+            'hotel_id' => $user->hotel_id,
+            'role' => $user->role,
+            'ip' => $request->ip(),
+        ]);
+        SecurityIncident::log('auth.staff_registered', 'low', [
+            'email' => $user->email,
+            'hotel_id' => $user->hotel_id,
+            'role' => $user->role,
+        ], $request);
+
+        if ($isAuthenticatedAdmin) {
+            return redirect()->route('staff.index')->with('success', "Staff account for [{$user->name}] successfully created for {$hotel->name}.");
+        }
+
+        // Public registration: Log in new user
+        Auth::login($user);
+        session(['current_hotel_id' => $user->hotel_id]);
+        session(['locale' => $user->locale]);
 
         return redirect()->route('dashboard')->with('success', __('clearstay.auth.registered_welcome'));
     }

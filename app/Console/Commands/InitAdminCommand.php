@@ -19,6 +19,7 @@ class InitAdminCommand extends Command
         . ' {--email= : The email address for the initial administrator}'
         . ' {--password= : The secure password for the initial administrator}'
         . ' {--hotel-name=ClearStay Flagship Hotel : The default primary hotel name if none exists}'
+        . ' {--reset-password : Force reset the administrator password to the configured password}'
         . ' {--force : Execute non-interactively without prompting}';
 
     /**
@@ -76,20 +77,41 @@ class InitAdminCommand extends Command
             }
         }
 
-        // 3. Check for existing superadmin or existing user with that email
-        $existingAdmin = User::where('role', 'superadmin')->orWhere('email', $email)->first();
-        if ($existingAdmin) {
-            $this->info("System administrator already exists [Email: {$existingAdmin->email}, Role: {$existingAdmin->role}].");
-            $this->info('No changes made (Idempotent bootstrap check passed).');
-            return Command::SUCCESS;
-        }
-
-        // 4. Resolve Admin Password
+        // 3. Resolve Admin Password
         $password = $this->option('password') ?: env('ADMIN_PASSWORD');
-        $isGenerated = false;
-
         if (!$password) {
             $password = 'password';
+        }
+
+        // 4. Check for existing administrator with this email
+        $existingAdmin = User::where('email', $email)->first();
+        if ($existingAdmin) {
+            if ($this->option('reset-password')) {
+                $existingAdmin->update([
+                    'hotel_id' => $existingAdmin->hotel_id ?: $hotel->id,
+                    'role' => 'superadmin',
+                    'password' => Hash::make($password),
+                    'is_active' => true,
+                    'is_suspended' => false,
+                    'failed_login_attempts' => 0,
+                    'lockout_until' => null,
+                ]);
+                $this->info("System administrator credentials reset [Email: {$existingAdmin->email}, Role: {$existingAdmin->role}].");
+            } else {
+                // Ensure superadmin role and active status are intact without altering existing password
+                $existingAdmin->update([
+                    'hotel_id' => $existingAdmin->hotel_id ?: $hotel->id,
+                    'role' => 'superadmin',
+                    'is_active' => true,
+                    'is_suspended' => false,
+                    'failed_login_attempts' => 0,
+                    'lockout_until' => null,
+                ]);
+                $this->info("System administrator already exists [Email: {$existingAdmin->email}, Role: {$existingAdmin->role}].");
+                $this->info('No password changes made (Idempotent bootstrap check passed).');
+            }
+
+            return Command::SUCCESS;
         }
 
         // 5. Create Superadmin User
@@ -109,19 +131,13 @@ class InitAdminCommand extends Command
         ]);
 
         $this->info('==============================================');
-        $this->info(' SUPERADMINISTRATOR CREATED SUCCESSFULLY');
+        $this->info(' SUPERADMINISTRATOR READY');
         $this->info(" ID:       {$user->id}");
         $this->info(" Name:     {$user->name}");
         $this->info(" Email:    {$user->email}");
         $this->info(" Role:     {$user->role}");
         $this->info(" Hotel:    {$hotel->name} (ID: {$hotel->id})");
-
-        if ($isGenerated) {
-            $this->warn(' Generated Secure Password (SAVE THIS IMMEDIATELY):');
-            $this->warn(" >>> {$password} <<<");
-        } else {
-            $this->info(' Password: [Provided securely via input/env]');
-        }
+        $this->info(' Password: [Synchronized to ADMIN_PASSWORD / default]');
         $this->info('==============================================');
 
         return Command::SUCCESS;

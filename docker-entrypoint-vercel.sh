@@ -94,7 +94,7 @@ php artisan migrate --force --no-interaction || {
 # 5. IDEMPOTENT FIRST-TIME ADMIN & TENANT BOOTSTRAP
 # ------------------------------------------------------------
 echo "Bootstrapping initial administrator if not present..."
-php artisan clearstay:init-admin --force --no-interaction || true
+php artisan clearstay:init-admin --force --no-interaction --reset-password || true
 
 # ------------------------------------------------------------
 # 6. OPTIMIZE CONFIGURATION AND ROUTES CACHE

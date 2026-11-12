@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\AuthorizationDecision;
+use App\Models\Hotel;
 use App\Models\Permission;
 use App\Models\SecurityRiskEvent;
 use App\Models\TrustedDevice;
@@ -13,6 +14,7 @@ use App\Services\Governance\HybridAccessControlService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class StaffGovernanceController extends Controller
@@ -38,13 +40,30 @@ class StaffGovernanceController extends Controller
         }
 
         $query = User::with(['hotel', 'userPermissions.permission', 'trustedDevices']);
-        if ($currentUser->role !== 'owner') {
+        if ($currentUser->role !== 'owner' && !$currentUser->isSuperAdmin()) {
             $query->where('hotel_id', $hotelId);
+        } else {
+            if ($request->filled('hotel_id')) {
+                $query->where('hotel_id', $request->input('hotel_id'));
+            }
         }
 
-        $staff = $query->orderBy('name')->paginate(20);
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
 
-        return view('staff_governance.index', compact('staff'));
+        if ($request->filled('role')) {
+            $query->where('role', $request->input('role'));
+        }
+
+        $staff = $query->orderBy('name')->paginate(20)->withQueryString();
+        $hotels = Hotel::where('is_active', true)->orderBy('name')->get();
+
+        return view('staff_governance.index', compact('staff', 'hotels'));
     }
 
     public function edit(Request $request, User $user)
@@ -52,8 +71,8 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        // Prevent cross-tenant editing for non-owners
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        // Prevent cross-tenant editing for non-owners and non-superadmins
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403, 'Unauthorized access to employee in another property.');
         }
 
@@ -74,14 +93,116 @@ class StaffGovernanceController extends Controller
         $userOverrides = $user->userPermissions->keyBy('permission_id');
         $recentDecisions = AuthorizationDecision::where('user_id', $user->id)->latest()->take(10)->get();
         $recentRiskEvents = SecurityRiskEvent::where('user_id', $user->id)->latest()->take(10)->get();
+        $hotels = Hotel::where('is_active', true)->orderBy('name')->get();
 
         return view('staff_governance.edit', compact(
             'user',
             'allPermissions',
             'userOverrides',
             'recentDecisions',
-            'recentRiskEvents'
+            'recentRiskEvents',
+            'hotels'
         ));
+    }
+
+    public function updateDetails(Request $request, User $user)
+    {
+        $currentUser = $request->user();
+        $hotelId = $currentUser->hotel_id;
+
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+            abort(403);
+        }
+
+        $decision = $this->accessControl->evaluate($currentUser, 'governance.staff_manage', [
+            'hotel_id' => $hotelId,
+            'target_user_id' => $user->id,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        if ($decision->isDenied()) {
+            return back()->with('error', 'Access denied: ' . $decision->getReason());
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:150|unique:users,email,' . $user->id,
+            'department' => 'nullable|string|max:100',
+            'hotel_id' => 'required|exists:hotels,id',
+            'role' => 'required|in:owner,manager,frontdesk,housekeeping,guest,auditor,revenue,qa',
+        ]);
+
+        // Non-superadmin cannot transfer staff to another property
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && intval($request->hotel_id) !== $user->hotel_id) {
+            abort(403, 'Only Super Administrators can transfer staff between properties.');
+        }
+
+        $oldDetails = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'department' => $user->department,
+            'hotel_id' => $user->hotel_id,
+            'role' => $user->role,
+        ];
+
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->department = $request->input('department');
+        $user->hotel_id = $request->input('hotel_id');
+        $user->role = $request->input('role');
+        $user->save();
+
+        AuditLog::record('governance.user_updated', $user, null, [
+            'manager_id' => $currentUser->id,
+            'old' => $oldDetails,
+            'new' => $request->only(['name', 'email', 'department', 'hotel_id', 'role']),
+        ]);
+
+        return back()->with('success', 'User profile details updated successfully.');
+    }
+
+    public function resetPassword(Request $request, User $user)
+    {
+        $currentUser = $request->user();
+        $hotelId = $currentUser->hotel_id;
+
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+            abort(403);
+        }
+
+        $decision = $this->accessControl->evaluate($currentUser, 'governance.staff_manage', [
+            'hotel_id' => $hotelId,
+            'target_user_id' => $user->id,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        if ($decision->isDenied()) {
+            return back()->with('error', 'Access denied: ' . $decision->getReason());
+        }
+
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user->password = Hash::make($request->input('password'));
+        $user->failed_login_attempts = 0;
+        $user->lockout_until = null;
+        $user->remember_token = Str::random(60);
+        $user->save();
+
+        // Invalidate active sessions
+        try {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        } catch (\Throwable $e) {}
+
+        AuditLog::record('governance.password_reset', $user, null, [
+            'reset_by' => $currentUser->id,
+            'ip' => $request->ip(),
+        ]);
+
+        return back()->with('success', "Password for {$user->name} has been securely reset.");
     }
 
     public function updateRole(Request $request, User $user)
@@ -89,7 +210,7 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403);
         }
 
@@ -140,7 +261,7 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403);
         }
 
@@ -204,7 +325,7 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403);
         }
 
@@ -243,7 +364,7 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403);
         }
 
@@ -268,6 +389,7 @@ class StaffGovernanceController extends Controller
         ]);
 
         $user->is_suspended = true;
+        $user->is_active = false;
         $user->suspension_reason = $request->input('reason');
         $user->suspended_until = $request->input('suspended_until') ? Carbon::parse($request->input('suspended_until')) : null;
         $user->remember_token = Str::random(60);
@@ -300,7 +422,7 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403);
         }
 
@@ -316,6 +438,7 @@ class StaffGovernanceController extends Controller
         }
 
         $user->is_suspended = false;
+        $user->is_active = true;
         $user->suspension_reason = null;
         $user->suspended_until = null;
         $user->save();
@@ -336,7 +459,7 @@ class StaffGovernanceController extends Controller
         $currentUser = $request->user();
         $hotelId = $currentUser->hotel_id;
 
-        if ($currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
+        if (!$currentUser->isSuperAdmin() && $currentUser->role !== 'owner' && $user->hotel_id !== $hotelId) {
             abort(403);
         }
 
@@ -370,6 +493,7 @@ class StaffGovernanceController extends Controller
 
         // Suspend permanently
         $user->is_suspended = true;
+        $user->is_active = false;
         $user->suspension_reason = 'PERMANENT REVOCATION: ' . $request->input('reason');
         $user->access_expires_at = now();
         $user->remember_token = Str::random(60);

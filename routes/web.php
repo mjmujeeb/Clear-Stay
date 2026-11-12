@@ -180,6 +180,8 @@ Route::middleware(['auth'])->group(function () {
     // Pillar 6: Hybrid Access Governance & Manager Employee Controls
     Route::get('/staff-governance', [StaffGovernanceController::class, 'index'])->name('staff.index');
     Route::get('/staff-governance/{user}/edit', [StaffGovernanceController::class, 'edit'])->name('staff.edit');
+    Route::post('/staff-governance/{user}/update-details', [StaffGovernanceController::class, 'updateDetails'])->name('staff.update_details');
+    Route::post('/staff-governance/{user}/reset-password', [StaffGovernanceController::class, 'resetPassword'])->name('staff.reset_password');
     Route::post('/staff-governance/{user}/role', [StaffGovernanceController::class, 'updateRole'])->name('staff.update_role');
     Route::post('/staff-governance/{user}/permissions', [StaffGovernanceController::class, 'updatePermissions'])->name('staff.update_permissions');
     Route::post('/staff-governance/{user}/expiry', [StaffGovernanceController::class, 'updateExpiry'])->name('staff.update_expiry');
