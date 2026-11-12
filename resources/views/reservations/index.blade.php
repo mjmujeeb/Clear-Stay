@@ -9,7 +9,7 @@
     <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
         <form action="{{ route('reservations.index') }}" method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
             <input type="text" name="search" value="{{ $search }}" placeholder="Search Code, Guest Name, Room..." 
-                style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; min-width: 240px;">
+                style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; min-width: min(100%, 200px); flex: 1;">
 
             <select name="status" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;">
                 <option value="">{{ __('clearstay.board.all_statuses') }}</option>

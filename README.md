@@ -211,9 +211,21 @@ ClearStay/
 
 ## 🧪 Testing
 
-Run PHPUnit automated test suite:
+### 1. PHPUnit Automated Test Suite
+Run the 167 backend unit, feature, multi-tenant, and end-to-end business workflow tests:
 ```bash
 php artisan test
+```
+
+### 2. Playwright Cross-Device & Responsive Verification Suite
+Run end-to-end multi-viewport responsive testing across Android, iPhone, iPad, tablets, laptops, and desktop viewports:
+```bash
+npx playwright test
+```
+
+Generate HTML test report:
+```bash
+npx playwright show-report
 ```
 
 ---

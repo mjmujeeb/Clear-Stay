@@ -30,8 +30,8 @@
         </span>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 12px; font-size: 13px;">
-        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-weight: 700; color: #0f172a; letter-spacing: 0.05em; font-family: monospace;">
+    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; flex-wrap: wrap;">
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-weight: 700; color: #0f172a; letter-spacing: 0.05em; font-family: monospace; white-space: nowrap;">
             {{ $challenge['question'] }}
         </div>
         <input type="number" 
@@ -39,8 +39,8 @@
                placeholder="Result" 
                required 
                autocomplete="off"
-               style="width: 80px; padding: 6px 10px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; outline: none;">
-        <span style="font-size: 11px; color: #64748b;">{{ __('clearstay.security.solve_to_verify') }}</span>
+               style="width: 80px; padding: 6px 10px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 14px; font-weight: 700; text-align: center; outline: none;">
+        <span style="font-size: 11px; color: #64748b; flex: 1; min-width: 120px;">{{ __('clearstay.security.solve_to_verify') }}</span>
     </div>
 </div>
 @endif

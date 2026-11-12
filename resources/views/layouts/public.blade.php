@@ -2,7 +2,7 @@
 <html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="theme-color" content="#0F1D2F">
     <link rel="manifest" href="/manifest.json">
@@ -30,6 +30,10 @@
 
     <style>
         :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
             --primary: #287F79;
             --primary-dark: #1E605B;
             --primary-light: #E6F3F2;
@@ -58,6 +62,11 @@
             color: var(--text-dark);
             line-height: 1.6;
             overflow-x: hidden;
+            max-width: 100vw;
+            padding-top: var(--sat);
+            padding-right: var(--sar);
+            padding-bottom: var(--sab);
+            padding-left: var(--sal);
         }
 
         /* Navigation */
@@ -257,14 +266,44 @@
                 display: none;
             }
             .mobile-menu-btn {
-                display: block;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 44px;
+                min-height: 44px;
             }
             .footer-grid {
                 grid-template-columns: 1fr;
                 gap: 30px;
             }
             .pub-nav {
-                padding: 14px 20px;
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pub-brand span {
+                font-size: 16px;
+            }
+            .btn-demo {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .btn-login-outline {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .container {
+                padding: 0 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .pub-brand small {
+                display: none;
+            }
+            .btn-login-outline {
+                display: none;
             }
         }
     </style>

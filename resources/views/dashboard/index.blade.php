@@ -78,7 +78,7 @@
 </div>
 
 <!-- Two-Column Operational Layout -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+<div class="dashboard-two-col">
     <!-- Today's Expected Arrivals -->
     <div class="card">
         <div class="card-header">
@@ -190,7 +190,7 @@
 </div>
 
 <!-- Housekeeping Urgent Tasks & Audit Logs -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+<div class="dashboard-two-col" style="margin-top: 24px;">
     <!-- Housekeeping Tasks -->
     <div class="card">
         <div class="card-header">

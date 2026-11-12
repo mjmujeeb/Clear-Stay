@@ -2,7 +2,7 @@
 <html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#0F1D2F">
     <link rel="manifest" href="/manifest.json">
@@ -18,6 +18,10 @@
     
     <style>
         :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
             --primary: #183B50;
             --primary-dark: #0F2942;
             --primary-accent: #287F79;
@@ -52,6 +56,12 @@
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
+            max-width: 100vw;
+            overflow-x: hidden;
+            padding-top: var(--sat);
+            padding-right: var(--sar);
+            padding-bottom: var(--sab);
+            padding-left: var(--sal);
         }
 
         /* Sidebar */
@@ -599,6 +609,35 @@
         /* Mobile Responsive */
         .mobile-menu-toggle {
             display: none;
+            min-width: 44px;
+            min-height: 44px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(2px);
+            z-index: 95;
+            transition: opacity 0.25s ease;
+        }
+
+        .sidebar-backdrop.active {
+            display: block;
+        }
+
+        .dashboard-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
         @media (max-width: 900px) {
@@ -606,7 +645,9 @@
                 display: inline-flex !important;
             }
             .sidebar {
-                left: -260px;
+                left: -280px;
+                width: 280px;
+                z-index: 1000;
             }
             .sidebar.mobile-open {
                 left: 0;
@@ -619,6 +660,10 @@
             }
             .mobile-sidebar-controls {
                 display: flex;
+            }
+            .dashboard-two-col {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
             }
         }
 
@@ -657,12 +702,44 @@
             .hotel-selector-header {
                 display: none !important;
             }
+            /* Automatic responsive stacking for multi-column grids */
+            div[style*="grid-template-columns: 1fr 1fr"],
+            div[style*="grid-template-columns: 2fr 1fr"],
+            div[style*="grid-template-columns: 2.2fr 1fr"],
+            div[style*="grid-template-columns: 1fr 2fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            /* Form inputs 16px font-size to prevent iOS Safari auto-zoom */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+            .modal-container {
+                max-width: calc(100vw - 24px) !important;
+                margin: 12px !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            [style*="minmax(300px"],
+            [style*="minmax(320px"],
+            [style*="minmax(340px"],
+            [style*="minmax(360px"] {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         @media (max-width: 480px) {
             .header-title h2 {
                 max-width: 105px !important;
                 font-size: 14px !important;
+            }
+            .hide-on-xs {
+                display: none !important;
+            }
+            .btn {
+                min-height: 40px;
+            }
+        }
             }
             .hide-on-xs {
                 display: none !important;
@@ -1204,12 +1281,15 @@
         </div>
     </aside>
 
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar()" aria-hidden="true"></div>
+
     <!-- Main Content Area -->
     <div class="main-wrapper">
         <header class="top-header">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <!-- Mobile Sidebar Hamburger Toggle -->
-                <button type="button" class="btn btn-sm btn-secondary mobile-menu-toggle" id="mobileMenuBtn" onclick="toggleMobileSidebar()" title="Toggle Navigation">
+                <button type="button" class="btn btn-sm btn-secondary mobile-menu-toggle" id="mobileMenuBtn" onclick="toggleMobileSidebar()" title="Toggle Navigation" aria-label="Toggle navigation menu">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
@@ -1585,6 +1665,7 @@
         // Mobile Sidebar Toggle
         function toggleMobileSidebar() {
             $('#appSidebar').toggleClass('mobile-open');
+            $('#sidebarBackdrop').toggleClass('active');
         }
 
         // Notification Drawer Toggle

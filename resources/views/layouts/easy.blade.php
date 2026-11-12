@@ -2,7 +2,7 @@
 <html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'ClearStay Easy Mode - かんたん操作')</title>
 
@@ -13,6 +13,10 @@
 
     <style>
         :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
             --easy-bg: #F0F4F8;
             --easy-card: #FFFFFF;
             --easy-navy: #0F1D2F;
@@ -42,6 +46,12 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            max-width: 100vw;
+            overflow-x: hidden;
+            padding-top: var(--sat);
+            padding-right: var(--sar);
+            padding-bottom: var(--sab);
+            padding-left: var(--sal);
         }
 
         /* Top Header Bar */

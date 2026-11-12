@@ -13,7 +13,7 @@
             Temairazu-Inspired Architecture &bull; 日本語 / English
         </div>
 
-        <h1 style="font-size: 50px; font-weight: 900; color: #0F1D2F; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 22px;">
+        <h1 style="font-size: clamp(28px, 6vw, 50px); font-weight: 900; color: #0F1D2F; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 22px;">
             One connected workspace for <span style="color: #287F79;">modern hotel operations.</span>
         </h1>
 
@@ -36,7 +36,7 @@
         <!-- Hero Genuine UI Preview Showcase Card -->
         <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 25px 50px -12px rgba(15, 29, 47, 0.12); overflow: hidden; text-align: left;">
             <!-- Top Window Bar -->
-            <div style="background: #0F1D2F; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="background: #0F1D2F; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #EF4444;"></span>
                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #F59E0B;"></span>
@@ -94,7 +94,7 @@
             </p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 24px;">
             <!-- Product 1: Standard Professional Experience -->
             <div style="background: #F8FAFC; border: 2px solid var(--border); border-top: 5px solid #183B50; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -354,41 +354,43 @@
                     </div>
                 </div>
                 <div style="background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; font-size: 13px;">
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center;">
-                        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: var(--text-muted);">Mon 09</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">8 Left</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">¥18,000</div>
-                        </div>
-                        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: var(--text-muted);">Tue 10</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">7 Left</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">¥18,000</div>
-                        </div>
-                        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: var(--text-muted);">Wed 11</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">9 Left</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">¥18,000</div>
-                        </div>
-                        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: var(--text-muted);">Thu 12</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">6 Left</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">¥19,500</div>
-                        </div>
-                        <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: #92400E;">Fri 13</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #92400E; margin: 4px 0;">3 Left</div>
-                            <div style="font-size: 11px; color: #78350F; font-weight: 700;">¥24,000</div>
-                        </div>
-                        <div style="background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: #991B1B;">Sat 14</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #991B1B; margin: 4px 0;">1 Left</div>
-                            <div style="font-size: 11px; color: #991B1B; font-weight: 700;">¥28,500</div>
-                        </div>
-                        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
-                            <div style="font-weight: 700; color: var(--text-muted);">Sun 15</div>
-                            <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">5 Left</div>
-                            <div style="font-size: 11px; color: var(--text-muted);">¥21,000</div>
+                    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; min-width: 580px;">
+                            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: var(--text-muted);">Mon 09</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">8 Left</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">¥18,000</div>
+                            </div>
+                            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: var(--text-muted);">Tue 10</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">7 Left</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">¥18,000</div>
+                            </div>
+                            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: var(--text-muted);">Wed 11</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">9 Left</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">¥18,000</div>
+                            </div>
+                            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: var(--text-muted);">Thu 12</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">6 Left</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">¥19,500</div>
+                            </div>
+                            <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: #92400E;">Fri 13</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #92400E; margin: 4px 0;">3 Left</div>
+                                <div style="font-size: 11px; color: #78350F; font-weight: 700;">¥24,000</div>
+                            </div>
+                            <div style="background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: #991B1B;">Sat 14</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #991B1B; margin: 4px 0;">1 Left</div>
+                                <div style="font-size: 11px; color: #991B1B; font-weight: 700;">¥28,500</div>
+                            </div>
+                            <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 12px 6px;">
+                                <div style="font-weight: 700; color: var(--text-muted);">Sun 15</div>
+                                <div style="font-size: 16px; font-weight: 800; color: #065F46; margin: 4px 0;">5 Left</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">¥21,000</div>
+                            </div>
                         </div>
                     </div>
                 </div>
