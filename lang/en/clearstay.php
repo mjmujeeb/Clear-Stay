@@ -187,6 +187,8 @@ return [
     ],
 
     'security' => [
+        'bot_verification_title' => 'Human Verification',
+        'solve_to_verify' => 'Solve to verify you are human',
         'title' => 'Cyber Threat Intelligence & WAF Center',
         'subtitle' => 'Live anomaly monitoring, automated bot mitigation, IP firewall control, and MFA management',
         'threat_level' => 'Threat Level',

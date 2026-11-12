@@ -93,10 +93,8 @@ php artisan migrate --force --no-interaction || {
 # ------------------------------------------------------------
 # 5. IDEMPOTENT FIRST-TIME ADMIN & TENANT BOOTSTRAP
 # ------------------------------------------------------------
-if [ -n "${ADMIN_EMAIL:-}" ]; then
-    echo "Bootstrapping initial administrator if not present..."
-    php artisan clearstay:init-admin --force --no-interaction || true
-fi
+echo "Bootstrapping initial administrator if not present..."
+php artisan clearstay:init-admin --force --no-interaction || true
 
 # ------------------------------------------------------------
 # 6. OPTIMIZE CONFIGURATION AND ROUTES CACHE

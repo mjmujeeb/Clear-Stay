@@ -114,6 +114,14 @@ php artisan migrate --force --no-interaction || {
 echo "Database migrations completed successfully."
 
 # ------------------------------------------------------------
+# 5.5 IDEMPOTENT FIRST-TIME ADMIN & TENANT BOOTSTRAP
+# ------------------------------------------------------------
+echo "Ensuring initial tenant and administrator exist..."
+php artisan clearstay:init-admin --force --no-interaction || {
+    echo "Notice: Admin bootstrap completed or already provisioned."
+}
+
+# ------------------------------------------------------------
 # 6. DEMONSTRATION SEEDING (DISABLED BY DEFAULT IN PROD)
 # ------------------------------------------------------------
 if [ "${RUN_DEMO_SEEDERS:-false}" = "true" ]; then

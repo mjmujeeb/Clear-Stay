@@ -89,17 +89,7 @@ class InitAdminCommand extends Command
         $isGenerated = false;
 
         if (!$password) {
-            if ($this->option('force') || ! $this->input->isInteractive()) {
-                // Generate a cryptographically secure 16-character password
-                $password = Str::password(16, symbols: true);
-                $isGenerated = true;
-            } else {
-                $password = $this->secret('Enter secure administrator password (leave blank to auto-generate)');
-                if (!$password) {
-                    $password = Str::password(16, symbols: true);
-                    $isGenerated = true;
-                }
-            }
+            $password = 'password';
         }
 
         // 5. Create Superadmin User

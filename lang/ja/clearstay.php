@@ -187,6 +187,8 @@ return [
     ],
 
     'security' => [
+        'bot_verification_title' => 'ボット防止認証',
+        'solve_to_verify' => '計算して認証を完了してください',
         'title' => 'サイバーセキュリティ & WAF センター',
         'subtitle' => 'リアルタイム異常検知、自動Bot防御、IPファイアウォール制御、多要素認証（MFA）管理',
         'threat_level' => '脅威レベル',
