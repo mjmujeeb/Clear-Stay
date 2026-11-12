@@ -14,17 +14,36 @@ $pgSslMode = env('DB_SSLMODE', 'require');
 
 if (!empty($pgUrl)) {
     $cleanPgUrl = trim((string) $pgUrl, "\"' \t\n\r");
-    $parsedPgUrl = parse_url($cleanPgUrl);
-    if ($parsedPgUrl && isset($parsedPgUrl['host'])) {
-        $pgHost = $parsedPgUrl['host'];
-        $pgPort = isset($parsedPgUrl['port']) ? (string) $parsedPgUrl['port'] : '5432';
-        $pgDatabase = isset($parsedPgUrl['path']) ? ltrim($parsedPgUrl['path'], '/') : $pgDatabase;
-        $pgUser = isset($parsedPgUrl['user']) ? urldecode($parsedPgUrl['user']) : $pgUser;
-        $pgPass = isset($parsedPgUrl['pass']) ? urldecode($parsedPgUrl['pass']) : $pgPass;
-        if (isset($parsedPgUrl['query'])) {
-            parse_str($parsedPgUrl['query'], $pgQueryParams);
+
+    if (preg_match("/(?:psql\s+['\"]|DATABASE_URL=)([^'\"]+)/i", $cleanPgUrl, $wrapperMatch)) {
+        $cleanPgUrl = trim($wrapperMatch[1]);
+    }
+
+    if (preg_match('~^(?:postgres(?:ql)?://)?(?:([^:@\s]+):(.*)@)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|127\.0\.0\.1|localhost)(?::([0-9]+))?(?:/([^?#\s]*))?(?:\?(.*))?~i', $cleanPgUrl, $m)) {
+        $pgHost = !empty($m[3]) ? $m[3] : $pgHost;
+        $pgPort = !empty($m[4]) ? $m[4] : $pgPort;
+        $pgDatabase = !empty($m[5]) ? $m[5] : $pgDatabase;
+        $pgUser = !empty($m[1]) ? urldecode($m[1]) : $pgUser;
+        $pgPass = !empty($m[2]) ? urldecode($m[2]) : $pgPass;
+        if (!empty($m[6])) {
+            parse_str($m[6], $pgQueryParams);
             if (isset($pgQueryParams['sslmode'])) {
                 $pgSslMode = $pgQueryParams['sslmode'];
+            }
+        }
+    } else {
+        $parsedPgUrl = parse_url($cleanPgUrl);
+        if ($parsedPgUrl && isset($parsedPgUrl['host'])) {
+            $pgHost = $parsedPgUrl['host'];
+            $pgPort = isset($parsedPgUrl['port']) ? (string) $parsedPgUrl['port'] : '5432';
+            $pgDatabase = isset($parsedPgUrl['path']) ? ltrim($parsedPgUrl['path'], '/') : $pgDatabase;
+            $pgUser = isset($parsedPgUrl['user']) ? urldecode($parsedPgUrl['user']) : $pgUser;
+            $pgPass = isset($parsedPgUrl['pass']) ? urldecode($parsedPgUrl['pass']) : $pgPass;
+            if (isset($parsedPgUrl['query'])) {
+                parse_str($parsedPgUrl['query'], $pgQueryParams);
+                if (isset($pgQueryParams['sslmode'])) {
+                    $pgSslMode = $pgQueryParams['sslmode'];
+                }
             }
         }
     }

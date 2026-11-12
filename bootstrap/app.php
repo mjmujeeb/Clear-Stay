@@ -49,9 +49,18 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 $rawUrl = (string) (env('DATABASE_URL') ?: env('DB_URL') ?: env('POSTGRES_URL') ?: '');
                 $cleanUrl = trim($rawUrl, "\"' \t\n\r");
-                $parsed = parse_url($cleanUrl);
-                $urlHost = $parsed['host'] ?? null;
-                $urlScheme = $parsed['scheme'] ?? null;
+                if (preg_match("/(?:psql\s+['\"]|DATABASE_URL=)([^'\"]+)/i", $cleanUrl, $wm)) {
+                    $cleanUrl = trim($wm[1]);
+                }
+                $urlHost = null;
+                $urlScheme = 'postgresql';
+                if (preg_match('~^(?:postgres(?:ql)?://)?(?:([^:@\s]+):(.*)@)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|127\.0\.0\.1|localhost)(?::([0-9]+))?(?:/([^?#\s]*))?(?:\?(.*))?~i', $cleanUrl, $um)) {
+                    $urlHost = !empty($um[3]) ? $um[3] : null;
+                } else {
+                    $parsed = parse_url($cleanUrl);
+                    $urlHost = $parsed['host'] ?? null;
+                    $urlScheme = $parsed['scheme'] ?? null;
+                }
 
                 // 1. Encryption subsystem test
                 $encryptionTest = 'unknown';
