@@ -42,7 +42,7 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      - name: Execute automated test suite (126 Tests)
+      - name: Execute automated test suite
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
