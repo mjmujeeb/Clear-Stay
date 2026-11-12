@@ -132,7 +132,6 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => !empty($pgUrl) ? trim((string) $pgUrl, "\"' \t\n\r") : null,
             'host' => $pgHost,
             'port' => $pgPort,
             'database' => $pgDatabase,

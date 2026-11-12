@@ -22,15 +22,27 @@ class PublicController extends Controller
 
     public function home()
     {
-        $hotels = Hotel::where('is_active', true)->with('roomTypes')->get();
-        $featuredRooms = Room::with(['roomType', 'hotel'])->take(6)->get();
+        try {
+            $hotels = Hotel::where('is_active', true)->with('roomTypes')->get();
+            $featuredRooms = Room::with(['roomType', 'hotel'])->take(6)->get();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Database query error on public home: ' . $e->getMessage());
+            $hotels = collect();
+            $featuredRooms = collect();
+        }
 
         return view('public.home', compact('hotels', 'featuredRooms'));
     }
 
     public function rooms()
     {
-        $roomTypes = RoomType::with(['hotel', 'rooms'])->get();
+        try {
+            $roomTypes = RoomType::with(['hotel', 'rooms'])->get();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Database query error on public rooms: ' . $e->getMessage());
+            $roomTypes = collect();
+        }
+
         return view('public.rooms', compact('roomTypes'));
     }
 
@@ -41,7 +53,13 @@ class PublicController extends Controller
 
     public function contact()
     {
-        $hotels = Hotel::where('is_active', true)->get();
+        try {
+            $hotels = Hotel::where('is_active', true)->get();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Database query error on public contact: ' . $e->getMessage());
+            $hotels = collect();
+        }
+
         return view('public.contact', compact('hotels'));
     }
 
