@@ -16,12 +16,27 @@ echo "================================================"
 # ------------------------------------------------------------
 # 1. VERIFY / PRESERVE APPLICATION ENCRYPTION KEY
 # ------------------------------------------------------------
-if [ -z "${APP_KEY:-}" ]; then
-    echo "Warning: APP_KEY not detected in Vercel environment."
+if [ -z "${APP_KEY:-}" ] || [ "${APP_KEY:-}" = "generateValue" ]; then
+    echo "Warning: APP_KEY not detected or placeholder in Vercel environment."
     echo "Generating temporary application key..."
     php artisan key:generate --force --no-interaction
 else
-    echo "Application encryption key verified."
+    VALID_KEY=$(php -r '
+        $k = getenv("APP_KEY");
+        if (str_starts_with($k, "base64:")) {
+            $len = strlen(base64_decode(substr($k, 7)));
+        } else {
+            $len = strlen($k);
+        }
+        echo ($len === 32) ? "valid" : "invalid";
+    ' 2>/dev/null || echo "invalid")
+
+    if [ "$VALID_KEY" != "valid" ]; then
+        echo "Notice: Detected invalid APP_KEY format/length in environment. Regenerating valid key..."
+        php artisan key:generate --force --no-interaction
+    else
+        echo "Application encryption key verified."
+    fi
 fi
 
 # ------------------------------------------------------------
@@ -112,6 +127,10 @@ fi
 # ------------------------------------------------------------
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
+if [ "$DB_CONNECTION" = "sqlite" ] && [ -n "${DB_PATH:-}" ]; then
+    chown -R www-data:www-data "$(dirname "$DB_PATH")" 2>/dev/null || true
+    chmod -R 775 "$(dirname "$DB_PATH")" 2>/dev/null || true
+fi
 
 # ------------------------------------------------------------
 # 8. EXECUTE STARTUP SUPERVISOR

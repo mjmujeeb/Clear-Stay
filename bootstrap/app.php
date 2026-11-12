@@ -53,12 +53,66 @@ return Application::configure(basePath: dirname(__DIR__))
                 $urlHost = $parsed['host'] ?? null;
                 $urlScheme = $parsed['scheme'] ?? null;
 
+                // 1. Encryption subsystem test
+                $encryptionTest = 'unknown';
+                try {
+                    $plain = 'clearstay_probe_test';
+                    $enc = \Illuminate\Support\Facades\Crypt::encryptString($plain);
+                    $dec = \Illuminate\Support\Facades\Crypt::decryptString($enc);
+                    $encryptionTest = ($dec === $plain) ? 'working' : 'mismatch';
+                } catch (\Throwable $e) {
+                    $encryptionTest = 'failed: ' . $e->getMessage();
+                }
+
+                // 2. Storage permissions test
+                $storageTest = [];
+                foreach (['sessions' => 'framework/sessions', 'views' => 'framework/views', 'logs' => 'logs'] as $key => $subDir) {
+                    try {
+                        $targetDir = storage_path($subDir);
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0775, true);
+                        }
+                        $testPath = $targetDir . '/probe_' . uniqid() . '.tmp';
+                        file_put_contents($testPath, 'probe');
+                        unlink($testPath);
+                        $storageTest[$key] = 'writable';
+                    } catch (\Throwable $e) {
+                        $storageTest[$key] = 'error: ' . $e->getMessage();
+                    }
+                }
+
+                // 3. Controller execution test
+                $homeTest = 'unknown';
+                try {
+                    $ctrl = app(\App\Http\Controllers\PublicController::class);
+                    $view = $ctrl->home();
+                    $content = $view->render();
+                    $homeTest = 'ok (rendered ' . strlen($content) . ' bytes)';
+                } catch (\Throwable $e) {
+                    $homeTest = 'failed: ' . get_class($e) . ': ' . $e->getMessage() . ' at ' . basename($e->getFile()) . ':' . $e->getLine();
+                }
+
+                // 4. HTTP pipeline test for GET /
+                $pipelineTest = 'unknown';
+                try {
+                    $req = \Illuminate\Http\Request::create('/', 'GET');
+                    $kernel = app(\Illuminate\Contracts\Http\Kernel::class);
+                    $res = $kernel->handle($req);
+                    $pipelineTest = 'HTTP ' . $res->getStatusCode();
+                } catch (\Throwable $e) {
+                    $pipelineTest = 'exception: ' . get_class($e) . ': ' . $e->getMessage() . ' at ' . basename($e->getFile()) . ':' . $e->getLine();
+                }
+
                 return response()->json([
                     'status' => $dbStatus === 'connected' ? 'ok' : 'degraded',
-                    'commit' => 'dfc642d-v2',
+                    'commit' => 'e7a9b1c-diag',
                     'app_env' => config('app.env'),
                     'app_debug' => config('app.debug'),
                     'has_app_key' => !empty(config('app.key')),
+                    'encryption' => $encryptionTest,
+                    'storage_writable' => $storageTest,
+                    'home_controller' => $homeTest,
+                    'pipeline_home' => $pipelineTest,
                     'database' => [
                         'driver' => $dbDriver,
                         'host' => $dbHost,
@@ -106,4 +160,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            if ($request->has('diag') || $request->header('X-ClearStay-Diag') === '1') {
+                return response()->json([
+                    'status' => 'error',
+                    'exception' => get_class($e),
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile() . ':' . $e->getLine(),
+                    'trace' => collect($e->getTrace())->take(8)->map(fn ($t) => [
+                        'file' => ($t['file'] ?? 'internal') . ':' . ($t['line'] ?? 0),
+                        'call' => ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? ''),
+                    ])->toArray(),
+                ], 500);
+            }
+        });
     })->create();

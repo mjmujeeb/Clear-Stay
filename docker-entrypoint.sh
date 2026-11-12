@@ -16,12 +16,27 @@ echo "================================================"
 # ------------------------------------------------------------
 # 1. VERIFY / PRESERVE APPLICATION ENCRYPTION KEY
 # ------------------------------------------------------------
-if [ -z "${APP_KEY:-}" ]; then
-    echo "Notice: APP_KEY not detected in environment."
+if [ -z "${APP_KEY:-}" ] || [ "${APP_KEY:-}" = "generateValue" ]; then
+    echo "Notice: APP_KEY not detected or placeholder in environment."
     echo "Generating new production application key..."
     php artisan key:generate --force --no-interaction
 else
-    echo "Application encryption key verified."
+    VALID_KEY=$(php -r '
+        $k = getenv("APP_KEY");
+        if (str_starts_with($k, "base64:")) {
+            $len = strlen(base64_decode(substr($k, 7)));
+        } else {
+            $len = strlen($k);
+        }
+        echo ($len === 32) ? "valid" : "invalid";
+    ' 2>/dev/null || echo "invalid")
+
+    if [ "$VALID_KEY" != "valid" ]; then
+        echo "Notice: Detected invalid APP_KEY format/length in environment. Regenerating valid key..."
+        php artisan key:generate --force --no-interaction
+    else
+        echo "Application encryption key verified."
+    fi
 fi
 
 # ------------------------------------------------------------
@@ -131,6 +146,24 @@ if [ "${APP_ENV:-production}" = "production" ]; then
     php artisan route:cache --no-interaction || true
     php artisan view:cache --no-interaction || true
 fi
+
+# ------------------------------------------------------------
+# 7.5 ENFORCE WWW-DATA RUNTIME PERMISSIONS
+# Ensures PHP-FPM can write sessions, views, logs, and database
+# ------------------------------------------------------------
+echo "Enforcing final runtime permissions for www-data..."
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+if [ "$DB_CONNECTION" = "sqlite" ]; then
+    chown -R www-data:www-data "$(dirname "$DB_PATH")"
+    chmod -R 775 "$(dirname "$DB_PATH")"
+    if [ -f "$DB_PATH" ]; then
+        chown www-data:www-data "$DB_PATH"
+        chmod 664 "$DB_PATH"
+    fi
+fi
+echo "Runtime permissions verified."
 
 # ------------------------------------------------------------
 # 8. VERIFY STARTUP COMMAND & EXECUTE
