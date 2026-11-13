@@ -23,6 +23,13 @@ class HousekeepingController extends Controller
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
         $hotel = Hotel::find($hotelId);
+        if (!$hotel) {
+            $hotel = Hotel::where('is_active', true)->first();
+            if ($hotel) {
+                session(['current_hotel_id' => $hotel->id]);
+                $hotelId = $hotel->id;
+            }
+        }
 
         $status = $request->input('status');
         $priority = $request->input('priority');

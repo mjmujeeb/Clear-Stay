@@ -45,4 +45,14 @@ class BulkChangeBatch extends Model
     {
         return $this->belongsTo(User::class, 'rolled_back_by');
     }
+
+    /**
+     * Virtual accessor: true when this batch has been rolled back.
+     * Derived from the canonical `status` column so callers can use
+     * either `$batch->is_rolled_back` (boolean) or `$batch->status === 'rolled_back'`.
+     */
+    public function getIsRolledBackAttribute(): bool
+    {
+        return $this->status === 'rolled_back';
+    }
 }

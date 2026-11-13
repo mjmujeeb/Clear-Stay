@@ -27,7 +27,11 @@ class RateStudioController extends Controller
     public function index(Request $request)
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
-        $hotel = Hotel::find($hotelId) ?? Hotel::first();
+        $hotel = Hotel::find($hotelId) ?? Hotel::where('is_active', true)->first();
+        if ($hotel) {
+            $hotelId = $hotel->id;
+            session(['current_hotel_id' => $hotelId]);
+        }
 
         $ratePlans = RatePlan::where('hotel_id', $hotelId)->with('roomType')->get();
         $roomTypes = RoomType::where('hotel_id', $hotelId)->get();

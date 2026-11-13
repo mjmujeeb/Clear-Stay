@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\NormalizedDateCast;
 use App\Traits\BelongsToHotel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +27,7 @@ class InventoryReconciliation extends Model
     ];
 
     protected $casts = [
-        'stay_date' => 'date',
+        'stay_date' => NormalizedDateCast::class,
         'central_units' => 'integer',
         'channel_units' => 'integer',
         'difference' => 'integer',

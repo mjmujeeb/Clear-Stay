@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\NormalizedDateCast;
 use App\Traits\BelongsToHotel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +31,7 @@ class CentralInventory extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => NormalizedDateCast::class,
         'total_units' => 'integer',
         'available_units' => 'integer',
         'reserved_units' => 'integer',
@@ -43,6 +44,14 @@ class CentralInventory extends Model
         'stop_sell' => 'boolean',
         'version' => 'integer',
     ];
+
+    /**
+     * Compute authoritative availability based on business rules.
+     */
+    public function calculateAvailableUnits(): int
+    {
+        return max(0, $this->total_units - $this->reserved_units - $this->maintenance_units);
+    }
 
     public function hotel(): BelongsTo
     {

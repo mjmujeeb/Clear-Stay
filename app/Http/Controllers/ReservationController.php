@@ -29,6 +29,13 @@ class ReservationController extends Controller
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
         $hotel = Hotel::find($hotelId);
+        if (!$hotel) {
+            $hotel = Hotel::where('is_active', true)->first();
+            if ($hotel) {
+                session(['current_hotel_id' => $hotel->id]);
+                $hotelId = $hotel->id;
+            }
+        }
 
         $status = $request->input('status');
         $search = $request->input('search');
@@ -77,6 +84,13 @@ class ReservationController extends Controller
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
         $hotel = Hotel::find($hotelId);
+        if (!$hotel) {
+            $hotel = Hotel::where('is_active', true)->first();
+            if ($hotel) {
+                session(['current_hotel_id' => $hotel->id]);
+                $hotelId = $hotel->id;
+            }
+        }
         $rooms = Room::with('roomType')->where('hotel_id', $hotelId)->get();
         $guests = Guest::where('hotel_id', $hotelId)->orderBy('last_name')->get();
 
@@ -89,6 +103,13 @@ class ReservationController extends Controller
     public function store(Request $request)
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
+        if (!$hotelId) {
+            $firstHotel = Hotel::where('is_active', true)->first();
+            $hotelId = $firstHotel ? $firstHotel->id : null;
+            if ($hotelId) {
+                session(['current_hotel_id' => $hotelId]);
+            }
+        }
 
         $request->validate([
             'guest_mode' => 'required|in:existing,new',

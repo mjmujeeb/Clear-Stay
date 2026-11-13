@@ -23,7 +23,8 @@ class CentralInventoryService
     }
 
     /**
-     * Ensure the hotel has realistic central inventory for the next N days (idempotent).
+     * Ensure the hotel has realistic central inventory for the next N days (idempotent & concurrency-safe).
+     * Preserves all existing room counts, reservations, maintenance allocations, and rates.
      */
     public function ensureUpcomingInventory(int $hotelId, int $days = 90): int
     {
@@ -38,47 +39,65 @@ class CentralInventoryService
             $totalUnits = max(5, $rt->rooms()->count() ?: 12);
             for ($d = 0; $d < $days; $d++) {
                 $date = $today->copy()->addDays($d);
-                $dateStr = $date->toDateString();
+                $dateStr = $date->format('Y-m-d');
 
                 $weekendMultiplier = $date->isWeekend() ? 1.25 : 1.0;
                 $baseRate = round($rt->base_price * $weekendMultiplier);
 
                 $existing = CentralInventory::where('hotel_id', $hotelId)
                     ->where('room_type_id', $rt->id)
-                    ->where('date', $dateStr)
+                    ->whereDate('date', $dateStr)
                     ->first();
 
                 if (!$existing) {
                     $booked = min($totalUnits - 2, max(0, ($d % 7 === 5 || $d % 7 === 6) ? rand(2, 4) : rand(1, 2)));
                     $available = max(0, $totalUnits - $booked);
 
-                    CentralInventory::create([
-                        'hotel_id' => $hotelId,
-                        'room_type_id' => $rt->id,
-                        'date' => $dateStr,
-                        'total_units' => $totalUnits,
-                        'available_units' => $available,
-                        'reserved_units' => $booked,
-                        'maintenance_units' => 0,
-                        'base_rate' => $baseRate,
-                        'currency' => 'JPY',
-                        'min_stay' => $date->isWeekend() ? 2 : 1,
-                        'max_stay' => 30,
-                        'closed_to_arrival' => false,
-                        'closed_to_departure' => false,
-                        'stop_sell' => false,
-                        'version' => 1,
-                    ]);
-                    $createdCount++;
+                    try {
+                        CentralInventory::create([
+                            'hotel_id' => $hotelId,
+                            'room_type_id' => $rt->id,
+                            'date' => $dateStr,
+                            'total_units' => $totalUnits,
+                            'available_units' => $available,
+                            'reserved_units' => $booked,
+                            'maintenance_units' => 0,
+                            'base_rate' => $baseRate,
+                            'currency' => 'JPY',
+                            'min_stay' => $date->isWeekend() ? 2 : 1,
+                            'max_stay' => 30,
+                            'closed_to_arrival' => false,
+                            'closed_to_departure' => false,
+                            'stop_sell' => false,
+                            'version' => 1,
+                        ]);
+                        $createdCount++;
+                    } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                        // Concurrently inserted by another process: re-fetch and preserve existing
+                        continue;
+                    } catch (\Throwable $e) {
+                        if (str_contains($e->getMessage(), 'UNIQUE constraint failed') || str_contains($e->getMessage(), 'duplicate key')) {
+                            continue;
+                        }
+                        throw $e;
+                    }
                 }
             }
+        }
+
+        if ($createdCount > 0) {
+            AuditLog::record('inventory.initialized', null, null, [
+                'hotel_id' => $hotelId,
+                'days' => $days,
+                'created_count' => $createdCount,
+            ]);
         }
 
         return $createdCount;
     }
 
     /**
-     * Get or initialize central inventory records for a date range.
+     * Get central inventory records for a date range without mutating the database (read-only).
      */
     public function getInventoryMatrix(int $hotelId, ?int $roomTypeId, string $startDate, string $endDate): array
     {
@@ -89,6 +108,13 @@ class CentralInventoryService
         }
         $roomTypes = $roomTypeQuery->get();
 
+        $existingRecords = CentralInventory::where('hotel_id', $hotelId)
+            ->whereDate('date', '>=', $startDate)
+            ->whereDate('date', '<=', $endDate)
+            ->when($roomTypeId, fn($q) => $q->where('room_type_id', $roomTypeId))
+            ->get()
+            ->keyBy(fn($item) => $item->room_type_id . '_' . $item->date->format('Y-m-d'));
+
         $matrix = [];
 
         foreach ($roomTypes as $type) {
@@ -98,16 +124,18 @@ class CentralInventoryService
             ];
 
             foreach ($period as $date) {
-                $dateStr = $date->toDateString();
-                $record = CentralInventory::firstOrCreate(
-                    [
+                $dateStr = $date->format('Y-m-d');
+                $key = $type->id . '_' . $dateStr;
+                $record = $existingRecords->get($key);
+
+                if (!$record) {
+                    // Virtual placeholder for read view - DO NOT persist to database
+                    $record = new CentralInventory([
                         'hotel_id' => $hotelId,
                         'room_type_id' => $type->id,
                         'date' => $dateStr,
-                    ],
-                    [
-                        'total_units' => 10,
-                        'available_units' => 10,
+                        'total_units' => 0,
+                        'available_units' => 0,
                         'reserved_units' => 0,
                         'maintenance_units' => 0,
                         'base_rate' => $type->base_price,
@@ -115,8 +143,8 @@ class CentralInventoryService
                         'min_stay' => 1,
                         'max_stay' => 30,
                         'stop_sell' => false,
-                    ]
-                );
+                    ]);
+                }
 
                 $typeData['dates'][$dateStr] = $record;
             }
@@ -241,7 +269,7 @@ class CentralInventoryService
                 ];
 
                 if (isset($changes['available_units'])) {
-                    $record->available_units = intval($changes['available_units']);
+                    $record->available_units = max(0, intval($changes['available_units']));
                 }
                 if (isset($changes['price_delta']) && $changes['price_delta'] !== '') {
                     $record->base_rate = max(1000, $record->base_rate + floatval($changes['price_delta']));

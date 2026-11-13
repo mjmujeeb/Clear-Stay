@@ -251,7 +251,9 @@ class AuthController extends Controller
             return redirect()->route('staff.index')->with('success', "Staff account for [{$user->name}] successfully created for {$hotel->name}.");
         }
 
-        // Public registration: Log in new user
+        // Public self-registration: auto-login the new user and redirect to dashboard.
+        // This provides a seamless onboarding experience; the session and hotel context
+        // are set immediately so the user lands on a fully-configured dashboard.
         Auth::login($user);
         session(['current_hotel_id' => $user->hotel_id]);
         session(['locale' => $user->locale]);

@@ -27,6 +27,13 @@ class RoomBoardController extends Controller
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
         $hotel = Hotel::find($hotelId);
+        if (!$hotel) {
+            $hotel = Hotel::where('is_active', true)->first();
+            if ($hotel) {
+                session(['current_hotel_id' => $hotel->id]);
+                $hotelId = $hotel->id;
+            }
+        }
 
         $floorFilter = $request->input('floor');
         $statusFilter = $request->input('status');
@@ -119,6 +126,7 @@ class RoomBoardController extends Controller
             'inspecting' => $rooms->where('status', 'inspecting')->count(),
             'maintenance' => $rooms->where('status', 'maintenance')->count(),
             'occupied' => $rooms->where('is_occupied', true)->count(),
+            'available' => $rooms->whereIn('status', ['clean', 'dirty', 'inspecting'])->where('is_occupied', false)->count(),
         ];
 
         return response()->json([

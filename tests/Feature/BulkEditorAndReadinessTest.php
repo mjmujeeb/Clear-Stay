@@ -68,20 +68,31 @@ class BulkEditorAndReadinessTest extends TestCase
         ]);
     }
 
-    public function test_bulk_editor_page_loads_and_ensures_inventory_exists(): void
+    public function test_bulk_editor_page_loads_and_is_strictly_read_only(): void
     {
+        // Initial count before GET request
+        $countBefore = CentralInventory::where('hotel_id', $this->hotel->id)->count();
+
         $response = $this->actingAs($this->manager)
             ->get(route('bulk_editor.index'));
 
         $response->assertOk();
         $response->assertViewIs('bulk_editor.index');
-        $response->assertSee('Bulk Change Studio');
+        $response->assertSee('Bulk Inventory & Price Studio');
 
-        // CentralInventory should be initialized for 90 days
-        $count = CentralInventory::where('hotel_id', $this->hotel->id)
+        // GET request must be read-only; no silent inserts during page load
+        $countAfter = CentralInventory::where('hotel_id', $this->hotel->id)->count();
+        $this->assertEquals($countBefore, $countAfter);
+
+        // Explicit seeding via POST /bulk-editor/seed-demo works idempotently
+        $seedResponse = $this->actingAs($this->manager)
+            ->post(route('bulk_editor.seed_demo'));
+
+        $seedResponse->assertRedirect(route('bulk_editor.index'));
+        $countSeeded = CentralInventory::where('hotel_id', $this->hotel->id)
             ->where('room_type_id', $this->roomType->id)
             ->count();
-        $this->assertGreaterThanOrEqual(30, $count);
+        $this->assertGreaterThanOrEqual(30, $countSeeded);
     }
 
     public function test_bulk_editor_preview_returns_json_for_ajax_request(): void

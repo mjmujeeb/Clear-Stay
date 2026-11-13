@@ -214,6 +214,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/inventory-reconciliation', [InventoryReconciliationController::class, 'index'])->name('inventory_reconciliation.index');
     Route::post('/inventory-reconciliation/audit', [InventoryReconciliationController::class, 'audit'])->name('inventory_reconciliation.audit');
     Route::post('/inventory-reconciliation/{reconciliation}/resolve', [InventoryReconciliationController::class, 'resolve'])->name('inventory_reconciliation.resolve');
+    Route::get('/inventory-reconciliation/export', [InventoryReconciliationController::class, 'export'])->name('inventory_reconciliation.export');
 
     // Executive Reports & CSV Exports
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');

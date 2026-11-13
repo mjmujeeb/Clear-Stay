@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureHotelContext;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\IpFirewall;
 use App\Http\Middleware\SecurityHeaders;
@@ -156,6 +157,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
             SessionIntegrity::class,
+            EnsureHotelContext::class,
         ]);
 
         $middleware->alias([
@@ -163,6 +165,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'firewall' => IpFirewall::class,
             'security.headers' => SecurityHeaders::class,
             'session.integrity' => SessionIntegrity::class,
+            'hotel.context' => EnsureHotelContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

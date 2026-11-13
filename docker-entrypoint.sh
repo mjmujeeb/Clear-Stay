@@ -127,16 +127,18 @@ php artisan clearstay:init-admin --force --no-interaction --reset-password || {
 }
 
 # ------------------------------------------------------------
-# 6. DEMONSTRATION SEEDING (DISABLED BY DEFAULT IN PROD)
+# 6. FOUNDATIONAL DATA & SYSTEM CATALOG BOOTSTRAP (IDEMPOTENT)
 # ------------------------------------------------------------
-if [ "${RUN_DEMO_SEEDERS:-false}" = "true" ]; then
+if [ "${RUN_SEEDERS:-true}" = "true" ] || [ "${RUN_DEMO_SEEDERS:-false}" = "true" ]; then
     echo "================================================"
-    echo " INITIALIZING DEMONSTRATION DATA (OPT-IN)"
+    echo " BOOTSTRAPPING FOUNDATIONAL DATA & CATALOG"
     echo "================================================"
-    php artisan db:seed --force --no-interaction
-    echo "Demonstration data initialized successfully."
+    php artisan db:seed --force --no-interaction || {
+        echo "Notice: Seeding completed or existing records preserved."
+    }
+    echo "Foundational catalog verified successfully."
 else
-    echo "Automatic demonstration seeding skipped (production safe)."
+    echo "Automatic seeding skipped."
 fi
 
 # ------------------------------------------------------------

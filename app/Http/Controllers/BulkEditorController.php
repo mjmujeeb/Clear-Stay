@@ -22,14 +22,14 @@ class BulkEditorController extends Controller
 
     /**
      * Bulk Editor Hub: forms, preview generator, and change history.
+     * Strictly read-only on GET; never creates or mutates inventory records during page load.
      */
     public function index(Request $request)
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
-        $hotel = Hotel::find($hotelId) ?? Hotel::first();
-
-        if ($hotel) {
-            $this->inventoryService->ensureUpcomingInventory($hotel->id, 90);
+        $hotel = $hotelId ? Hotel::find($hotelId) : Hotel::where('is_active', true)->first();
+        if ($hotel && session('current_hotel_id') !== $hotel->id) {
+            session(['current_hotel_id' => $hotel->id]);
         }
 
         $roomTypes = RoomType::where('hotel_id', $hotel?->id)->get();
@@ -40,7 +40,8 @@ class BulkEditorController extends Controller
             ->get();
 
         $recentInventories = CentralInventory::where('hotel_id', $hotel?->id)
-            ->where('date', '>=', Carbon::today())
+            ->whereDate('date', '>=', Carbon::today()->format('Y-m-d'))
+            ->with('roomType')
             ->orderBy('date')
             ->take(14)
             ->get();

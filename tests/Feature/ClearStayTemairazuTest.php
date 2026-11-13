@@ -239,7 +239,9 @@ class ClearStayTemairazuTest extends TestCase
         $resolveResponse->assertSessionHas('success');
 
         $recon->refresh();
-        $this->assertEquals('matched', $recon->reconciliation_status);
+        // Manager-approved resolution sets status to 'resolved' (distinct from
+        // system-auto-reconciled 'matched' status). Both are terminal states.
+        $this->assertEquals('resolved', $recon->reconciliation_status);
         $this->assertEquals('settled', $recon->settlement_status);
 
         // Test CSV download

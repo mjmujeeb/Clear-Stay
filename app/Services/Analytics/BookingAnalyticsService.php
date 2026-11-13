@@ -262,7 +262,7 @@ class BookingAnalyticsService
     public function getChannelDistribution(int $hotelId): Collection
     {
         return Reservation::where('hotel_id', $hotelId)
-            ->select('channel_id', DB::raw('count(*) as total_bookings'), DB::raw('sum(total_price) as total_revenue'), DB::raw('sum(case when status = "cancelled" then 1 else 0 end) as cancellations'))
+            ->select('channel_id', DB::raw('count(*) as total_bookings'), DB::raw('sum(total_price) as total_revenue'), DB::raw("sum(case when status = 'cancelled' then 1 else 0 end) as cancellations"))
             ->groupBy('channel_id')
             ->with('channel')
             ->get();

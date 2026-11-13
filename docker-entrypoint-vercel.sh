@@ -97,6 +97,12 @@ echo "Bootstrapping initial administrator if not present..."
 php artisan clearstay:init-admin --force --no-interaction --reset-password || true
 
 # ------------------------------------------------------------
+# 5.5 FOUNDATIONAL SYSTEM DATA & CATALOG BOOTSTRAP (IDEMPOTENT)
+# ------------------------------------------------------------
+echo "Ensuring foundational catalog and system seed data exist..."
+php artisan db:seed --force --no-interaction || true
+
+# ------------------------------------------------------------
 # 6. OPTIMIZE CONFIGURATION AND ROUTES CACHE
 # ------------------------------------------------------------
 if [ "${APP_ENV:-production}" = "production" ]; then

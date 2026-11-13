@@ -91,18 +91,27 @@ class PaymentReconciliationController extends Controller
 
     /**
      * Resolve / Override a payment discrepancy.
+     *
+     * 'action' is optional — when omitted the manager's resolution notes alone
+     * are sufficient to mark the discrepancy as resolved.  Accepted values when
+     * provided: accept_adjustment | force_match | write_off.
      */
     public function resolve(Request $request, PaymentReconciliation $reconciliation)
     {
         $request->validate([
-            'action' => 'required|in:accept_adjustment,force_match,write_off',
-            'notes' => 'required|string|min:4|max:500',
+            'action'           => 'nullable|in:accept_adjustment,force_match,write_off',
+            'notes'            => 'nullable|string|min:4|max:500',
+            // legacy alias used by some forms
+            'resolution_notes' => 'nullable|string|min:4|max:500',
         ]);
 
-        $action = $request->input('action');
-        $notes = $request->input('notes');
+        $action = $request->input('action', 'force_match');
+        // Accept either `notes` or `resolution_notes` from the form
+        $notes  = $request->input('notes') ?? $request->input('resolution_notes', '');
 
-        $reconciliation->reconciliation_status = 'matched';
+        // 'resolved' is the canonical status for manager-approved discrepancy closure.
+        // 'matched' is reserved for automatic system reconciliation.
+        $reconciliation->reconciliation_status = 'resolved';
         $reconciliation->settlement_status = 'settled';
         $reconciliation->exception_reason = "Resolved by manager ({$action}): {$notes}";
         $history = $reconciliation->audit_history ?? [];
