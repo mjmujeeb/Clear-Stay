@@ -278,6 +278,26 @@ class InventoryReconciliationController extends Controller
             ->get()
             ->keyBy(fn($item) => $item->room_type_id . '_' . $item->date->format('Y-m-d'));
 
+        // Preload simulated remote properties and inventories for connected channels
+        $simulatedState = app(\App\Services\Channel\SimulatedRemoteStateService::class);
+        $partnerProperties = [];
+        $partnerMappings = [];
+        $partnerInventories = [];
+
+        foreach ($channels as $ch) {
+            $prop = $simulatedState->ensureProvisioned($hotelId, $ch->code);
+            $partnerProperties[$ch->id] = $prop;
+            $partnerMappings[$ch->id] = $prop->roomMappings->keyBy('room_type_id');
+
+            $remoteInvs = \App\Models\SimulatedPartnerInventory::where('property_id', $prop->id)
+                ->whereDate('date', '>=', $startDate)
+                ->whereDate('date', '<=', $endDate)
+                ->get()
+                ->keyBy(fn($inv) => $inv->remote_room_code . '_' . $inv->date->format('Y-m-d'));
+
+            $partnerInventories[$ch->id] = $remoteInvs;
+        }
+
         for ($i = 0; $i < 14; $i++) {
             $stayDate = Carbon::today()->addDays($i);
             $stayDateStr = $stayDate->format('Y-m-d');
@@ -292,39 +312,46 @@ class InventoryReconciliationController extends Controller
                 foreach ($channels as $ch) {
                     $totalChecked++;
 
-                    // Realistic multi-channel reconciliation simulation
-                    // Scenario A: Perfect synchronization (majority of dates)
-                    // Scenario B: Availability discrepancy (central has more rooms)
-                    // Scenario C: Overselling risk (OTA reports MORE available units than PMS!)
-                    // Scenario D: Missing central record
-                    $driftFactor = ($rt->id * 13 + $ch->id * 7 + $i) % 19;
+                    $mapping = $partnerMappings[$ch->id][$rt->id] ?? null;
+                    $remoteRoomCode = $mapping?->remote_room_code;
+                    $remoteInv = ($remoteRoomCode && isset($partnerInventories[$ch->id]))
+                        ? ($partnerInventories[$ch->id]->get($remoteRoomCode . '_' . $stayDateStr))
+                        : null;
 
+                    // Real comparison against simulated remote database state
                     if (!$hasCentralRecord) {
-                        $channelUnits = 3;
+                        $channelUnits = $remoteInv ? $remoteInv->available_units : 0;
                         $diff = $centralUnits - $channelUnits;
                         $status = 'missing_central_record';
                         $action = "Warning: Central inventory record is missing for stay date {$stayDateStr}. Run explicit inventory initialization.";
                         $warningsCount++;
-                    } elseif ($driftFactor === 0) {
-                        // High-Risk Overselling: Remote OTA is selling more than Central PMS availability
-                        $channelUnits = $centralUnits + 2;
-                        $diff = $centralUnits - $channelUnits;
-                        $status = 'oversell_risk';
-                        $action = "CRITICAL: Remote OTA offers more rooms ({$channelUnits}) than PMS availability ({$centralUnits}). Risk of double-booking/walk. Re-broadcast immediately.";
-                        $criticalRisks++;
-                    } elseif ($driftFactor === 5 || $driftFactor === 11) {
-                        // Regular discrepancy: OTA lagging behind PMS
-                        $channelUnits = max(0, $centralUnits - 1);
+                    } elseif (!$remoteInv) {
+                        // Remote record missing on partner simulator
+                        $channelUnits = 0;
                         $diff = $centralUnits - $channelUnits;
                         $status = 'discrepancy';
-                        $action = "Discrepancy: Central has {$centralUnits} units, {$ch->name} reports {$channelUnits}. Recommended: Re-push central inventory.";
+                        $action = "Missing Remote Record: {$ch->name} simulator has no inventory record for {$stayDateStr}. Re-push central inventory.";
+                        $discrepancies++;
+                    } elseif ($remoteInv->available_units > $centralUnits) {
+                        // High-Risk Overselling: Remote OTA is selling MORE rooms than Central PMS has
+                        $channelUnits = $remoteInv->available_units;
+                        $diff = $centralUnits - $channelUnits;
+                        $status = 'oversell_risk';
+                        $action = "CRITICAL OVERSELL RISK: Remote {$ch->name} offers {$channelUnits} units, but PMS availability is only {$centralUnits}. Risk of double-booking/walk. Re-align immediately.";
+                        $criticalRisks++;
+                    } elseif ($remoteInv->available_units !== $centralUnits) {
+                        // Availability discrepancy
+                        $channelUnits = $remoteInv->available_units;
+                        $diff = $centralUnits - $channelUnits;
+                        $status = 'discrepancy';
+                        $action = "Discrepancy: Central PMS has {$centralUnits} units, {$ch->name} reports {$channelUnits}. Recommended: Re-push central inventory.";
                         $discrepancies++;
                     } else {
                         // Perfect match
-                        $channelUnits = $centralUnits;
+                        $channelUnits = $remoteInv->available_units;
                         $diff = 0;
                         $status = 'in_sync';
-                        $action = 'No action needed. In perfect sync.';
+                        $action = 'No action needed. In perfect sync with simulated remote state.';
                         $inSync++;
                     }
 

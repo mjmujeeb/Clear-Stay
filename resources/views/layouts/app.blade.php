@@ -1214,6 +1214,13 @@
                     <span>{{ app()->getLocale() === 'ja' ? 'チャネル連携' : 'Channels' }}</span>
                 </a>
             </li>
+            <li class="menu-item {{ request()->routeIs('simulators.*') ? 'active' : '' }}">
+                <a href="{{ route('simulators.index') }}" data-tooltip="ClearStay 4.2: Full external integration simulator with stateful remote inventory, failure lab, and 15 demonstration scenarios.">
+                    <i class="fa-solid fa-network-wired" style="color: #38BDF8;"></i>
+                    <span>{{ app()->getLocale() === 'ja' ? 'シミュレータ' : 'Simulator Lab' }}</span>
+                    <span class="badge" style="background: #38BDF8; color: #0F172A; font-size: 10px; font-weight: 800; margin-left: auto; padding: 2px 6px;">4.2</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('bulk_editor.*') ? 'active' : '' }}">
                 <a href="{{ route('bulk_editor.index') }}">
                     <i class="fa-solid fa-layer-group" style="color: #FBBF24;"></i>

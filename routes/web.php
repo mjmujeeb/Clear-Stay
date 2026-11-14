@@ -16,6 +16,8 @@ use App\Http\Controllers\ExperienceLabController;
 use App\Http\Controllers\GuestPortalController;
 use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\HousekeepingController;
+use App\Http\Controllers\ICalendarController;
+use App\Http\Controllers\IntegrationSimulatorController;
 use App\Http\Controllers\InterviewDemoController;
 use App\Http\Controllers\InventoryReconciliationController;
 use App\Http\Controllers\LearningCentreController;
@@ -307,4 +309,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/qa-centre', [QaCentreController::class, 'index'])->name('qa.index');
     Route::post('/qa-centre/run/{suite}', [QaCentreController::class, 'runSuite'])->name('qa.run_suite');
     Route::get('/qa-centre/export', [QaCentreController::class, 'exportReport'])->name('qa.export');
+
+    // ClearStay 4.2: Complete External Integration Simulation and Demonstration Environment
+    Route::get('/integrations/simulators', [IntegrationSimulatorController::class, 'index'])->name('simulators.index');
+    Route::post('/integrations/mode', [IntegrationSimulatorController::class, 'switchMode'])->name('simulators.switch_mode');
+    Route::post('/integrations/failure-lab', [IntegrationSimulatorController::class, 'configureFailure'])->name('simulators.configure_failure');
+    Route::post('/integrations/inbound-webhook', [IntegrationSimulatorController::class, 'triggerInboundBooking'])->name('simulators.inbound_booking');
+    Route::post('/integrations/scenario/{id}', [IntegrationSimulatorController::class, 'runScenario'])->name('simulators.run_scenario');
+    Route::post('/integrations/payment-simulate', [IntegrationSimulatorController::class, 'simulatePayment'])->name('simulators.simulate_payment');
+    Route::post('/integrations/reset-demo', [IntegrationSimulatorController::class, 'resetSimulatedData'])->name('simulators.reset_demo');
 });
+
+// Real RFC 5545 iCalendar Availability Feed (Public subscription endpoint)
+Route::get('/ical/hotel/{hotel}/room/{roomType}/availability.ics', [ICalendarController::class, 'export'])->name('ical.export');
+
+// Simulated OTA Inbound Webhook Endpoints
+Route::post('/api/simulators/{partner}/inbound-reservation', [IntegrationSimulatorController::class, 'triggerInboundBooking'])->name('api.simulators.inbound_booking');
+

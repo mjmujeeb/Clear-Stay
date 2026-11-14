@@ -15,6 +15,7 @@ use App\Services\Channel\Adapters\ExpediaAdapter;
 use App\Services\Channel\Adapters\JalanAdapter;
 use App\Services\Channel\Adapters\MockSimulatorAdapter;
 use App\Services\Channel\Adapters\RakutenAdapter;
+use App\Services\Channel\Adapters\SakuraPmsAdapter;
 use App\Services\Channel\Contracts\ChannelAdapterInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,6 +29,8 @@ class ChannelSynchronizationService
         'rakuten' => RakutenAdapter::class,
         'jalan' => JalanAdapter::class,
         'direct_web' => DirectWebAdapter::class,
+        'sakura_pms' => SakuraPmsAdapter::class,
+        'ota_simulator' => MockSimulatorAdapter::class,
         'demo_ota' => MockSimulatorAdapter::class,
     ];
 
@@ -134,13 +137,16 @@ class ChannelSynchronizationService
             ]);
             return ['status' => 'confirmed', 'message' => $response['message'] ?? 'Synchronized'];
         } else {
+            $isDeadLetter = $event->attempts >= 5;
+            $newStatus = $isDeadLetter ? 'dead_letter' : 'failed';
+
             $event->update([
-                'status' => 'failed',
+                'status' => $newStatus,
                 'last_error' => $response['error'] ?? 'Synchronization rejected by channel',
             ]);
             $connection->increment('error_count');
             $connection->update(['sync_status' => 'failed']);
-            return ['status' => 'failed', 'message' => $response['error'] ?? 'Failed'];
+            return ['status' => $newStatus, 'message' => $response['error'] ?? 'Failed'];
         }
     }
 
@@ -151,6 +157,26 @@ class ChannelSynchronizationService
     {
         $event = SyncOutboxEvent::findOrFail($eventId);
         return $this->executeSyncEvent($event);
+    }
+
+    /**
+     * Retry all failed or pending sync events for a hotel.
+     */
+    public function retryAllFailed(int $hotelId): int
+    {
+        $failedEvents = SyncOutboxEvent::where('hotel_id', $hotelId)
+            ->whereIn('status', ['failed', 'dead_letter'])
+            ->get();
+
+        $recovered = 0;
+        foreach ($failedEvents as $event) {
+            $result = $this->executeSyncEvent($event);
+            if ($result['status'] === 'confirmed') {
+                $recovered++;
+            }
+        }
+
+        return $recovered;
     }
 
     /**

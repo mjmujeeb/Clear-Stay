@@ -5,13 +5,15 @@ namespace App\Services\Channel\Adapters;
 class DirectWebAdapter extends BaseChannelAdapter
 {
     protected string $channelCode = 'direct_web';
+    protected string $partnerName = 'Direct Booking Engine — SIMULATED';
+    protected string $protocol = 'ClearStay_Direct_v1.0';
 
     public function getCapabilities(): array
     {
         return array_merge(parent::getCapabilities(), [
-            'protocol' => 'ClearStay_Native_Booking_Engine',
-            'supports_loyalty_discount' => true,
-            'realtime_instant_sync' => true,
+            'supports_direct_guest_loyalty' => true,
+            'supports_instant_confirmation' => true,
+            'zero_commission' => true,
         ]);
     }
 }
