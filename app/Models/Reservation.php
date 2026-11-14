@@ -18,6 +18,8 @@ class Reservation extends Model
     protected $fillable = [
         'hotel_id',
         'guest_id',
+        'rooms_count',
+        'group_booking_reference',
         'room_id',
         'confirmation_code',
         'guest_portal_token',
@@ -39,6 +41,7 @@ class Reservation extends Model
     protected $casts = [
         'check_in_date' => 'date',
         'check_out_date' => 'date',
+        'rooms_count' => 'integer',
         'adults' => 'integer',
         'children' => 'integer',
         'total_price' => 'decimal:2',

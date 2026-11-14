@@ -326,6 +326,8 @@ Route::middleware(['auth'])->group(function () {
 
     // ClearStay 4.2: Complete External Integration Simulation and Demonstration Environment
     Route::get('/integrations/simulators', [IntegrationSimulatorController::class, 'index'])->name('simulators.index');
+    Route::post('/integrations/simulators/availability-preview', [IntegrationSimulatorController::class, 'availabilityPreview'])->name('simulators.availability_preview');
+    Route::post('/integrations/simulators/retry-sync/{eventId}', [IntegrationSimulatorController::class, 'retrySyncEvent'])->name('simulators.retry_sync');
     Route::post('/integrations/mode', [IntegrationSimulatorController::class, 'switchMode'])->name('simulators.switch_mode');
     Route::post('/integrations/failure-lab', [IntegrationSimulatorController::class, 'configureFailure'])->name('simulators.configure_failure');
     Route::post('/integrations/inbound-webhook', [IntegrationSimulatorController::class, 'triggerInboundBooking'])->name('simulators.inbound_booking');
@@ -339,4 +341,5 @@ Route::get('/ical/hotel/{hotel}/room/{roomType}/availability.ics', [ICalendarCon
 
 // Simulated OTA Inbound Webhook Endpoints
 Route::post('/api/simulators/{partner}/inbound-reservation', [IntegrationSimulatorController::class, 'triggerInboundBooking'])->name('api.simulators.inbound_booking');
+Route::post('/api/simulators/availability-preview', [IntegrationSimulatorController::class, 'availabilityPreview'])->name('api.simulators.availability_preview');
 

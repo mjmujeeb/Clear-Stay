@@ -22,6 +22,7 @@ class SimulatedPartnerReservation extends Model
         'check_in_date',
         'check_out_date',
         'guest_count',
+        'rooms_count',
         'total_amount',
         'currency',
         'status',
@@ -34,6 +35,7 @@ class SimulatedPartnerReservation extends Model
         'check_in_date' => NormalizedDateCast::class,
         'check_out_date' => NormalizedDateCast::class,
         'guest_count' => 'integer',
+        'rooms_count' => 'integer',
         'total_amount' => 'float',
         'raw_payload' => 'array',
     ];

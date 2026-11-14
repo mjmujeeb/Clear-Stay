@@ -46,14 +46,22 @@ class ChannelSynchronizationService
     /**
      * Update Once, Synchronize Everywhere:
      * Commits central inventory change and queues transactional outbox events to all active connected channels.
+     * Optionally excludes the originating channel to avoid double-processing inbound sales.
      */
-    public function broadcastInventoryChange(int $hotelId, array $inventoryItems, string $eventType = 'inventory_sync'): array
+    public function broadcastInventoryChange(int $hotelId, array $inventoryItems, string $eventType = 'inventory_sync', ?string $excludeChannelCode = null): array
     {
         $correlationId = (string) Str::uuid();
-        $connections = ChannelConnection::where('hotel_id', $hotelId)
+        $query = ChannelConnection::where('hotel_id', $hotelId)
             ->where('is_enabled', true)
-            ->with('channel')
-            ->get();
+            ->with('channel');
+
+        if ($excludeChannelCode) {
+            $query->whereHas('channel', function ($q) use ($excludeChannelCode) {
+                $q->where('code', '!=', $excludeChannelCode);
+            });
+        }
+
+        $connections = $query->get();
 
         $dispatchedEvents = [];
 
@@ -73,6 +81,7 @@ class ChannelSynchronizationService
                 // Immediately process or dispatch
                 $result = $this->executeSyncEvent($outboxEvent);
                 $dispatchedEvents[] = [
+                    'event_id' => $outboxEvent->id,
                     'channel' => $connection->channel->name,
                     'channel_code' => $connection->channel->code,
                     'status' => $result['status'],

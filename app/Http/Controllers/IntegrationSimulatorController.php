@@ -15,6 +15,7 @@ use App\Models\SimulatedPartnerRequest;
 use App\Models\SimulatedPartnerReservation;
 use App\Models\SyncAttemptLog;
 use App\Models\SyncOutboxEvent;
+use App\Services\Channel\ChannelSynchronizationService;
 use App\Services\Channel\InboundBookingWebhookService;
 use App\Services\Channel\SimulatedRemoteStateService;
 use App\Services\Integration\IntegrationModeService;
@@ -31,7 +32,8 @@ class IntegrationSimulatorController extends Controller
         protected IntegrationModeService $modeService,
         protected SimulatedRemoteStateService $simulatedState,
         protected InterviewerSimulationScenarioService $scenarioService,
-        protected InboundBookingWebhookService $inboundService
+        protected InboundBookingWebhookService $inboundService,
+        protected ChannelSynchronizationService $syncService
     ) {}
 
     /**
@@ -179,6 +181,39 @@ class IntegrationSimulatorController extends Controller
     }
 
     /**
+     * Real-time Live Availability & Capacity Preview Endpoint.
+     */
+    public function availabilityPreview(Request $request): JsonResponse
+    {
+        $hotelId = session('current_hotel_id') ?? Auth::user()?->hotel_id;
+        $hotel = $hotelId ? Hotel::find($hotelId) : Hotel::where('is_active', true)->first();
+        $hotelId = $hotel?->id ?? 1;
+
+        $partnerCode = $request->input('partner_code', 'agoda');
+        $roomTypeCode = $request->input('remote_room_code') ?? $request->input('room_type_code') ?? $request->input('room_type_id');
+        $checkIn = $request->input('check_in_date');
+        $checkOut = $request->input('check_out_date');
+        $roomsCount = (int) ($request->input('requested_rooms') ?? $request->input('rooms_count') ?? 1);
+
+        if (!$roomTypeCode) {
+            $firstRoomType = RoomType::where('hotel_id', $hotelId)->first();
+            $roomTypeCode = $firstRoomType?->code ?? 'STD';
+        }
+
+        $preview = $this->inboundService->calculateAvailabilityPreview(
+            $hotelId,
+            $partnerCode,
+            (string) $roomTypeCode,
+            (string) $checkIn,
+            (string) $checkOut,
+            $roomsCount
+        );
+
+        $status = $preview['success'] ? 200 : 422;
+        return response()->json($preview, $status);
+    }
+
+    /**
      * Trigger inbound OTA booking simulation.
      */
     public function triggerInboundBooking(Request $request): JsonResponse
@@ -190,6 +225,8 @@ class IntegrationSimulatorController extends Controller
             'remote_room_code' => 'required|string',
             'check_in_date' => 'required|date',
             'check_out_date' => 'required|date|after:check_in_date',
+            'rooms_count' => 'nullable|integer|min:1|max:20',
+            'requested_rooms' => 'nullable|integer|min:1|max:20',
             'guest_name' => 'required|string|max:100',
             'guest_email' => 'nullable|email',
             'guest_count' => 'nullable|integer|min:1',
@@ -203,6 +240,8 @@ class IntegrationSimulatorController extends Controller
             'remote_room_code',
             'check_in_date',
             'check_out_date',
+            'rooms_count',
+            'requested_rooms',
             'guest_name',
             'guest_email',
             'guest_count',
@@ -210,12 +249,29 @@ class IntegrationSimulatorController extends Controller
             'idempotency_key',
         ]);
 
+        // Normalize requested rooms count
+        $payload['rooms_count'] = (int) ($payload['rooms_count'] ?? $payload['requested_rooms'] ?? 1);
+
         $partnerCode = $request->input('partner_code');
         $result = $this->inboundService->processInboundBooking($partnerCode, $payload);
 
         $status = $result['status_code'] ?? ($result['success'] ? 201 : 400);
 
         return response()->json($result, $status);
+    }
+
+    /**
+     * Retry an individual failed sync outbox event.
+     */
+    public function retrySyncEvent(Request $request, int $eventId): JsonResponse
+    {
+        $result = $this->syncService->retrySyncEvent($eventId);
+
+        return response()->json([
+            'success' => in_array($result['status'], ['confirmed', 'processing', 'queued'], true),
+            'event_id' => $eventId,
+            'result' => $result,
+        ]);
     }
 
     /**

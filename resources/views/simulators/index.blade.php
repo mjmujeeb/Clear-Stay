@@ -268,76 +268,314 @@
         </div>
     </div>
 
-    <!-- Inbound OTA Webhook Simulator Form -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px;">
-        <div class="card" style="padding: 22px 24px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color);">
-            <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-inbox text-primary"></i> Inbound OTA Booking Webhook Simulator
-            </h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-                Deliver a simulated reservation into ClearStay as if sent from Agoda, Booking.com, or Expedia webhook.
-            </p>
-
-            <form id="inboundForm" onsubmit="submitInboundBooking(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                @csrf
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Partner:</label>
-                    <select name="partner_code" class="form-select" style="font-size: 13px;" required>
-                        <option value="agoda">Agoda Simulator</option>
-                        <option value="booking_com">Booking.com Simulator</option>
-                        <option value="expedia">Expedia Simulator</option>
-                        <option value="rakuten">Rakuten Travel Simulator</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">External Res ID:</label>
-                    <input type="text" name="external_reservation_id" class="form-control" style="font-size: 13px;" value="EXT-{{ rand(100000, 999999) }}" required>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Property Code:</label>
-                    <input type="text" name="property_code" class="form-control" style="font-size: 13px;" value="AGD-{{ $hotel->code }}" required>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Room Type:</label>
-                    <select name="remote_room_code" class="form-select" style="font-size: 13px;" required>
-                        @foreach($roomTypes as $rt)
-                        <option value="{{ $rt->code }}">{{ $rt->name }} ({{ $rt->code }})</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Check-in Date:</label>
-                    <input type="date" name="check_in_date" class="form-control" style="font-size: 13px;" value="{{ \Carbon\Carbon::today()->addDays(5)->format('Y-m-d') }}" required>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Check-out Date:</label>
-                    <input type="date" name="check_out_date" class="form-control" style="font-size: 13px;" value="{{ \Carbon\Carbon::today()->addDays(7)->format('Y-m-d') }}" required>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Guest Name:</label>
-                    <input type="text" name="guest_name" class="form-control" style="font-size: 13px;" value="Taro Suzuki" required>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Total Price (JPY):</label>
-                    <input type="number" name="price" class="form-control" style="font-size: 13px;" value="48000" required>
-                </div>
-                <div style="grid-column: span 2;">
-                    <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Idempotency Key (Optional):</label>
-                    <input type="text" name="idempotency_key" class="form-control" style="font-size: 13px;" value="IDEM-{{ Str::uuid() }}">
-                </div>
-                <div style="grid-column: span 2;">
-                    <button type="submit" class="btn btn-primary w-100" style="font-weight: 700; font-size: 13px;">
-                        <i class="fa-solid fa-paper-plane"></i> Dispatch Inbound Webhook Booking
-                    </button>
-                </div>
-            </form>
-            <div id="inboundResult" style="margin-top: 14px; font-size: 12px; display: none;"></div>
+    <!-- Inbound OTA Webhook Simulator & Capacity Indicator Master Experience -->
+    <div style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h3 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-hotel text-primary"></i> Real-Time Room Quantity, Capacity & Inventory Simulator
+                </h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+                    Interactive multi-room OTA booking simulator with live date-by-date stay capacity inspection and multi-channel reconciliation.
+                </p>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                <span class="badge bg-success-subtle text-success border border-success" style="font-size: 11px; padding: 4px 8px;">
+                    <i class="fa-solid fa-bolt"></i> Live Reactive Preview
+                </span>
+                <span>Checkout date strictly excluded</span>
+            </div>
         </div>
 
-        <!-- Payment Simulator & Real RFC 5545 iCal Connector -->
-        <div class="card" style="padding: 22px 24px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="display: grid; grid-template-columns: 1.15fr 1.25fr 1.25fr; gap: 18px; align-items: stretch;">
+            <!-- Column 1: Inbound Booking Form -->
+            <div class="card" style="padding: 20px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-inbox text-primary"></i> 1. Inbound Booking Form
+                    </h4>
+
+                    <form id="inboundForm" onsubmit="submitInboundBooking(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        @csrf
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Originating Partner:</label>
+                            <select name="partner_code" id="sim_partner_code" class="form-select form-select-sm" style="font-size: 13px; font-weight: 600;" onchange="updateAvailabilityPreview()" required>
+                                <option value="agoda" selected>Agoda Simulator</option>
+                                <option value="booking_com">Booking.com Simulator</option>
+                                <option value="expedia">Expedia Simulator</option>
+                                <option value="rakuten">Rakuten Travel Simulator</option>
+                                <option value="jalan">Jalan.net Simulator</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Number of Rooms:</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fa-solid fa-door-open"></i></span>
+                                <input type="number" name="rooms_count" id="sim_rooms_count" class="form-control" style="font-size: 14px; font-weight: 800; color: #1E293B;" value="2" min="1" max="10" oninput="updateAvailabilityPreview()" required>
+                            </div>
+                        </div>
+
+                        <div style="grid-column: span 2;">
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Room Type:</label>
+                            <select name="remote_room_code" id="sim_room_code" class="form-select form-select-sm" style="font-size: 13px; font-weight: 600;" onchange="updateAvailabilityPreview()" required>
+                                @foreach($roomTypes as $rt)
+                                <option value="{{ $rt->code }}" {{ $loop->first ? 'selected' : '' }}>{{ $rt->name }} ({{ $rt->code }}) &bull; ¥{{ number_format($rt->base_price) }}/night</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Check-in Date:</label>
+                            <input type="date" name="check_in_date" id="sim_check_in" class="form-control form-control-sm" style="font-size: 13px; font-weight: 600;" value="{{ \Carbon\Carbon::today()->addDays(5)->format('Y-m-d') }}" onchange="updateAvailabilityPreview()" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Check-out Date:</label>
+                            <input type="date" name="check_out_date" id="sim_check_out" class="form-control form-control-sm" style="font-size: 13px; font-weight: 600;" value="{{ \Carbon\Carbon::today()->addDays(7)->format('Y-m-d') }}" onchange="updateAvailabilityPreview()" required>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Guest Name:</label>
+                            <input type="text" name="guest_name" class="form-control form-control-sm" style="font-size: 13px;" value="Taro Suzuki" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Price (JPY):</label>
+                            <input type="number" name="price" id="sim_price" class="form-control form-control-sm" style="font-size: 13px;" value="48000" required>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">External Res ID:</label>
+                            <input type="text" name="external_reservation_id" id="sim_ext_res_id" class="form-control form-control-sm" style="font-size: 12px; font-family: monospace;" value="EXT-{{ rand(100000, 999999) }}" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Property Code:</label>
+                            <input type="text" name="property_code" id="sim_prop_code" class="form-control form-control-sm" style="font-size: 12px; font-family: monospace;" value="AGD-{{ $hotel->code }}" required>
+                        </div>
+
+                        <div style="grid-column: span 2;">
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Idempotency Key:</label>
+                            <input type="text" name="idempotency_key" id="sim_idempotency_key" class="form-control form-control-sm" style="font-size: 12px; font-family: monospace;" value="IDEM-{{ Str::uuid() }}">
+                        </div>
+
+                        <div style="grid-column: span 2; margin-top: 6px;">
+                            <button type="submit" id="btnDispatchBooking" class="btn btn-primary w-100" style="font-weight: 800; font-size: 13px; padding: 9px 14px;">
+                                <i class="fa-solid fa-paper-plane"></i> Dispatch Inbound Webhook Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="inboundResult" style="margin-top: 12px; font-size: 12px; display: none;"></div>
+            </div>
+
+            <!-- Column 2: Live Availability & Capacity Indicator -->
+            <div class="card" style="padding: 20px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-chart-pie text-info"></i> 2. Live Capacity & Availability
+                        </h4>
+                        <span id="previewLoadingIndicator" style="display: none; font-size: 11px; color: var(--text-muted);">
+                            <i class="fa-solid fa-spinner fa-spin text-primary"></i> Computing...
+                        </span>
+                    </div>
+
+                    <!-- Hero metric callouts -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <!-- Available Before -->
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px;">
+                            <div style="font-size: 11px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+                                LIVE AVAILABILITY BEFORE
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 6px;">
+                                <span id="heroAvailBefore" style="font-size: 26px; font-weight: 900; color: #0F172A; line-height: 1;">-</span>
+                                <span style="font-size: 12px; font-weight: 700; color: #64748B;">rooms</span>
+                            </div>
+                            <div style="font-size: 11px; color: #64748B; margin-top: 4px;">
+                                Requested: <strong id="heroRequestedCount" style="color: #0284C7;">-</strong> rooms
+                            </div>
+                        </div>
+
+                        <!-- Estimated Remaining After -->
+                        <div id="heroRemainingBox" style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 12px 14px; transition: background 0.3s ease, border-color 0.3s ease;">
+                            <div id="heroRemainingLabel" style="font-size: 11px; font-weight: 800; color: #15803D; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+                                ESTIMATED REMAINING
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 6px;">
+                                <span id="heroRemainingAfter" style="font-size: 26px; font-weight: 900; color: #166534; line-height: 1;">-</span>
+                                <span style="font-size: 12px; font-weight: 700; color: #15803D;">rooms</span>
+                            </div>
+                            <div id="heroAcceptStatus" style="font-size: 11px; font-weight: 700; color: #166534; margin-top: 4px;">
+                                Booking can be accepted
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capacity Progress Bar -->
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
+                            <span>Stay Bottleneck Remaining Capacity</span>
+                            <span id="capacityBarLabel">-</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 9999px; background: #E2E8F0;">
+                            <div id="capacityProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%; border-radius: 9999px; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Stay Nights Breakdown Table -->
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-bottom: 10px;">
+                        <div style="background: #F8FAFC; padding: 6px 10px; font-size: 11px; font-weight: 800; color: #475569; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                            <span>STAY NIGHTS BREAKDOWN</span>
+                            <span id="nightsSummaryBadge" class="badge bg-secondary" style="font-size: 10px;">- nights</span>
+                        </div>
+                        <div style="max-height: 155px; overflow-y: auto;">
+                            <table class="table table-sm table-striped" style="font-size: 11px; margin: 0; text-align: center;">
+                                <thead style="font-size: 10px; text-transform: uppercase; color: #64748B;">
+                                    <tr>
+                                        <th style="text-align: left; padding-left: 10px;">Date</th>
+                                        <th>Total</th>
+                                        <th>Res</th>
+                                        <th>Avail</th>
+                                        <th>Req</th>
+                                        <th>Remaining</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dateBreakdownTbody">
+                                    <tr>
+                                        <td colspan="7" style="padding: 12px; color: #94A3B8;">Loading availability...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+                    <i class="fa-solid fa-circle-info text-primary"></i> <strong>Bottleneck Rule:</strong> A booking is approved only if sufficient capacity exists across <em>every single night</em> of the stay.
+                </div>
+            </div>
+
+            <!-- Column 3: Simulated Partner Network & Live Reconciliation -->
+            <div class="card" style="padding: 20px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-split-up-and-left text-success"></i> 3. Channel Reconciliation
+                        </h4>
+                        <span class="badge bg-primary-subtle text-primary border border-primary" style="font-size: 10px;">
+                            6 Systems
+                        </span>
+                    </div>
+
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                        Observes remote availability across ClearStay and connected OTA simulators before and after booking transactions.
+                    </p>
+
+                    <!-- Partner Comparison Table -->
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-bottom: 14px;">
+                        <table class="table table-sm" style="font-size: 11px; margin: 0;">
+                            <thead style="background: #F8FAFC; border-bottom: 1px solid var(--border-color); font-size: 10px; text-transform: uppercase; color: #64748B;">
+                                <tr>
+                                    <th style="padding-left: 10px;">System / Partner</th>
+                                    <th style="text-align: center;">Before</th>
+                                    <th style="text-align: center;">Delta</th>
+                                    <th style="text-align: center;">After</th>
+                                    <th style="text-align: right; padding-right: 10px;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="partnerNetworkTbody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 14px; color: #94A3B8;">Connecting to simulated partner network...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="background: #F8FAFC; border-radius: 8px; padding: 10px 12px; border: 1px solid #E2E8F0; font-size: 11px; color: #475569;">
+                    <div style="font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-shield-halved text-primary"></i> Anti-Double Decrement Guarantee
+                    </div>
+                    <span>Originating partner is decremented directly; outbound outbox broadcasts to other channels without double-decrementing the source.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Movement History Log Panel -->
+    <div class="card" style="padding: 20px 24px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-list-check text-primary"></i> Inventory Movement & Simulated Reservation History
+            </h3>
+            <span style="font-size: 12px; color: var(--text-muted);">
+                Audit log of recent simulated bookings and room allocations
+            </span>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="table" style="font-size: 12px; margin: 0;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); text-transform: uppercase; font-size: 11px; color: var(--text-muted);">
+                        <th>Time</th>
+                        <th>Confirmation</th>
+                        <th>Partner</th>
+                        <th>Guest</th>
+                        <th>Room Type</th>
+                        <th style="text-align: center;">Rooms Booked</th>
+                        <th>Stay Period</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="inboundMovementHistoryTbody">
+                    @forelse($recentInboundBookings as $res)
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="font-family: monospace; font-size: 11px;">{{ $res->created_at->format('H:i:s') }}</td>
+                        <td>
+                            <strong style="font-family: monospace; color: #0284C7;">
+                                {{ $res->clearstayReservation?->confirmation_code ?? $res->external_reservation_id }}
+                            </strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" style="font-size: 10px; text-transform: uppercase;">
+                                {{ $res->partner_code }}
+                            </span>
+                        </td>
+                        <td>{{ $res->guest_name }}</td>
+                        <td style="font-family: monospace;">{{ $res->remote_room_code }}</td>
+                        <td style="text-align: center;">
+                            <span class="badge bg-primary" style="font-size: 11px; font-weight: 800;">
+                                {{ $res->rooms_count ?? 1 }} {{ ($res->rooms_count ?? 1) > 1 ? 'rooms' : 'room' }}
+                            </span>
+                        </td>
+                        <td style="font-size: 11px;">
+                            {{ $res->check_in_date->format('M d') }} &rarr; {{ $res->check_out_date->format('M d') }}
+                        </td>
+                        <td style="font-weight: 700;">
+                            ¥{{ number_format($res->total_amount) }}
+                        </td>
+                        <td>
+                            <span class="badge bg-success" style="font-size: 10px;">Confirmed</span>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr id="emptyHistoryRow">
+                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 18px;">
+                            No inbound reservations recorded yet. Dispatch a booking above to see live inventory movement.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payment Simulator & Real RFC 5545 iCal Connector -->
+    <div class="card" style="padding: 22px 24px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 30px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
             <div>
-                <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <h3 style="font-size: 16px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-credit-card text-success"></i> Virtual Card Payment Terminal Simulator
                 </h3>
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
@@ -361,11 +599,11 @@
                 <div id="paymentResult" style="background: #f1f5f9; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 110px; overflow-y: auto; display: none;"></div>
             </div>
 
-            <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
-                <h4 style="font-size: 14px; font-weight: 800; margin: 0 0 6px; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+            <div style="border-left: 1px solid var(--border-color); padding-left: 24px;">
+                <h4 style="font-size: 15px; font-weight: 800; margin: 0 0 6px; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-calendar-days text-primary"></i> Real RFC 5545 iCalendar Connector
                 </h4>
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
                     Live 1-way calendar availability subscription feed. Suitable for Apple Calendar, Google Calendar, or Airbnb sync.
                 </p>
                 @if($roomTypes->isNotEmpty())
@@ -442,44 +680,195 @@
 </div>
 
 <script>
-function runScenario(id, title) {
-    const consoleBox = document.getElementById('scenarioConsole');
-    consoleBox.style.display = 'block';
-    document.getElementById('consoleScenarioTitle').innerText = 'Executing Scenario ' + id + ': ' + title + '...';
-    document.getElementById('consoleStartState').innerText = 'Connecting to backend...';
-    document.getElementById('consoleActions').innerText = 'Executing transaction...';
-    document.getElementById('consoleTraceId').innerText = 'Pending...';
-    document.getElementById('consoleRequest').innerText = '...';
-    document.getElementById('consoleResponse').innerText = '...';
-    document.getElementById('consoleFinalResult').innerText = 'Waiting for execution response...';
+let previewDebounceTimer = null;
 
-    consoleBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+function updateAvailabilityPreview() {
+    clearTimeout(previewDebounceTimer);
+    previewDebounceTimer = setTimeout(performAvailabilityPreview, 250);
+}
 
-    fetch('/integrations/scenario/' + id, {
+function performAvailabilityPreview() {
+    const partnerCode = document.getElementById('sim_partner_code').value;
+    const roomCode = document.getElementById('sim_room_code').value;
+    const checkIn = document.getElementById('sim_check_in').value;
+    const checkOut = document.getElementById('sim_check_out').value;
+    const roomsCount = parseInt(document.getElementById('sim_rooms_count').value) || 1;
+
+    // Update Property Code prefix to match selected partner
+    const propCodeInput = document.getElementById('sim_prop_code');
+    const hotelCode = "{{ $hotel->code }}";
+    const prefixMap = {
+        'agoda': 'AGD-',
+        'booking_com': 'BKG-',
+        'expedia': 'EXP-',
+        'rakuten': 'RAK-',
+        'jalan': 'JAL-'
+    };
+    if (propCodeInput) {
+        propCodeInput.value = (prefixMap[partnerCode] || 'OTA-') + hotelCode;
+    }
+
+    if (!checkIn || !checkOut || checkOut <= checkIn) {
+        return;
+    }
+
+    const loader = document.getElementById('previewLoadingIndicator');
+    if (loader) loader.style.display = 'inline-block';
+
+    fetch('/integrations/simulators/availability-preview', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
+        },
+        body: JSON.stringify({
+            partner_code: partnerCode,
+            remote_room_code: roomCode,
+            check_in_date: checkIn,
+            check_out_date: checkOut,
+            requested_rooms: roomsCount
+        })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success && data.data) {
-            const d = data.data;
-            document.getElementById('consoleScenarioTitle').innerText = 'âœ… Scenario ' + id + ': ' + d.title;
-            document.getElementById('consoleStartState').innerText = d.start_state || '-';
-            document.getElementById('consoleActions').innerText = d.actions || '-';
-            document.getElementById('consoleTraceId').innerText = d.event_trace_id || '-';
-            document.getElementById('consoleRequest').innerText = JSON.stringify(d.request_payload, null, 2);
-            document.getElementById('consoleResponse').innerText = JSON.stringify(d.simulated_response, null, 2);
-            document.getElementById('consoleFinalResult').innerText = d.final_result || 'Success';
-        } else {
-            document.getElementById('consoleFinalResult').innerText = 'Failed: ' + (data.message || 'Unknown error');
+        if (loader) loader.style.display = 'none';
+        if (!data.success) {
+            console.warn('Availability preview error:', data.error);
+            return;
         }
+
+        renderAvailabilityPreview(data);
     })
     .catch(err => {
-        document.getElementById('consoleFinalResult').innerText = 'Execution error: ' + err.message;
+        if (loader) loader.style.display = 'none';
+        console.error('Preview fetch failed:', err);
     });
+}
+
+function renderAvailabilityPreview(data) {
+    // 1. Hero Numbers
+    document.getElementById('heroAvailBefore').innerText = data.available_before;
+    document.getElementById('heroRequestedCount').innerText = data.requested_rooms;
+    document.getElementById('heroRemainingAfter').innerText = data.estimated_remaining;
+
+    // 2. Status Box Styling
+    const remainingBox = document.getElementById('heroRemainingBox');
+    const acceptStatus = document.getElementById('heroAcceptStatus');
+    const remainingLabel = document.getElementById('heroRemainingLabel');
+    const progressBar = document.getElementById('capacityProgressBar');
+    const barLabel = document.getElementById('capacityBarLabel');
+    const btnDispatch = document.getElementById('btnDispatchBooking');
+
+    if (data.capacity_status === 'exhausted' || !data.can_accept) {
+        remainingBox.style.background = '#FEF2F2';
+        remainingBox.style.borderColor = '#FCA5A5';
+        remainingLabel.style.color = '#DC2626';
+        document.getElementById('heroRemainingAfter').style.color = '#B91C1C';
+        acceptStatus.style.color = '#DC2626';
+        acceptStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Capacity Exhausted (Rejection Guaranteed)';
+        progressBar.className = 'progress-bar bg-danger';
+        barLabel.innerText = '0% Remaining';
+        progressBar.style.width = '0%';
+        if (btnDispatch) {
+            btnDispatch.classList.remove('btn-primary', 'btn-warning');
+            btnDispatch.classList.add('btn-danger');
+            btnDispatch.innerHTML = '<i class="fa-solid fa-ban"></i> Capacity Exhausted (Will Reject 409)';
+        }
+    } else if (data.capacity_status === 'low_inventory') {
+        remainingBox.style.background = '#FFFBEB';
+        remainingBox.style.borderColor = '#FCD34D';
+        remainingLabel.style.color = '#D97706';
+        document.getElementById('heroRemainingAfter').style.color = '#B45309';
+        acceptStatus.style.color = '#D97706';
+        acceptStatus.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Low Inventory (' + data.estimated_remaining + ' left)';
+        progressBar.className = 'progress-bar bg-warning';
+        barLabel.innerText = data.remaining_percentage + '% Capacity Remaining';
+        progressBar.style.width = Math.max(5, data.remaining_percentage) + '%';
+        if (btnDispatch) {
+            btnDispatch.classList.remove('btn-danger');
+            btnDispatch.classList.add('btn-primary');
+            btnDispatch.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Dispatch Inbound Webhook Booking';
+        }
+    } else {
+        remainingBox.style.background = '#F0FDF4';
+        remainingBox.style.borderColor = '#BBF7D0';
+        remainingLabel.style.color = '#15803D';
+        document.getElementById('heroRemainingAfter').style.color = '#166534';
+        acceptStatus.style.color = '#166534';
+        acceptStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Booking can be accepted';
+        progressBar.className = 'progress-bar bg-success';
+        barLabel.innerText = data.remaining_percentage + '% Capacity Remaining';
+        progressBar.style.width = data.remaining_percentage + '%';
+        if (btnDispatch) {
+            btnDispatch.classList.remove('btn-danger', 'btn-warning');
+            btnDispatch.classList.add('btn-primary');
+            btnDispatch.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Dispatch Inbound Webhook Booking';
+        }
+    }
+
+    // 3. Stay Nights Breakdown Table
+    document.getElementById('nightsSummaryBadge').innerText = data.nights + ' ' + (data.nights > 1 ? 'nights' : 'night');
+    const tbody = document.getElementById('dateBreakdownTbody');
+    let rowsHtml = '';
+    (data.date_breakdown || []).forEach(d => {
+        const rowClass = !d.can_accept ? 'style="background: #FEF2F2;"' : '';
+        const statusBadge = d.stop_sell
+            ? '<span class="badge bg-danger" style="font-size: 9px;">Stop-Sell</span>'
+            : (d.can_accept
+                ? '<span class="badge bg-success" style="font-size: 9px;">OK</span>'
+                : '<span class="badge bg-danger" style="font-size: 9px;">Conflict</span>');
+
+        rowsHtml += `<tr ${rowClass}>
+            <td style="text-align: left; padding-left: 10px; font-weight: 600;">${d.date} <span style="color: #64748B; font-weight: normal;">(${d.day_name})</span></td>
+            <td>${d.total_units}</td>
+            <td style="color: #64748B;">${d.reserved_units}</td>
+            <td style="font-weight: 700; color: #0284C7;">${d.available_before}</td>
+            <td style="font-weight: 700; color: #475569;">${d.requested_rooms}</td>
+            <td style="font-weight: 800; color: ${d.estimated_remaining > 0 ? '#166534' : '#DC2626'};">${d.estimated_remaining}</td>
+            <td>${statusBadge}</td>
+        </tr>`;
+    });
+    tbody.innerHTML = rowsHtml;
+
+    // 4. Partner Network Comparison Table
+    renderPartnerNetwork(data.partner_network, data.requested_rooms);
+}
+
+function renderPartnerNetwork(network, requestedRooms) {
+    const pTbody = document.getElementById('partnerNetworkTbody');
+    if (!network || network.length === 0) return;
+
+    let html = '';
+    network.forEach(p => {
+        let badgeHtml = '';
+        if (p.status === 'MATCHED') {
+            badgeHtml = '<span class="badge bg-success" style="font-size: 10px;"><i class="fa-solid fa-check"></i> MATCHED</span>';
+        } else if (p.status === 'FAILED') {
+            badgeHtml = '<span class="badge bg-danger" style="font-size: 10px;"><i class="fa-solid fa-xmark"></i> FAILED</span>';
+            if (p.event_id) {
+                badgeHtml += ` <button type="button" class="btn btn-xs btn-outline-danger" onclick="retrySyncOutbox(${p.event_id})" style="font-size: 9px; padding: 1px 5px; margin-left: 4px;">Retry</button>`;
+            }
+        } else {
+            badgeHtml = '<span class="badge bg-warning text-dark" style="font-size: 10px;"><i class="fa-solid fa-triangle-exclamation"></i> DISCREPANCY</span>';
+        }
+
+        const deltaVal = p.delta !== undefined ? p.delta : (p.status === 'MATCHED' ? -requestedRooms : 0);
+        const afterVal = p.after !== undefined ? p.after : p.estimated_remaining;
+        const deltaText = deltaVal < 0 ? `${deltaVal}` : (deltaVal > 0 ? `+${deltaVal}` : '0');
+        const isCentral = p.is_central || p.code === 'clearstay';
+
+        html += `<tr style="border-bottom: 1px solid var(--border-color); ${isCentral ? 'background: rgba(2, 132, 199, 0.04);' : ''}">
+            <td style="padding-left: 10px; font-weight: ${isCentral ? '800' : '600'};">
+                ${isCentral ? '<i class="fa-solid fa-server text-primary"></i> ' : '<i class="fa-solid fa-globe text-muted"></i> '}
+                ${p.system || p.partner_code}
+            </td>
+            <td style="text-align: center; font-weight: 700; color: #475569;">${p.before !== undefined ? p.before : p.available_before}</td>
+            <td style="text-align: center; font-weight: 800; color: ${deltaVal < 0 ? '#DC2626' : '#64748B'};">${deltaText}</td>
+            <td style="text-align: center; font-weight: 800; color: #166534;">${afterVal}</td>
+            <td style="text-align: right; padding-right: 10px;">${badgeHtml}</td>
+        </tr>`;
+    });
+    pTbody.innerHTML = html;
 }
 
 function submitInboundBooking(e) {
@@ -489,7 +878,7 @@ function submitInboundBooking(e) {
     const payload = Object.fromEntries(formData.entries());
     const resultBox = document.getElementById('inboundResult');
     resultBox.style.display = 'block';
-    resultBox.innerHTML = '<span style="color: #64748B;"><i class="fa-solid fa-spinner fa-spin"></i> Dispatching webhook...</span>';
+    resultBox.innerHTML = '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 6px; color: #475569;"><i class="fa-solid fa-spinner fa-spin text-primary"></i> Dispatching transaction across simulated partner network...</div>';
 
     fetch('/integrations/inbound-webhook', {
         method: 'POST',
@@ -502,17 +891,104 @@ function submitInboundBooking(e) {
     .then(res => res.json().then(data => ({ status: res.status, body: data })))
     .then(res => {
         if (res.status >= 200 && res.status < 300) {
-            resultBox.innerHTML = '<div style="background: #ECFDF5; border: 1px solid #6EE7B7; color: #065F46; padding: 10px; border-radius: 6px;">' +
-                '<strong>âœ… Booking Accepted (' + res.body.status + '):</strong> Ref: ' + res.body.confirmation_code + ' (PMS Res ID #' + res.body.clearstay_reservation_id + ')' +
-                '</div>';
+            const b = res.body;
+            const roomsText = b.rooms_count > 1 ? `${b.rooms_count} rooms` : '1 room';
+            const assignedRooms = b.assigned_rooms && b.assigned_rooms.length > 0 ? b.assigned_rooms.join(', ') : b.room_number;
+            const groupBadge = b.group_booking_reference ? `<span class="badge bg-info text-dark" style="margin-left: 6px;">${b.group_booking_reference}</span>` : '';
+
+            resultBox.innerHTML = `
+                <div style="background: #ECFDF5; border: 1px solid #6EE7B7; color: #065F46; padding: 14px; border-radius: 8px;">
+                    <div style="font-weight: 800; font-size: 13px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="fa-solid fa-circle-check text-success"></i> Booking Accepted (${roomsText}) ${groupBadge}</span>
+                        <span style="font-family: monospace; font-size: 12px; color: #047857;">${b.confirmation_code}</span>
+                    </div>
+                    <div style="font-size: 12px; line-height: 1.5; color: #065F46;">
+                        <div><strong>PMS Reservation:</strong> #${b.clearstay_reservation_id} &bull; <strong>Assigned Physical Rooms:</strong> ${assignedRooms}</div>
+                        <div><strong>Inventory Decrement:</strong> Decremented from ${b.inventory_summary?.before ?? '-'} to ${b.inventory_summary?.remaining ?? '-'} rooms across ${b.nights} nights.</div>
+                        <div><strong>Reconciliation:</strong> Originating OTA updated directly; outbox broadcast synchronized to other simulated OTAs.</div>
+                    </div>
+                </div>
+            `;
+
+            // If authoritative reconciliation table is returned, render it immediately!
+            if (b.reconciliation) {
+                renderPartnerNetwork(b.reconciliation, b.rooms_count);
+            }
+
+            // Prepend new row to Movement History table
+            prependMovementHistoryRow(b, payload);
+
+            // Generate new IDs for next dispatch
+            document.getElementById('sim_ext_res_id').value = 'EXT-' + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('sim_idempotency_key').value = 'IDEM-' + crypto.randomUUID();
+
+            // Re-trigger live availability preview after 400ms
+            setTimeout(performAvailabilityPreview, 400);
         } else {
-            resultBox.innerHTML = '<div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 10px; border-radius: 6px;">' +
-                '<strong>â Œ Rejected (' + (res.body.error_code || res.status) + '):</strong> ' + (res.body.error || 'Conflict') +
-                '</div>';
+            const b = res.body;
+            resultBox.innerHTML = `
+                <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 14px; border-radius: 8px;">
+                    <div style="font-weight: 800; font-size: 13px; margin-bottom: 4px;">
+                        <i class="fa-solid fa-circle-xmark text-danger"></i> Reservation Rejected (${b.error_code || 'HTTP ' + res.status})
+                    </div>
+                    <div style="font-size: 12px; line-height: 1.5;">
+                        ${b.error || 'The requested room quantity exceeds available inventory on one or more nights.'}
+                    </div>
+                </div>
+            `;
         }
     })
     .catch(err => {
-        resultBox.innerHTML = '<div style="color: red;">Error: ' + err.message + '</div>';
+        resultBox.innerHTML = `<div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 12px; border-radius: 6px;">Error: ${err.message}</div>`;
+    });
+}
+
+function prependMovementHistoryRow(b, payload) {
+    const historyTbody = document.getElementById('inboundMovementHistoryTbody');
+    const emptyRow = document.getElementById('emptyHistoryRow');
+    if (emptyRow) emptyRow.remove();
+
+    const now = new Date();
+    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+    const roomsCount = b.rooms_count || payload.rooms_count || 1;
+    const roomsText = roomsCount > 1 ? `${roomsCount} rooms` : '1 room';
+
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border-color)';
+    tr.style.background = '#ECFDF5';
+    tr.style.transition = 'background 1.5s ease';
+
+    tr.innerHTML = `
+        <td style="font-family: monospace; font-size: 11px;">${timeStr}</td>
+        <td><strong style="font-family: monospace; color: #0284C7;">${b.confirmation_code}</strong></td>
+        <td><span class="badge bg-secondary" style="font-size: 10px; text-transform: uppercase;">${payload.partner_code}</span></td>
+        <td>${payload.guest_name}</td>
+        <td style="font-family: monospace;">${payload.remote_room_code}</td>
+        <td style="text-align: center;"><span class="badge bg-primary" style="font-size: 11px; font-weight: 800;">${roomsText}</span></td>
+        <td style="font-size: 11px;">${payload.check_in_date} &rarr; ${payload.check_out_date}</td>
+        <td style="font-weight: 700;">¥${Number(payload.price || b.total_amount).toLocaleString()}</td>
+        <td><span class="badge bg-success" style="font-size: 10px;">Confirmed</span></td>
+    `;
+
+    historyTbody.insertBefore(tr, historyTbody.firstChild);
+    setTimeout(() => { tr.style.background = 'transparent'; }, 2000);
+}
+
+function retrySyncOutbox(eventId) {
+    fetch('/integrations/simulators/retry-sync/' + eventId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.success ? 'Sync outbox event successfully retried and synchronized!' : 'Retry failed: ' + (data.result?.message || 'Unknown error'));
+        performAvailabilityPreview();
+    })
+    .catch(err => {
+        alert('Retry error: ' + err.message);
     });
 }
 
@@ -537,5 +1013,50 @@ function testPayment(action) {
         resBox.innerText = 'Payment error: ' + e.message;
     });
 }
+
+function runScenario(id, title) {
+    const consoleBox = document.getElementById('scenarioConsole');
+    consoleBox.style.display = 'block';
+    document.getElementById('consoleScenarioTitle').innerText = 'Executing Scenario ' + id + ': ' + title + '...';
+    document.getElementById('consoleStartState').innerText = 'Connecting to backend...';
+    document.getElementById('consoleActions').innerText = 'Executing transaction...';
+    document.getElementById('consoleTraceId').innerText = 'Pending...';
+    document.getElementById('consoleRequest').innerText = '...';
+    document.getElementById('consoleResponse').innerText = '...';
+    document.getElementById('consoleFinalResult').innerText = 'Waiting for execution response...';
+
+    consoleBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    fetch('/integrations/scenario/' + id, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.data) {
+            const d = data.data;
+            document.getElementById('consoleScenarioTitle').innerText = 'Scenario ' + id + ': ' + d.title;
+            document.getElementById('consoleStartState').innerText = d.start_state || '-';
+            document.getElementById('consoleActions').innerText = d.actions || '-';
+            document.getElementById('consoleTraceId').innerText = d.event_trace_id || '-';
+            document.getElementById('consoleRequest').innerText = JSON.stringify(d.request_payload, null, 2);
+            document.getElementById('consoleResponse').innerText = JSON.stringify(d.simulated_response, null, 2);
+            document.getElementById('consoleFinalResult').innerText = d.final_result || 'Success';
+        } else {
+            document.getElementById('consoleFinalResult').innerText = 'Failed: ' + (data.message || 'Unknown error');
+        }
+    })
+    .catch(err => {
+        document.getElementById('consoleFinalResult').innerText = 'Execution error: ' + err.message;
+    });
+}
+
+// Initial reactive preview on page load
+window.addEventListener('DOMContentLoaded', () => {
+    updateAvailabilityPreview();
+});
 </script>
 @endsection
