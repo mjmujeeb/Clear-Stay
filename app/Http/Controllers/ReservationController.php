@@ -6,6 +6,7 @@ use App\Models\Guest;
 use App\Models\Hotel;
 use App\Models\Reservation;
 use App\Models\Room;
+use App\Services\Pricing\ReservationPricingService;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -16,10 +17,14 @@ use Illuminate\Validation\ValidationException;
 class ReservationController extends Controller
 {
     protected ReservationService $reservationService;
+    protected ReservationPricingService $pricingService;
 
-    public function __construct(ReservationService $reservationService)
-    {
+    public function __construct(
+        ReservationService $reservationService,
+        ReservationPricingService $pricingService
+    ) {
         $this->reservationService = $reservationService;
+        $this->pricingService = $pricingService;
     }
 
     /**
@@ -98,6 +103,48 @@ class ReservationController extends Controller
     }
 
     /**
+     * Provide dynamic price calculation quote preview for receptionist creation or modification.
+     */
+    public function priceQuote(Request $request): JsonResponse
+    {
+        $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
+        if (!$hotelId) {
+            $firstHotel = Hotel::where('is_active', true)->first();
+            $hotelId = $firstHotel ? $firstHotel->id : 1;
+        }
+
+        $validated = $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'reservation_id' => 'nullable|integer',
+        ]);
+
+        $room = Room::with('roomType')->where('hotel_id', $hotelId)->findOrFail($validated['room_id']);
+
+        try {
+            $quote = $this->pricingService->calculateQuote(
+                $hotelId,
+                $room->room_type_id,
+                $validated['check_in_date'],
+                $validated['check_out_date'],
+                $room->id,
+                $validated['reservation_id'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'quote' => $quote,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
      * Store reservation.
      */
     public function store(Request $request)
@@ -169,7 +216,7 @@ class ReservationController extends Controller
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
 
         $reservation = Reservation::withoutGlobalScopes()
-            ->with(['guest', 'room.roomType', 'changes.user', 'changes.oldRoom', 'changes.newRoom'])
+            ->with(['guest', 'room.roomType', 'changes.user', 'changes.oldRoom', 'changes.newRoom', 'pricingSnapshot'])
             ->where('hotel_id', $hotelId)
             ->findOrFail($id);
 
@@ -204,6 +251,15 @@ class ReservationController extends Controller
                 'payment_status' => $reservation->payment_status,
                 'status' => $reservation->status,
                 'special_requests' => $reservation->special_requests ?? 'None',
+                'pricing_snapshot' => $reservation->pricingSnapshot ? [
+                    'currency' => $reservation->pricingSnapshot->currency,
+                    'base_total' => (float) $reservation->pricingSnapshot->base_total,
+                    'surcharge_total' => (float) $reservation->pricingSnapshot->surcharge_total,
+                    'discount_total' => (float) $reservation->pricingSnapshot->discount_total,
+                    'tax_total' => (float) $reservation->pricingSnapshot->tax_total,
+                    'grand_total' => (float) $reservation->pricingSnapshot->grand_total,
+                    'nightly_breakdown' => $reservation->pricingSnapshot->nightly_breakdown,
+                ] : null,
                 'guest_portal_url' => route('guest.portal', ['token' => $reservation->guest_portal_token]),
                 'changes' => $reservation->changes->map(fn ($c) => [
                     'date' => $c->created_at->format('Y-m-d H:i'),

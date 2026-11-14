@@ -26,6 +26,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\PartnerAssuranceController;
 use App\Http\Controllers\PaymentReconciliationController;
+use App\Http\Controllers\PricingSettingsController;
 use App\Http\Controllers\PrivacyCentreController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QaCentreController;
@@ -96,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
     Route::get('/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
     Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+    Route::post('/reservations/price-quote', [ReservationController::class, 'priceQuote'])->name('reservations.price_quote');
     Route::get('/reservations/{id}', [ReservationController::class, 'show'])->name('reservations.show');
     Route::post('/reservations/{id}/change-dates', [ReservationController::class, 'changeDates'])->name('reservations.change_dates');
     Route::post('/reservations/{id}/check-in', [ReservationController::class, 'checkIn'])->name('reservations.check_in');
@@ -161,6 +163,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rate-studio/plans', [RateStudioController::class, 'storePlan'])->name('rates.store_plan');
     Route::post('/rate-studio/events', [RateStudioController::class, 'storeEvent'])->name('rates.store_event');
     Route::post('/rate-studio/scan-parity', [RateStudioController::class, 'scanParity'])->name('rates.scan_parity');
+
+    // Dynamic Reservation Pricing 5.0: Hotel Pricing Rules & Calendar Management
+    Route::get('/pricing-settings', [PricingSettingsController::class, 'index'])->name('pricing_settings.index');
+    Route::post('/pricing-settings/base-price', [PricingSettingsController::class, 'updateBasePrice'])->name('pricing_settings.update_base_price');
+    Route::post('/pricing-settings/weekend-rules', [PricingSettingsController::class, 'updateWeekendRules'])->name('pricing_settings.update_weekend_rules');
+    Route::post('/pricing-settings/events', [PricingSettingsController::class, 'storeOrUpdateEvent'])->name('pricing_settings.store_event');
+    Route::delete('/pricing-settings/events/{id}', [PricingSettingsController::class, 'deleteEvent'])->name('pricing_settings.delete_event');
+    Route::post('/pricing-settings/seasonal-rules', [PricingSettingsController::class, 'storeOrUpdateSeasonalRule'])->name('pricing_settings.store_seasonal_rule');
+    Route::delete('/pricing-settings/seasonal-rules/{id}', [PricingSettingsController::class, 'deleteSeasonalRule'])->name('pricing_settings.delete_seasonal_rule');
+    Route::post('/pricing-settings/policy', [PricingSettingsController::class, 'updatePolicy'])->name('pricing_settings.update_policy');
+    Route::post('/pricing-settings/simulate', [PricingSettingsController::class, 'simulateQuote'])->name('pricing_settings.simulate');
 
     // Pillar 5: Partner Assurance & Integration Quality Lab
     Route::get('/partner-assurance', [PartnerAssuranceController::class, 'index'])->name('partner_assurance.index');

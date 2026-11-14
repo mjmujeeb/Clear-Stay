@@ -1233,6 +1233,12 @@
                     <span>{{ app()->getLocale() === 'ja' ? '料金管理' : 'Rate Studio' }}</span>
                 </a>
             </li>
+            <li class="menu-item {{ request()->routeIs('pricing_settings.*') ? 'active' : '' }}">
+                <a href="{{ route('pricing_settings.index') }}">
+                    <i class="fa-solid fa-calculator" style="color: #A78BFA;"></i>
+                    <span>{{ app()->getLocale() === 'ja' ? '料金ルール設定' : 'Pricing Rules' }}</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('inventory_reconciliation.*') ? 'active' : '' }}">
                 <a href="{{ route('inventory_reconciliation.index') }}">
                     <i class="fa-solid fa-arrows-split-up-and-left" style="color: #2DD4BF;"></i>

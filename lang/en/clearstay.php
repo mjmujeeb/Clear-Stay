@@ -406,4 +406,17 @@ return [
         'elevation' => 'Request temporary additional permissions for non-standard hotel operations with automated two-person audit approval.',
         'unmask' => 'Decrypts and reveals guest personal information (phone/email) with mandatory regulatory reason logging under DPDP Act.',
     ],
+
+    'pricing' => [
+        'title' => 'Hotel Pricing Rules & Calendar Management',
+        'base_price_updated' => 'Base price for :type updated to ¥:price successfully.',
+        'weekend_rules_updated' => 'Weekend pricing parameters saved successfully.',
+        'event_created' => 'Calendar event ":name" created successfully.',
+        'event_updated' => 'Calendar event ":name" updated successfully.',
+        'event_deleted' => 'Calendar event ":name" removed successfully.',
+        'rule_created' => 'Seasonal pricing rule ":name" created successfully.',
+        'rule_updated' => 'Seasonal pricing rule ":name" updated successfully.',
+        'rule_deleted' => 'Seasonal pricing rule ":name" removed successfully.',
+        'policy_updated' => 'Pricing calculation policy and rounding rules saved successfully.',
+    ],
 ];

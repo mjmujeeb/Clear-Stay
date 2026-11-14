@@ -406,4 +406,17 @@ return [
         'elevation' => '非定常なホテル業務のための一時的な権限昇格を申請し、2名承認ワークフローにより安全に付与します。',
         'unmask' => 'DPDP個人情報保護法に基づき、業務上の正当な理由を記録した上で宿泊客の電話番号・メールを開示します。',
     ],
+
+    'pricing' => [
+        'title' => 'ホテル料金ルール・カレンダー管理',
+        'base_price_updated' => ':type の基本室料を ¥:price に更新しました。',
+        'weekend_rules_updated' => '週末料金設定を保存しました。',
+        'event_created' => 'カレンダーイベント「:name」を登録しました。',
+        'event_updated' => 'カレンダーイベント「:name」を更新しました。',
+        'event_deleted' => 'カレンダーイベント「:name」を削除しました。',
+        'rule_created' => '季節料金ルール「:name」を登録しました。',
+        'rule_updated' => '季節料金ルール「:name」を更新しました。',
+        'rule_deleted' => '季節料金ルール「:name」を削除しました。',
+        'policy_updated' => '料金計算スタッキングおよび端数処理ポリシーを保存しました。',
+    ],
 ];

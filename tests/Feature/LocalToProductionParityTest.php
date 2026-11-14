@@ -99,6 +99,17 @@ class LocalToProductionParityTest extends TestCase
             'status' => 'clean',
             'is_active' => true,
         ]);
+
+        \App\Models\HotelPricingSetting::create([
+            'hotel_id' => $this->hotelTokyo->id,
+            'stacking_policy' => 'additive',
+            'weekend_days' => [],
+            'weekend_increase_percentage' => 0.00,
+            'rounding_policy' => 'whole_yen',
+            'currency' => 'JPY',
+            'tax_percentage' => 10.00,
+            'tax_included' => true,
+        ]);
     }
 
     protected function getValidChallengePayload(int $answer = 10): array

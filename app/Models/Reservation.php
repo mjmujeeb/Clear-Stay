@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Reservation extends Model
@@ -83,6 +84,11 @@ class Reservation extends Model
     public function changes(): HasMany
     {
         return $this->hasMany(ReservationChange::class)->orderBy('created_at', 'desc');
+    }
+
+    public function pricingSnapshot(): HasOne
+    {
+        return $this->hasOne(ReservationPricingSnapshot::class)->latestOfMany();
     }
 
     public function getNightsAttribute(): int

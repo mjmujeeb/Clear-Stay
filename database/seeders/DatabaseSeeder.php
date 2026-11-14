@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             ClearStayTemairazuSeeder::class,
             ClearStay4AccessGovernanceSeeder::class,
             ClearStay42SimulatedPartnerNetworkSeeder::class,
+            JapaneseHolidayAndPricingSeeder::class,
         ]);
     }
 }

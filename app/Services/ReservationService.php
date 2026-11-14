@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Reservation;
 use App\Models\ReservationChange;
 use App\Models\Room;
+use App\Services\Pricing\ReservationPricingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
@@ -13,6 +14,12 @@ use Illuminate\Validation\ValidationException;
 
 class ReservationService
 {
+    protected ReservationPricingService $pricingService;
+
+    public function __construct(ReservationPricingService $pricingService)
+    {
+        $this->pricingService = $pricingService;
+    }
     /**
      * Change reservation dates or room safely using database transaction with row-level locking.
      * Prevents race conditions and double-bookings under concurrent requests.
@@ -82,9 +89,16 @@ class ReservationService
             $oldRoomId = $reservation->room_id;
             $oldTotalPrice = $reservation->total_price;
 
-            // Recalculate price if room or dates changed
-            $nights = Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut)) ?: 1;
-            $newTotalPrice = $nights * $room->roomType->base_price;
+            // Recalculate price using authoritative date-aware pricing engine
+            $quote = $this->pricingService->calculateQuote(
+                $reservation->hotel_id,
+                $room->room_type_id,
+                $checkIn,
+                $checkOut,
+                $targetRoomId,
+                $reservation->id
+            );
+            $newTotalPrice = $quote['grand_total'];
 
             // Update reservation
             $reservation->check_in_date = $checkIn;
@@ -92,6 +106,9 @@ class ReservationService
             $reservation->room_id = $targetRoomId;
             $reservation->total_price = $newTotalPrice;
             $reservation->save();
+
+            // Persist updated pricing snapshot
+            $this->pricingService->updatePricingSnapshot($reservation, $quote);
 
             // Record date change history
             ReservationChange::create([
@@ -167,8 +184,15 @@ class ReservationService
                 ]);
             }
 
-            $nights = Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut)) ?: 1;
-            $totalPrice = $data['total_price'] ?? ($nights * $room->roomType->base_price);
+            // Authoritative server-side dynamic rate calculation (never trust client-submitted price totals)
+            $quote = $this->pricingService->calculateQuote(
+                $data['hotel_id'] ?? $room->hotel_id,
+                $room->room_type_id,
+                $checkIn,
+                $checkOut,
+                $room->id
+            );
+            $totalPrice = $quote['grand_total'];
 
             $reservation = Reservation::create([
                 'hotel_id' => $data['hotel_id'] ?? $room->hotel_id,
@@ -184,6 +208,9 @@ class ReservationService
                 'special_requests' => $data['special_requests'] ?? null,
                 'source' => $data['source'] ?? 'direct',
             ]);
+
+            // Persist immutable reservation pricing snapshot
+            $this->pricingService->createPricingSnapshot($reservation, $quote);
 
             AuditLog::record('reservation.create', $reservation, null, [
                 'confirmation_code' => $reservation->confirmation_code,
