@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'ClearStay 2.0 - Booking Analytics (BA+)')
-@section('header_title', 'Advanced Booking Analytics & Historical Pace (BA+)')
-@section('header_subtitle', 'TEMAIRAZU JIDO BA+ oriented booking monitor, ADR/RevPAR KPIs, lead-time pace curves, and historical snapshot comparisons.')
+@section('title', 'ClearStay 4.2 - Booking Analytics Plus (BA+)')
+@section('header_title', '予約分析 & リードタイム・予約ペース分析 (Booking Analytics Plus)')
+@section('header_subtitle', 'TEMAIRAZU JIDO BA+ oriented booking monitor, multi-horizon pace curves, lead-time distribution, and forward demand pickup.')
 
 @section('content')
 <div class="analytics-container">
     <!-- Filter Bar -->
     <div class="card" style="margin-bottom: 24px; padding: 18px 24px; background: #FFFFFF;">
-        <form method="GET" action="{{ route('booking_analytics.index') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 120px; gap: 14px; align-items: flex-end;">
+        <form method="GET" action="{{ route('booking_analytics.index') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) 120px auto; gap: 14px; align-items: flex-end;">
             <div>
                 <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Start Date</label>
                 <input type="date" name="start_date" value="{{ $startDate }}" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
@@ -49,274 +49,247 @@
                     <i class="fa-solid fa-filter"></i> Filter
                 </button>
             </div>
+            <div>
+                <a href="{{ route('booking_analytics.export_csv') }}" class="btn btn-secondary" style="padding: 9px 14px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-file-csv text-success"></i> Export CSV
+                </a>
+            </div>
         </form>
     </div>
 
-    <!-- Core KPIs Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <!-- Card 1: Occupancy Rate -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid var(--primary-accent); padding: 20px;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Occupancy Rate</div>
-            <div style="font-size: 32px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                {{ $metrics['occupancy_rate'] }}%
+    <!-- Booking & Pickup KPIs Strip -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <!-- KPI 1: Rooms Sold & Bookings -->
+        <div class="card" style="margin-bottom: 0; border-top: 4px solid #3B82F6; padding: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Confirmed Bookings</div>
+            <div style="font-size: 28px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                {{ $metrics['rooms_sold'] }} <span style="font-size: 14px; color: var(--text-muted);">stays</span>
             </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-                {{ $metrics['rooms_sold'] }} rooms sold / {{ $metrics['total_available_room_nights'] }} available nights
-            </div>
-        </div>
-
-        <!-- Card 2: ADR (Average Daily Rate) -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #10B981; padding: 20px;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">ADR (Avg Daily Rate)</div>
-            <div style="font-size: 32px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                ¥{{ number_format($metrics['adr']) }}
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-                Room Revenue ÷ Rooms Sold
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                {{ $metrics['total_available_room_nights'] }} available room nights
             </div>
         </div>
 
-        <!-- Card 3: RevPAR (Revenue Per Available Room) -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #F59E0B; padding: 20px;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">RevPAR</div>
-            <div style="font-size: 32px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                ¥{{ number_format($metrics['revpar']) }}
+        <!-- KPI 2: Net Booking Pickup (Trailing 7d) -->
+        <div class="card" style="margin-bottom: 0; border-top: 4px solid #10B981; padding: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Net Pickup (7 Days)</div>
+            <div style="font-size: 28px; font-weight: 800; color: {{ $metrics['net_pickup_7d'] >= 0 ? '#10B981' : '#EF4444' }}; margin-top: 4px;">
+                {{ $metrics['net_pickup_7d'] >= 0 ? '+' : '' }}{{ $metrics['net_pickup_7d'] }}
             </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-                Room Revenue ÷ Total Room Nights
-            </div>
-        </div>
-
-        <!-- Card 4: Total Room Revenue -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #6366F1; padding: 20px;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Room Revenue</div>
-            <div style="font-size: 32px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
-                ¥{{ number_format($metrics['room_revenue']) }}
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-                Excluding taxes and incidental charges
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                30-day pickup: {{ $metrics['net_pickup_30d'] >= 0 ? '+' : '' }}{{ $metrics['net_pickup_30d'] }}
             </div>
         </div>
 
-        <!-- Card 5: Cancellation Rate -->
-        <div class="card" style="margin-bottom: 0; border-top: 4px solid #EF4444; padding: 20px;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Cancellations</div>
-            <div style="font-size: 32px; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+        <!-- KPI 3: Average Lead Time -->
+        <div class="card" style="margin-bottom: 0; border-top: 4px solid #8B5CF6; padding: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Avg Booking Lead Time</div>
+            <div style="font-size: 28px; font-weight: 800; color: #8B5CF6; margin-top: 4px;">
+                {{ $metrics['avg_lead_time'] }} <span style="font-size: 14px; color: var(--text-muted);">days</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                Reservation advance window
+            </div>
+        </div>
+
+        <!-- KPI 4: Average Length of Stay (ALOS) -->
+        <div class="card" style="margin-bottom: 0; border-top: 4px solid #F59E0B; padding: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Avg Length of Stay (ALOS)</div>
+            <div style="font-size: 28px; font-weight: 800; color: #F59E0B; margin-top: 4px;">
+                {{ $metrics['avg_length_of_stay'] }} <span style="font-size: 14px; color: var(--text-muted);">nights</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                Per confirmed reservation
+            </div>
+        </div>
+
+        <!-- KPI 5: Cancellation Rate -->
+        <div class="card" style="margin-bottom: 0; border-top: 4px solid #EF4444; padding: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Cancellation Rate</div>
+            <div style="font-size: 28px; font-weight: 800; color: #EF4444; margin-top: 4px;">
                 {{ $metrics['cancellation_rate'] }}%
             </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-                {{ $metrics['cancellations_count'] }} total cancellations
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                {{ $metrics['cancellations_count'] }} cancellations recorded
+            </div>
+        </div>
+
+        <!-- KPI 6: Future OTB Room Nights -->
+        <div class="card" style="margin-bottom: 0; border-top: 4px solid #06B6D4; padding: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">On The Books (30d)</div>
+            <div style="font-size: 28px; font-weight: 800; color: #06B6D4; margin-top: 4px;">
+                {{ $metrics['future_room_nights_otb'] }} <span style="font-size: 14px; color: var(--text-muted);">nights</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                Forward committed demand
             </div>
         </div>
     </div>
 
-    <!-- Section 2: Historical Booking Comparison (4-Horizon Snapshot Analysis) -->
-    <div class="card" style="margin-bottom: 24px;">
-        <div class="card-header" style="background: #FFFFFF; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <!-- Multi-Horizon Historical Pace Comparison (TEMAIRAZU JIDO BA+ Style) -->
+    <div class="card" style="margin-bottom: 24px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
             <div>
-                <h3 style="margin: 0; font-size: 16px; font-weight: 700;">
-                    <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-accent);"></i> Historical Booking Position Comparison
+                <h3 style="font-size: 18px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-clock-rotate-left text-primary"></i> 4時点スナップショット比較 (Multi-Horizon Pace Comparison)
                 </h3>
-                <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0;">
-                    Comparing reservations for stay date <strong>{{ $targetStayDate }}</strong> against historical intervals (7d ago, 30d ago, 1yr ago)
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+                    特定宿泊日（{{ $targetStayDate }}）の予約蓄積状況を、「現在」「7日前」「30日前」「1年前」の4つの時点で比較します。
                 </p>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <form action="{{ route('booking_analytics.capture') }}" method="POST" style="display: flex; gap: 8px;">
-                    @csrf
-                    <input type="hidden" name="stay_date" value="{{ $targetStayDate }}">
-                    <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 12px;">
-                        <i class="fa-solid fa-camera"></i> Capture Snapshot Now
-                    </button>
-                </form>
-                <a href="{{ route('booking_analytics.export_csv') }}" class="btn btn-sm" style="background: #287F79; color: white; font-size: 12px;">
-                    <i class="fa-solid fa-file-csv"></i> Export CSV
-                </a>
-            </div>
+
+            <!-- Target Stay Date Selector & Manual Capture -->
+            <form method="GET" action="{{ route('booking_analytics.index') }}" style="display: flex; gap: 10px; align-items: center;">
+                <input type="hidden" name="start_date" value="{{ $startDate }}">
+                <input type="hidden" name="end_date" value="{{ $endDate }}">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Target Stay:</span>
+                <input type="date" name="target_stay_date" value="{{ $targetStayDate }}" class="form-control" style="padding: 6px 10px; font-size: 13px;">
+                <button type="submit" class="btn btn-secondary btn-sm">照会</button>
+            </form>
         </div>
-        <div class="card-body" style="padding: 0;">
-            <table class="table" style="width: 100%; border-collapse: collapse;">
+
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; text-align: left; border-collapse: collapse;">
                 <thead>
-                    <tr style="background: #F8FAFC; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-muted); text-transform: uppercase;">
-                        <th style="padding: 12px 20px; text-align: left;">Horizon</th>
-                        <th style="padding: 12px 16px; text-align: right;">Snapshot Date</th>
-                        <th style="padding: 12px 16px; text-align: right;">Bookings</th>
-                        <th style="padding: 12px 16px; text-align: right;">Occupancy %</th>
-                        <th style="padding: 12px 16px; text-align: right;">Revenue (JPY)</th>
-                        <th style="padding: 12px 16px; text-align: right;">ADR</th>
-                        <th style="padding: 12px 20px; text-align: right;">Delta vs Today</th>
+                    <tr style="background: #F8FAFC; border-bottom: 2px solid var(--border);">
+                        <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">比較時点 (Horizon)</th>
+                        <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">予約室数 (Sold)</th>
+                        <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">稼働率 (Occupancy)</th>
+                        <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">ADR (平均単価)</th>
+                        <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">予約売上 (Revenue)</th>
+                        <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">スナップショット記録日</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Current Position -->
-                    <tr style="border-bottom: 1px solid var(--border); font-weight: 700; background: #F0FDF4;">
-                        <td style="padding: 14px 20px; color: #166534;">
-                            <i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i> Current Position (Today)
+                    <tr style="border-bottom: 1px solid var(--border); background: #EFF6FF;">
+                        <td style="padding: 14px 16px; font-weight: 800; color: #1E40AF;">
+                            <i class="fa-solid fa-circle text-primary" style="font-size: 8px;"></i> 現在時点 (Current)
                         </td>
-                        <td style="padding: 14px 16px; text-align: right; color: #166534;">{{ now()->toDateString() }}</td>
-                        <td style="padding: 14px 16px; text-align: right; font-size: 16px;">{{ $historicalComparison['current']?->booking_count ?? 0 }}</td>
-                        <td style="padding: 14px 16px; text-align: right;">{{ $historicalComparison['current']?->occupancy_rate ?? 0 }}%</td>
-                        <td style="padding: 14px 16px; text-align: right;">¥{{ number_format($historicalComparison['current']?->revenue ?? 0) }}</td>
-                        <td style="padding: 14px 16px; text-align: right;">¥{{ number_format($historicalComparison['current']?->adr ?? 0) }}</td>
-                        <td style="padding: 14px 20px; text-align: right; color: var(--text-muted);">Baseline</td>
-                    </tr>
-
-                    <!-- 7 Days Earlier -->
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 14px 20px; font-weight: 600;">7 Days Earlier</td>
-                        <td style="padding: 14px 16px; text-align: right; color: var(--text-muted);">
-                            {{ $historicalComparison['seven_days_ago']?->snapshot_date?->toDateString() ?? 'No snapshot' }}
+                        <td style="padding: 14px 16px; font-weight: 800; font-size: 16px;">
+                            {{ $historicalComparison['current']->occupied_rooms ?? 0 }} 室
                         </td>
-                        <td style="padding: 14px 16px; text-align: right;">{{ $historicalComparison['seven_days_ago']?->booking_count ?? '-' }}</td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['seven_days_ago'] ? $historicalComparison['seven_days_ago']->occupancy_rate . '%' : '-' }}
+                        <td style="padding: 14px 16px; font-weight: 800;">
+                            {{ $historicalComparison['current']->occupancy_rate ?? 0 }}%
                         </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['seven_days_ago'] ? '¥' . number_format($historicalComparison['seven_days_ago']->revenue) : '-' }}
+                        <td style="padding: 14px 16px; font-weight: 700;">
+                            ¥{{ number_format($historicalComparison['current']->adr ?? 0) }}
                         </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['seven_days_ago'] ? '¥' . number_format($historicalComparison['seven_days_ago']->adr) : '-' }}
+                        <td style="padding: 14px 16px; font-weight: 800; color: #1E40AF;">
+                            ¥{{ number_format($historicalComparison['current']->revenue ?? 0) }}
                         </td>
-                        <td style="padding: 14px 20px; text-align: right;">
-                            @if($historicalComparison['seven_days_ago'] && $historicalComparison['current'])
-                                @php $diff = $historicalComparison['current']->booking_count - $historicalComparison['seven_days_ago']->booking_count; @endphp
-                                <span class="badge" style="background: {{ $diff >= 0 ? '#D1FAE5' : '#FEE2E2' }}; color: {{ $diff >= 0 ? '#065F46' : '#991B1B' }};">
-                                    {{ $diff >= 0 ? '+' : '' }}{{ $diff }} bookings
-                                </span>
-                            @else
-                                <span style="color: var(--text-muted); font-size: 12px;">No historical comparison available</span>
-                            @endif
+                        <td style="padding: 14px 16px; font-size: 13px; color: var(--text-muted);">
+                            {{ $historicalComparison['current']->snapshot_date ?? now()->toDateString() }}
                         </td>
                     </tr>
 
-                    <!-- 30 Days Earlier -->
+                    <!-- 7 Days Ago -->
                     <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 14px 20px; font-weight: 600;">30 Days Earlier</td>
-                        <td style="padding: 14px 16px; text-align: right; color: var(--text-muted);">
-                            {{ $historicalComparison['thirty_days_ago']?->snapshot_date?->toDateString() ?? 'No snapshot' }}
-                        </td>
-                        <td style="padding: 14px 16px; text-align: right;">{{ $historicalComparison['thirty_days_ago']?->booking_count ?? '-' }}</td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['thirty_days_ago'] ? $historicalComparison['thirty_days_ago']->occupancy_rate . '%' : '-' }}
-                        </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['thirty_days_ago'] ? '¥' . number_format($historicalComparison['thirty_days_ago']->revenue) : '-' }}
-                        </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['thirty_days_ago'] ? '¥' . number_format($historicalComparison['thirty_days_ago']->adr) : '-' }}
-                        </td>
-                        <td style="padding: 14px 20px; text-align: right;">
-                            @if($historicalComparison['thirty_days_ago'] && $historicalComparison['current'])
-                                @php $diff = $historicalComparison['current']->booking_count - $historicalComparison['thirty_days_ago']->booking_count; @endphp
-                                <span class="badge" style="background: {{ $diff >= 0 ? '#D1FAE5' : '#FEE2E2' }}; color: {{ $diff >= 0 ? '#065F46' : '#991B1B' }};">
-                                    {{ $diff >= 0 ? '+' : '' }}{{ $diff }} bookings
-                                </span>
-                            @else
-                                <span style="color: var(--text-muted); font-size: 12px;">No historical comparison available</span>
-                            @endif
-                        </td>
+                        <td style="padding: 14px 16px; font-weight: 700; color: var(--text-main);">7日前時点 (7 Days Prior)</td>
+                        <td style="padding: 14px 16px;">{{ $historicalComparison['seven_days_ago']->occupied_rooms ?? '—' }} 室</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['seven_days_ago']) ? $historicalComparison['seven_days_ago']->occupancy_rate . '%' : '—' }}</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['seven_days_ago']) ? '¥' . number_format($historicalComparison['seven_days_ago']->adr) : '—' }}</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['seven_days_ago']) ? '¥' . number_format($historicalComparison['seven_days_ago']->revenue) : '—' }}</td>
+                        <td style="padding: 14px 16px; font-size: 13px; color: var(--text-muted);">{{ $historicalComparison['seven_days_ago']->snapshot_date ?? '未取得' }}</td>
+                    </tr>
+
+                    <!-- 30 Days Ago -->
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 14px 16px; font-weight: 700; color: var(--text-main);">30日前時点 (30 Days Prior)</td>
+                        <td style="padding: 14px 16px;">{{ $historicalComparison['thirty_days_ago']->occupied_rooms ?? '—' }} 室</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['thirty_days_ago']) ? $historicalComparison['thirty_days_ago']->occupancy_rate . '%' : '—' }}</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['thirty_days_ago']) ? '¥' . number_format($historicalComparison['thirty_days_ago']->adr) : '—' }}</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['thirty_days_ago']) ? '¥' . number_format($historicalComparison['thirty_days_ago']->revenue) : '—' }}</td>
+                        <td style="padding: 14px 16px; font-size: 13px; color: var(--text-muted);">{{ $historicalComparison['thirty_days_ago']->snapshot_date ?? '未取得' }}</td>
                     </tr>
 
                     <!-- Previous Year -->
-                    <tr>
-                        <td style="padding: 14px 20px; font-weight: 600;">Previous Year (YoY)</td>
-                        <td style="padding: 14px 16px; text-align: right; color: var(--text-muted);">
-                            {{ $historicalComparison['previous_year']?->snapshot_date?->toDateString() ?? 'Same date last year' }}
-                        </td>
-                        <td style="padding: 14px 16px; text-align: right;">{{ $historicalComparison['previous_year']?->booking_count ?? '-' }}</td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['previous_year'] ? $historicalComparison['previous_year']->occupancy_rate . '%' : '-' }}
-                        </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['previous_year'] ? '¥' . number_format($historicalComparison['previous_year']->revenue) : '-' }}
-                        </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            {{ $historicalComparison['previous_year'] ? '¥' . number_format($historicalComparison['previous_year']->adr) : '-' }}
-                        </td>
-                        <td style="padding: 14px 20px; text-align: right;">
-                            @if($historicalComparison['previous_year'] && $historicalComparison['current'])
-                                @php $diff = $historicalComparison['current']->booking_count - $historicalComparison['previous_year']->booking_count; @endphp
-                                <span class="badge" style="background: {{ $diff >= 0 ? '#D1FAE5' : '#FEE2E2' }}; color: {{ $diff >= 0 ? '#065F46' : '#991B1B' }};">
-                                    {{ $diff >= 0 ? '+' : '' }}{{ $diff }} bookings
-                                </span>
-                            @else
-                                <span style="color: var(--text-muted); font-size: 12px;">No YoY comparison available</span>
-                            @endif
-                        </td>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 14px 16px; font-weight: 700; color: var(--text-main);">前年同日同期 (1 Year Prior)</td>
+                        <td style="padding: 14px 16px;">{{ $historicalComparison['previous_year']->occupied_rooms ?? '—' }} 室</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['previous_year']) ? $historicalComparison['previous_year']->occupancy_rate . '%' : '—' }}</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['previous_year']) ? '¥' . number_format($historicalComparison['previous_year']->adr) : '—' }}</td>
+                        <td style="padding: 14px 16px;">{{ isset($historicalComparison['previous_year']) ? '¥' . number_format($historicalComparison['previous_year']->revenue) : '—' }}</td>
+                        <td style="padding: 14px 16px; font-size: 13px; color: var(--text-muted);">{{ $historicalComparison['previous_year']->snapshot_date ?? '前年データなし' }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Section 3: Booking Pace Curve & Channel Contribution Grid -->
+    <!-- Charts Grid: Lead Time & Length of Stay & Demand Forecast -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-        <!-- Left: Booking Pace Lead-Time Distribution -->
+        <!-- Chart 1: Lead Time Distribution Bar Chart -->
         <div class="card">
-            <div class="card-header" style="background: #FFFFFF;">
-                <div>
-                    <h3 style="margin: 0; font-size: 15px; font-weight: 700;">
-                        <i class="fa-solid fa-chart-line" style="color: #6366F1;"></i> Booking Pace Lead-Time Accumulation
-                    </h3>
-                    <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0;">How far in advance guests book prior to arrival date</p>
-                </div>
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-column text-primary"></i> 予約リードタイム分布 (Lead-Time Cohorts)</h3>
             </div>
-            <div class="card-body" style="padding: 20px;">
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    @php
-                        $maxPace = max(1, max(array_values($bookingPace)));
-                    @endphp
-                    @foreach($bookingPace as $leadBucket => $count)
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                            <span style="font-weight: 600; text-transform: capitalize;">{{ str_replace('_', ' ', $leadBucket) }}</span>
-                            <span style="font-weight: 700; color: var(--text-main);">{{ $count }} bookings ({{ round(($count / max(1, array_sum($bookingPace))) * 100) }}%)</span>
-                        </div>
-                        <div style="height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden;">
-                            <div style="height: 100%; width: {{ ($count / $maxPace) * 100 }}%; background: #287F79; border-radius: 5px;"></div>
-                        </div>
-                    </div>
-                    @endforeach
+            <div class="card-body">
+                <div style="position: relative; height: 300px;">
+                    <canvas id="leadTimeChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Booking Channel Contribution -->
+        <!-- Chart 2: Length of Stay Cohorts Doughnut Chart -->
         <div class="card">
-            <div class="card-header" style="background: #FFFFFF;">
-                <div>
-                    <h3 style="margin: 0; font-size: 15px; font-weight: 700;">
-                        <i class="fa-solid fa-chart-pie" style="color: #10B981;"></i> Channel Contribution & Cancellations
-                    </h3>
-                    <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0;">Revenue & cancellation distribution by OTA channel</p>
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-pie text-primary"></i> 宿泊日数構成比 (Length of Stay)</h3>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px;">
+                    <canvas id="losChart"></canvas>
                 </div>
             </div>
-            <div class="card-body" style="padding: 0;">
-                <table class="table" style="width: 100%; border-collapse: collapse;">
+        </div>
+    </div>
+
+    <!-- Chart 3: Forward 30-Day On The Books (OTB) Demand Curve -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-line text-primary"></i> 今後30日間の確定予約室数予測 (30-Day On The Books Demand Curve)</h3>
+        </div>
+        <div class="card-body">
+            <div style="position: relative; height: 300px;">
+                <canvas id="otbChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel Contribution & Booking Share -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-share-nodes text-primary"></i> 販売チャネル別・予約獲得状況 (Channel Share & Cancellations)</h3>
+        </div>
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%; text-align: left;">
                     <thead>
-                        <tr style="background: #F8FAFC; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--text-muted); text-transform: uppercase;">
-                            <th style="padding: 10px 16px; text-align: left;">Channel</th>
-                            <th style="padding: 10px 14px; text-align: right;">Bookings</th>
-                            <th style="padding: 10px 14px; text-align: right;">Revenue</th>
-                            <th style="padding: 10px 16px; text-align: right;">Cancellations</th>
+                        <tr style="background: #F8FAFC;">
+                            <th style="padding: 10px 14px; font-size: 12px; font-weight: 700;">チャネル名</th>
+                            <th style="padding: 10px 14px; font-size: 12px; font-weight: 700;">獲得予約件数</th>
+                            <th style="padding: 10px 14px; font-size: 12px; font-weight: 700;">予約総売上 (¥)</th>
+                            <th style="padding: 10px 14px; font-size: 12px; font-weight: 700;">キャンセル件数</th>
+                            <th style="padding: 10px 14px; font-size: 12px; font-weight: 700;">キャンセル率</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($channelDistribution as $ch)
-                        <tr style="border-bottom: 1px solid var(--border); font-size: 13px;">
-                            <td style="padding: 12px 16px; font-weight: 600;">{{ $ch->channel?->name ?? 'Direct Web' }}</td>
-                            <td style="padding: 12px 14px; text-align: right;">{{ $ch->total_bookings }}</td>
-                            <td style="padding: 12px 14px; text-align: right; font-weight: 700;">¥{{ number_format($ch->total_revenue) }}</td>
-                            <td style="padding: 12px 16px; text-align: right;">
-                                <span class="badge" style="background: #FEE2E2; color: #991B1B;">{{ $ch->cancellations }}</span>
-                            </td>
-                        </tr>
+                        @forelse($channelDistribution as $cd)
+                            @php
+                                $total = $cd->total_bookings + $cd->cancellations;
+                                $rate = $total > 0 ? round(($cd->cancellations / $total) * 100, 1) : 0;
+                            @endphp
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 12px 14px; font-weight: 700;">{{ $cd->channel->name ?? 'Direct Web' }}</td>
+                                <td style="padding: 12px 14px; font-weight: 800;">{{ $cd->total_bookings }} 件</td>
+                                <td style="padding: 12px 14px;">¥{{ number_format($cd->total_revenue) }}</td>
+                                <td style="padding: 12px 14px; color: #EF4444;">{{ $cd->cancellations }} 件</td>
+                                <td style="padding: 12px 14px; font-weight: 700; color: {{ $rate > 20 ? '#EF4444' : '#10B981' }};">{{ $rate }}%</td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-muted);">
-                                No channel bookings recorded for this period.
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">データがありません</td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -325,3 +298,77 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Lead Time Distribution Chart
+        const leadCtx = document.getElementById('leadTimeChart').getContext('2d');
+        new Chart(leadCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($leadTimeDistribution['labels']) !!},
+                datasets: [{
+                    label: 'Reservations',
+                    data: {!! json_encode($leadTimeDistribution['data']) !!},
+                    backgroundColor: '#8B5CF6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+
+        // 2. Length of Stay Cohorts Chart
+        const losCtx = document.getElementById('losChart').getContext('2d');
+        new Chart(losCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($lengthOfStayDistribution['labels']) !!},
+                datasets: [{
+                    data: {!! json_encode($lengthOfStayDistribution['data']) !!},
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 3. 30-Day On The Books Demand Curve
+        const otbCtx = document.getElementById('otbChart').getContext('2d');
+        new Chart(otbCtx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($futureOnTheBooks['labels']) !!},
+                datasets: [{
+                    label: 'Reserved Rooms (On The Books)',
+                    data: {!! json_encode($futureOnTheBooks['data']) !!},
+                    borderColor: '#06B6D4',
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    });
+</script>
+@endpush

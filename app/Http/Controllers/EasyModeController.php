@@ -19,10 +19,29 @@ class EasyModeController extends Controller
     {
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
         $today = Carbon::today()->toDateString();
+        $nowHour = Carbon::now()->hour;
 
+        // 1. Time-aware greeting
+        if ($nowHour >= 5 && $nowHour < 12) {
+            $greetingJa = 'おはようございます';
+            $greetingEn = 'Good morning';
+        } elseif ($nowHour >= 12 && $nowHour < 18) {
+            $greetingJa = 'こんにちは';
+            $greetingEn = 'Good afternoon';
+        } else {
+            $greetingJa = 'こんばんは';
+            $greetingEn = 'Good evening';
+        }
+
+        // 2. Operational Metrics
         $todayArrivalsCount = Reservation::where('hotel_id', $hotelId)
             ->whereDate('check_in_date', $today)
             ->where('status', 'confirmed')
+            ->count();
+
+        $todayArrivalsCheckedInCount = Reservation::where('hotel_id', $hotelId)
+            ->whereDate('check_in_date', $today)
+            ->where('status', 'checked_in')
             ->count();
 
         $todayDeparturesCount = Reservation::where('hotel_id', $hotelId)
@@ -30,8 +49,17 @@ class EasyModeController extends Controller
             ->where('status', 'checked_in')
             ->count();
 
+        $todayDeparturesCheckedOutCount = Reservation::where('hotel_id', $hotelId)
+            ->whereDate('check_out_date', $today)
+            ->where('status', 'checked_out')
+            ->count();
+
         $dirtyRoomsCount = Room::where('hotel_id', $hotelId)
             ->where('status', 'dirty')
+            ->count();
+
+        $inspectingRoomsCount = Room::where('hotel_id', $hotelId)
+            ->where('status', 'inspecting')
             ->count();
 
         $cleanAvailableRoomsCount = Room::where('hotel_id', $hotelId)
@@ -39,12 +67,175 @@ class EasyModeController extends Controller
             ->where('is_occupied', false)
             ->count();
 
+        $occupiedRoomsCount = Room::where('hotel_id', $hotelId)
+            ->where('is_occupied', true)
+            ->count();
+
+        $maintenanceRoomsCount = Room::where('hotel_id', $hotelId)
+            ->where('status', 'maintenance')
+            ->count();
+
+        $totalRoomsCount = Room::where('hotel_id', $hotelId)->count();
+
+        // 3. Deterministic "Next Recommended Task" Rule Engine
+        $nextTask = $this->calculateNextRecommendedTask(
+            $hotelId,
+            $today,
+            $todayArrivalsCount,
+            $todayDeparturesCount,
+            $dirtyRoomsCount,
+            $cleanAvailableRoomsCount
+        );
+
+        // 4. Role selection tab (receptionist, housekeeping, manager, all)
+        $activeRole = $request->query('role', 'all');
+
         return view('easy_mode.index', compact(
+            'greetingJa',
+            'greetingEn',
             'todayArrivalsCount',
+            'todayArrivalsCheckedInCount',
             'todayDeparturesCount',
+            'todayDeparturesCheckedOutCount',
             'dirtyRoomsCount',
-            'cleanAvailableRoomsCount'
+            'inspectingRoomsCount',
+            'cleanAvailableRoomsCount',
+            'occupiedRoomsCount',
+            'maintenanceRoomsCount',
+            'totalRoomsCount',
+            'nextTask',
+            'activeRole'
         ));
+    }
+
+    /**
+     * Deterministic Rule Engine for Next Recommended Task
+     */
+    protected function calculateNextRecommendedTask(
+        int $hotelId,
+        string $today,
+        int $todayArrivalsCount,
+        int $todayDeparturesCount,
+        int $dirtyRoomsCount,
+        int $cleanAvailableRoomsCount
+    ): array {
+        // Priority 1: Incoming arrivals waiting while rooms need cleaning
+        if ($todayArrivalsCount > 0 && $dirtyRoomsCount > 0 && $cleanAvailableRoomsCount < $todayArrivalsCount) {
+            $firstArrival = Reservation::with(['guest', 'room', 'room.roomType'])
+                ->where('hotel_id', $hotelId)
+                ->whereDate('check_in_date', $today)
+                ->where('status', 'confirmed')
+                ->first();
+
+            $guestName = $firstArrival && $firstArrival->guest
+                ? "{$firstArrival->guest->last_name} {$firstArrival->guest->first_name}"
+                : 'お客様';
+
+            return [
+                'type' => 'cleaning',
+                'priority' => 'urgent',
+                'badge_ja' => '最優先タスク',
+                'badge_en' => 'Highest Priority',
+                'icon' => 'fa-solid fa-broom',
+                'color' => '#D97706',
+                'title_ja' => "本日到着（残り{$todayArrivalsCount}組）のため客室清掃を優先してください",
+                'title_en' => "Prioritize room cleaning for {$todayArrivalsCount} incoming arrivals today",
+                'desc_ja' => "{$guestName} 様をはじめとする本日チェックインのお客様に向けて、清掃待ちのお部屋（{$dirtyRoomsCount}室）の仕上げと点検を完了してください。",
+                'desc_en' => "Prepare clean rooms for arriving guests. Currently {$dirtyRoomsCount} rooms require turnover cleaning.",
+                'action_url' => route('easy_mode.rooms'),
+                'action_label_ja' => '清掃待ちの部屋を確認する',
+                'action_label_en' => 'View Cleaning Queue',
+            ];
+        }
+
+        // Priority 2: Arrivals waiting to check in (ready rooms available)
+        if ($todayArrivalsCount > 0) {
+            $nextArrival = Reservation::with(['guest', 'room', 'room.roomType'])
+                ->where('hotel_id', $hotelId)
+                ->whereDate('check_in_date', $today)
+                ->where('status', 'confirmed')
+                ->orderBy('id', 'asc')
+                ->first();
+
+            $guestName = $nextArrival && $nextArrival->guest
+                ? "{$nextArrival->guest->last_name} {$nextArrival->guest->first_name} 様"
+                : '到着予定のゲスト';
+
+            $roomText = $nextArrival && $nextArrival->room
+                ? "お部屋番号 {$nextArrival->room->room_number}"
+                : '部屋割当可';
+
+            return [
+                'type' => 'checkin',
+                'priority' => 'high',
+                'badge_ja' => 'チェックイン受付',
+                'badge_en' => 'Check-in Waiting',
+                'icon' => 'fa-solid fa-door-open',
+                'color' => '#059669',
+                'title_ja' => "{$guestName} のチェックイン受付が可能です ({$roomText})",
+                'title_en' => "Guest check-in ready for {$guestName} ({$roomText})",
+                'desc_ja' => "5ステップ・かんたんチェックイン案内を使用して、鍵の受渡と本人確認をスムーズに完了させてください。",
+                'desc_en' => "Proceed to 5-Step Guided Check-In Wizard for fast, error-free room assignment and keycard issuance.",
+                'action_url' => route('easy_mode.checkin_wizard', ['reservation_id' => $nextArrival ? $nextArrival->id : null]),
+                'action_label_ja' => 'チェックインを開始する',
+                'action_label_en' => 'Start 5-Step Check-In',
+            ];
+        }
+
+        // Priority 3: Pending departures
+        if ($todayDeparturesCount > 0) {
+            return [
+                'type' => 'checkout',
+                'priority' => 'standard',
+                'badge_ja' => 'チェックアウト確認',
+                'badge_en' => 'Departures Pending',
+                'icon' => 'fa-solid fa-person-walking-dashed-line-arrow-right',
+                'color' => '#2563EB',
+                'title_ja' => "本日出発予定のゲスト様（残り{$todayDeparturesCount}組）のチェックアウト",
+                'title_en' => "Process checkouts for {$todayDeparturesCount} departing guests today",
+                'desc_ja' => "鍵の回収とチェックアウト確定を行ってください。チェックアウト完了と同時に客室が清掃待ち（Dirty）に自動更新されます。",
+                'desc_en' => "Review departures and execute 1-touch checkout. The system will automatically mark the room dirty and generate a cleaning task.",
+                'action_url' => route('easy_mode.departures'),
+                'action_label_ja' => '出発一覧・チェックアウトへ',
+                'action_label_en' => 'Go to Departures List',
+            ];
+        }
+
+        // Priority 4: Dirty rooms requiring cleaning (no immediate arrivals)
+        if ($dirtyRoomsCount > 0) {
+            return [
+                'type' => 'cleaning',
+                'priority' => 'routine',
+                'badge_ja' => '客室清掃',
+                'badge_en' => 'Housekeeping',
+                'icon' => 'fa-solid fa-broom',
+                'color' => '#D97706',
+                'title_ja' => "現在 {$dirtyRoomsCount}室 の清掃・点検が必要です",
+                'title_en' => "{$dirtyRoomsCount} rooms awaiting cleaning and inspection",
+                'desc_ja' => "清掃完了後にボタンをタッチして「清掃完了 (Clean)」に切り替えると、次の宿泊予約へ自動で割り当て可能になります。",
+                'desc_en' => "Turn over dirty rooms to clean status with 1-click status toggles to restore available inventory.",
+                'action_url' => route('easy_mode.rooms'),
+                'action_label_ja' => '客室の清掃状態を見る',
+                'action_label_en' => 'Open Housekeeping Grid',
+            ];
+        }
+
+        // Priority 5: All operational tasks complete
+        return [
+            'type' => 'ready',
+            'priority' => 'complete',
+            'badge_ja' => '全業務順調',
+            'badge_en' => 'All Clear',
+            'icon' => 'fa-solid fa-circle-check',
+            'color' => '#047857',
+            'title_ja' => '本日の主要な到着・出発・清掃タスクは完了しています',
+            'title_en' => 'All daily arrivals, departures, and cleaning tasks are up to date',
+            'desc_ja' => 'システムは安全に稼働中です。新しいウォークイン予約の登録やお部屋状態の確認をいつでも行えます。',
+            'desc_en' => 'Operations are running smoothly. You can create walk-in reservations or monitor room occupancy at any time.',
+            'action_url' => route('easy_mode.create'),
+            'action_label_ja' => '新しい予約を登録する',
+            'action_label_en' => 'Create New Reservation',
+        ];
     }
 
     /**
@@ -55,14 +246,21 @@ class EasyModeController extends Controller
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
         $today = Carbon::today()->toDateString();
 
-        $arrivals = Reservation::with(['guest', 'room', 'room.roomType'])
+        $arrivals = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
             ->where('hotel_id', $hotelId)
             ->whereDate('check_in_date', $today)
             ->where('status', 'confirmed')
-            ->orderBy('check_in_date')
+            ->orderBy('id', 'asc')
             ->get();
 
-        return view('easy_mode.arrivals', compact('arrivals'));
+        $checkedInToday = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
+            ->where('hotel_id', $hotelId)
+            ->whereDate('check_in_date', $today)
+            ->where('status', 'checked_in')
+            ->orderBy('checked_in_at', 'desc')
+            ->get();
+
+        return view('easy_mode.arrivals', compact('arrivals', 'checkedInToday'));
     }
 
     /**
@@ -105,13 +303,20 @@ class EasyModeController extends Controller
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
         $today = Carbon::today()->toDateString();
 
-        $departures = Reservation::with(['guest', 'room', 'room.roomType'])
+        $departures = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
             ->where('hotel_id', $hotelId)
             ->where('status', 'checked_in')
-            ->orderBy('check_out_date')
+            ->orderBy('check_out_date', 'asc')
             ->get();
 
-        return view('easy_mode.departures', compact('departures'));
+        $checkedOutToday = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
+            ->where('hotel_id', $hotelId)
+            ->whereDate('check_out_date', $today)
+            ->where('status', 'checked_out')
+            ->orderBy('checked_out_at', 'desc')
+            ->get();
+
+        return view('easy_mode.departures', compact('departures', 'checkedOutToday'));
     }
 
     /**
@@ -144,11 +349,32 @@ class EasyModeController extends Controller
                     HousekeepingTask::create([
                         'hotel_id' => $hotelId,
                         'room_id' => $room->id,
-                        'type' => 'turnover',
+                        'task_type' => 'checkout_turnover',
                         'priority' => 'high',
                         'status' => 'pending',
-                        'notes' => 'Checkout cleaning generated via Easy Mode',
+                        'notes' => 'Checkout cleaning generated via Easy Mode (かんたん操作)',
                     ]);
+
+                    // Record in Inventory Ledger if available
+                    if (class_exists(\App\Models\InventoryLedgerEntry::class)) {
+                        \App\Models\InventoryLedgerEntry::create([
+                            'hotel_id' => $hotelId,
+                            'room_type_id' => $room->room_type_id,
+                            'room_id' => $room->id,
+                            'reservation_id' => $reservation->id,
+                            'stay_date' => now()->toDateString(),
+                            'previous_availability' => 0,
+                            'new_availability' => 0,
+                            'delta' => 0,
+                            'operation_type' => 'CHECKOUT_TURNOVER',
+                            'source' => 'EASY_MODE_CHECKOUT',
+                            'actor_type' => 'USER',
+                            'actor_user_id' => auth()->id() ?? 1,
+                            'correlation_id' => 'EZ-OUT-' . $reservation->id . '-' . time(),
+                            'idempotency_key' => 'idemp-ezcheckout-' . $reservation->id . '-' . now()->toDateString(),
+                            'notes' => "Check-out completed via Easy Mode for {$reservation->confirmation_code} (Room {$room->room_number})",
+                        ]);
+                    }
                 }
             }
         });
@@ -163,13 +389,26 @@ class EasyModeController extends Controller
     public function rooms(Request $request)
     {
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
+        $statusFilter = $request->query('status');
 
-        $rooms = Room::with('roomType')
-            ->where('hotel_id', $hotelId)
-            ->orderBy('room_number')
-            ->get();
+        $query = Room::with('roomType')
+            ->where('hotel_id', $hotelId);
 
-        return view('easy_mode.rooms', compact('rooms'));
+        if ($statusFilter && in_array($statusFilter, ['clean', 'dirty', 'inspecting', 'maintenance'])) {
+            $query->where('status', $statusFilter);
+        }
+
+        $rooms = $query->orderBy('room_number')->get();
+
+        $counts = [
+            'all' => Room::where('hotel_id', $hotelId)->count(),
+            'dirty' => Room::where('hotel_id', $hotelId)->where('status', 'dirty')->count(),
+            'inspecting' => Room::where('hotel_id', $hotelId)->where('status', 'inspecting')->count(),
+            'clean' => Room::where('hotel_id', $hotelId)->where('status', 'clean')->count(),
+            'maintenance' => Room::where('hotel_id', $hotelId)->where('status', 'maintenance')->count(),
+        ];
+
+        return view('easy_mode.rooms', compact('rooms', 'counts', 'statusFilter'));
     }
 
     /**
@@ -184,11 +423,29 @@ class EasyModeController extends Controller
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
         $room = Room::where('hotel_id', $hotelId)->findOrFail($id);
 
+        $oldStatus = $room->status;
         $room->status = $request->input('status');
         $room->save();
 
+        // If marked clean, update any pending housekeeping task to completed
+        if ($room->status === 'clean') {
+            HousekeepingTask::where('hotel_id', $hotelId)
+                ->where('room_id', $room->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->update(['status' => 'completed']);
+        }
+
+        $statusLabels = [
+            'clean' => '清掃完了・入室可能 (Clean)',
+            'dirty' => '清掃待ち (Dirty)',
+            'inspecting' => '点検中 (Inspecting)',
+            'maintenance' => '修繕・メンテナンス中 (Maintenance)',
+        ];
+
+        $newLabel = $statusLabels[$room->status] ?? strtoupper($room->status);
+
         return redirect()->route('easy_mode.rooms')
-            ->with('success', "部屋 {$room->room_number} の状態を " . strtoupper($room->status) . " に更新しました / Room status updated.");
+            ->with('success', "部屋 {$room->room_number} の状態を「{$newLabel}」に更新しました / Room status updated.");
     }
 
     /**
@@ -199,7 +456,7 @@ class EasyModeController extends Controller
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
         $search = trim($request->input('q', ''));
 
-        $query = Reservation::with(['guest', 'room', 'room.roomType'])
+        $query = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
             ->where('hotel_id', $hotelId);
 
         if (!empty($search)) {
@@ -213,7 +470,7 @@ class EasyModeController extends Controller
             });
         }
 
-        $reservations = $query->orderBy('check_in_date', 'desc')->take(20)->get();
+        $reservations = $query->orderBy('check_in_date', 'desc')->take(25)->get();
 
         return view('easy_mode.reservations', compact('reservations', 'search'));
     }
@@ -226,6 +483,8 @@ class EasyModeController extends Controller
         $hotelId = session('current_hotel_id') ?? auth()->user()->hotel_id;
         $rooms = Room::with('roomType')
             ->where('hotel_id', $hotelId)
+            ->where('status', 'clean')
+            ->where('is_occupied', false)
             ->orderBy('room_number')
             ->get();
 
@@ -279,6 +538,7 @@ class EasyModeController extends Controller
             'hotel_id' => $hotelId,
             'guest_id' => $guest->id,
             'room_id' => $room->id,
+            'room_type_id' => $room->room_type_id,
             'confirmation_code' => $confirmationCode,
             'check_in_date' => $checkIn->toDateString(),
             'check_out_date' => $checkOut->toDateString(),
@@ -307,17 +567,17 @@ class EasyModeController extends Controller
         $selectedId = $request->query('reservation_id');
         $selectedReservation = null;
         if ($selectedId) {
-            $selectedReservation = Reservation::with(['guest', 'room', 'room.roomType'])
+            $selectedReservation = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
                 ->where('hotel_id', $hotelId)
                 ->find($selectedId);
         }
 
-        $todayArrivals = Reservation::with(['guest', 'room', 'room.roomType'])
+        $todayArrivals = Reservation::with(['guest', 'room', 'room.roomType', 'channel'])
             ->where('hotel_id', $hotelId)
             ->whereDate('check_in_date', $today)
             ->where('status', 'confirmed')
             ->orderBy('id', 'desc')
-            ->take(12)
+            ->take(15)
             ->get();
 
         $availableRooms = Room::with('roomType')
@@ -490,7 +750,7 @@ class EasyModeController extends Controller
 
         if ($new) {
             return redirect()->route('easy_mode.index')
-                ->with('success', 'かんたんモードが有効になりました / Easy Mode enabled (Large Text, High Contrast, Guided Workflows).');
+                ->with('success', 'かんたん操作モードが有効になりました / Easy Mode enabled (Large Text, High Contrast, Guided Workflows).');
         } else {
             return redirect()->route('overview.index')
                 ->with('info', '標準プロフェッショナルモードに戻りました / Returned to Standard Professional View.');

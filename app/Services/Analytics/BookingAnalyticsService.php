@@ -15,11 +15,7 @@ use Illuminate\Support\Facades\DB;
 class BookingAnalyticsService
 {
     /**
-     * Compute real reservation status metrics for a specific stay date range.
-     * Formulas:
-     * - Occupancy Rate = (Rooms Sold / Available Room Nights) * 100
-     * - ADR (Average Daily Rate) = Room Revenue / Rooms Sold
-     * - RevPAR (Revenue Per Available Room) = Room Revenue / Available Room Nights
+     * Compute comprehensive booking and reservation behavior metrics.
      */
     public function getReservationStatusMetrics(
         int $hotelId,
@@ -87,6 +83,47 @@ class BookingAnalyticsService
             ? round(($cancellationsCount / ($roomsSold + $cancellationsCount)) * 100, 1)
             : 0.0;
 
+        // Booking Behavior Metrics
+        $leadTimesSum = 0;
+        $nightsSum = 0;
+        foreach ($activeReservations as $r) {
+            $created = Carbon::parse($r->created_at);
+            $checkIn = Carbon::parse($r->check_in_date);
+            $leadTimesSum += max(0, $created->diffInDays($checkIn, false));
+            $nightsSum += max(1, $r->nights ?? 1);
+        }
+
+        $avgLeadTime = $roomsSold > 0 ? round($leadTimesSum / $roomsSold, 1) : 0.0;
+        $avgLengthOfStay = $roomsSold > 0 ? round($nightsSum / $roomsSold, 1) : 0.0;
+
+        // Net Pickup Velocity in Trailing 7 and 30 Days
+        $createdLast7d = Reservation::where('hotel_id', $hotelId)
+            ->where('created_at', '>=', Carbon::today()->subDays(7))
+            ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
+            ->count();
+        $cancelledLast7d = Reservation::where('hotel_id', $hotelId)
+            ->where('created_at', '>=', Carbon::today()->subDays(7))
+            ->where('status', 'cancelled')
+            ->count();
+        $netPickup7d = $createdLast7d - $cancelledLast7d;
+
+        $createdLast30d = Reservation::where('hotel_id', $hotelId)
+            ->where('created_at', '>=', Carbon::today()->subDays(30))
+            ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
+            ->count();
+        $cancelledLast30d = Reservation::where('hotel_id', $hotelId)
+            ->where('created_at', '>=', Carbon::today()->subDays(30))
+            ->where('status', 'cancelled')
+            ->count();
+        $netPickup30d = $createdLast30d - $cancelledLast30d;
+
+        // Future Room Nights on the Books (OTB) for next 30 days
+        $futureOtbNights = Reservation::where('hotel_id', $hotelId)
+            ->whereDate('check_in_date', '>=', Carbon::today())
+            ->whereDate('check_in_date', '<=', Carbon::today()->addDays(30))
+            ->whereIn('status', ['confirmed', 'checked_in'])
+            ->sum('nights') ?: 0;
+
         return [
             'start_date' => $startDate,
             'end_date' => $endDate,
@@ -99,6 +136,11 @@ class BookingAnalyticsService
             'revpar' => $revpar,
             'cancellations_count' => $cancellationsCount,
             'cancellation_rate' => $cancellationRate,
+            'avg_lead_time' => $avgLeadTime,
+            'avg_length_of_stay' => $avgLengthOfStay,
+            'net_pickup_7d' => $netPickup7d,
+            'net_pickup_30d' => $netPickup30d,
+            'future_room_nights_otb' => $futureOtbNights,
         ];
     }
 
@@ -156,11 +198,7 @@ class BookingAnalyticsService
     }
 
     /**
-     * Compare current booking position against historical snapshots:
-     * - Current
-     * - 7 days ago
-     * - 30 days ago
-     * - Previous year (365 days ago)
+     * Compare current booking position against historical snapshots across 4 horizons.
      */
     public function getHistoricalComparison(int $hotelId, string $targetStayDate): array
     {
@@ -254,6 +292,94 @@ class BookingAnalyticsService
         }
 
         return $paceBuckets;
+    }
+
+    /**
+     * Lead-Time Distribution for visual bar charting.
+     */
+    public function getLeadTimeDistribution(int $hotelId): array
+    {
+        $paceData = $this->getBookingPaceData($hotelId, 60);
+
+        return [
+            'labels' => ['Same Day (0d)', '1-3 Days', '4-7 Days', '8-14 Days', '15-30 Days', '31-60 Days', '60+ Days'],
+            'data' => [
+                $paceData['same_day'],
+                $paceData['1_to_3_days'],
+                $paceData['4_to_7_days'],
+                $paceData['8_to_14_days'],
+                $paceData['15_to_30_days'],
+                $paceData['31_to_60_days'],
+                $paceData['60+_days'],
+            ],
+        ];
+    }
+
+    /**
+     * Length of Stay (LoS) Cohorts.
+     */
+    public function getLengthOfStayDistribution(int $hotelId): array
+    {
+        $reservations = Reservation::where('hotel_id', $hotelId)
+            ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
+            ->get();
+
+        $cohorts = [
+            '1 Night' => 0,
+            '2 Nights' => 0,
+            '3-4 Nights' => 0,
+            '5-7 Nights' => 0,
+            '8+ Nights' => 0,
+        ];
+
+        foreach ($reservations as $r) {
+            $n = max(1, $r->nights ?? 1);
+            if ($n === 1) {
+                $cohorts['1 Night']++;
+            } elseif ($n === 2) {
+                $cohorts['2 Nights']++;
+            } elseif ($n >= 3 && $n <= 4) {
+                $cohorts['3-4 Nights']++;
+            } elseif ($n >= 5 && $n <= 7) {
+                $cohorts['5-7 Nights']++;
+            } else {
+                $cohorts['8+ Nights']++;
+            }
+        }
+
+        return [
+            'labels' => array_keys($cohorts),
+            'data' => array_values($cohorts),
+        ];
+    }
+
+    /**
+     * Future 30-Day On-The-Books (OTB) Daily Demand Forecast.
+     */
+    public function getFutureOnTheBooks(int $hotelId, int $daysAhead = 30): array
+    {
+        $labels = [];
+        $data = [];
+
+        $today = Carbon::today();
+        for ($i = 0; $i < $daysAhead; $i++) {
+            $date = $today->copy()->addDays($i);
+            $dateStr = $date->toDateString();
+            $labels[] = $date->format('m/d');
+
+            $count = Reservation::where('hotel_id', $hotelId)
+                ->whereDate('check_in_date', '<=', $dateStr)
+                ->whereDate('check_out_date', '>', $dateStr)
+                ->whereIn('status', ['confirmed', 'checked_in'])
+                ->count();
+
+            $data[] = $count;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+        ];
     }
 
     /**

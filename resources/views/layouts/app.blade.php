@@ -1327,27 +1327,27 @@
 
             <li class="menu-header">{{ app()->getLocale() === 'ja' ? '経営分析 & レポート' : 'Executive & Analytics' }}</li>
             <li class="menu-item {{ request()->routeIs('booking_analytics.*') ? 'active' : '' }}">
-                <a href="{{ route('booking_analytics.index') }}">
+                <a href="{{ route('booking_analytics.index') }}" data-tooltip="Reservation pace curves, lead-time distribution, net pickup velocity, and 30-day forward demand forecast (TEMAIRAZU JIDO BA+)">
                     <i class="fa-solid fa-chart-line" style="color: #60A5FA;"></i>
-                    <span>{{ app()->getLocale() === 'ja' ? '予約分析' : 'Booking Analytics' }}</span>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                <a href="{{ route('reports.index') }}">
-                    <i class="fa-solid fa-file-lines" style="color: #FBBF24;"></i>
-                    <span>{{ app()->getLocale() === 'ja' ? '帳票出力' : 'Reports Studio' }}</span>
+                    <span>{{ app()->getLocale() === 'ja' ? '予約分析 (BA+)' : 'Booking Analytics Plus' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('analytics.*') ? 'active' : '' }}">
-                <a href="{{ route('analytics.index') }}">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>{{ __('clearstay.nav.analytics') }}</span>
+                <a href="{{ route('analytics.index') }}" data-tooltip="Financial performance, OTA commission deduction, net realized revenue, occupancy, ADR, RevPAR & housekeeping efficiency">
+                    <i class="fa-solid fa-chart-pie" style="color: #34D399;"></i>
+                    <span>{{ app()->getLocale() === 'ja' ? 'ホテル経営分析' : 'Hotel Analytics & Reports' }}</span>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                <a href="{{ route('reports.index') }}" data-tooltip="Standardized compliance reports, audit logs, and official CSV streaming exports">
+                    <i class="fa-solid fa-file-lines" style="color: #FBBF24;"></i>
+                    <span>{{ app()->getLocale() === 'ja' ? '帳票出力 (Reports)' : 'Reports Studio' }}</span>
                 </a>
             </li>
             <li class="menu-item {{ request()->routeIs('csv.*') ? 'active' : '' }}">
-                <a href="{{ route('csv.index') }}">
-                    <i class="fa-solid fa-file-csv"></i>
-                    <span>{{ __('clearstay.nav.csv_import') }}</span>
+                <a href="{{ route('csv.index') }}" data-tooltip="Batch CSV reservation and inventory data ingestion">
+                    <i class="fa-solid fa-file-csv" style="color: #A78BFA;"></i>
+                    <span>{{ app()->getLocale() === 'ja' ? 'CSVインポート' : 'CSV Import' }}</span>
                 </a>
             </li>
 

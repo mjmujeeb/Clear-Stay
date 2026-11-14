@@ -113,6 +113,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/analytics/occupancy-data', [AnalyticsController::class, 'occupancyData'])->name('analytics.occupancy');
         Route::get('/analytics/revenue-data', [AnalyticsController::class, 'revenueData'])->name('analytics.revenue');
         Route::get('/analytics/distribution-data', [AnalyticsController::class, 'distributionData'])->name('analytics.distribution');
+        Route::get('/analytics/profitability-data', [AnalyticsController::class, 'profitabilityData'])->name('analytics.profitability');
 
         // CSV Import
         Route::get('/csv-import', [CsvImportController::class, 'index'])->name('csv.index');

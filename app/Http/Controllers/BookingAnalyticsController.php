@@ -36,7 +36,7 @@ class BookingAnalyticsController extends Controller
         $status = $request->input('status');
         $targetStayDate = $request->input('target_stay_date', Carbon::today()->addDays(7)->toDateString());
 
-        // 1. Core KPIs (Occupancy, ADR, RevPAR, Revenue)
+        // 1. Core Booking & Pickup KPIs
         $metrics = $this->analyticsService->getReservationStatusMetrics(
             $hotelId,
             $startDate,
@@ -46,16 +46,25 @@ class BookingAnalyticsController extends Controller
             $status
         );
 
-        // 2. Historical comparison across 4 horizons
+        // 2. Historical comparison across 4 horizons (Current vs 7d vs 30d vs 1y ago)
         $historicalComparison = $this->analyticsService->getHistoricalComparison($hotelId, $targetStayDate);
 
         // 3. Booking Pace curve (lead-time accumulation)
         $bookingPace = $this->analyticsService->getBookingPaceData($hotelId, 30);
 
-        // 4. Channel distribution & contribution
+        // 4. Lead-Time Distribution Cohorts
+        $leadTimeDistribution = $this->analyticsService->getLeadTimeDistribution($hotelId);
+
+        // 5. Length of Stay (LoS) Cohorts
+        $lengthOfStayDistribution = $this->analyticsService->getLengthOfStayDistribution($hotelId);
+
+        // 6. 30-Day On The Books (OTB) Future Demand Curve
+        $futureOnTheBooks = $this->analyticsService->getFutureOnTheBooks($hotelId, 30);
+
+        // 7. Channel distribution & contribution
         $channelDistribution = $this->analyticsService->getChannelDistribution($hotelId);
 
-        // 5. Recent snapshots table
+        // 8. Recent snapshots table
         $recentSnapshots = BookingSnapshot::where('hotel_id', $hotelId)
             ->latest('snapshot_date')
             ->take(10)
@@ -64,7 +73,7 @@ class BookingAnalyticsController extends Controller
         $roomTypes = RoomType::where('hotel_id', $hotelId)->get();
         $channels = Channel::where('is_active', true)->get();
 
-        return view('analytics.index', compact(
+        return view('booking_analytics.index', compact(
             'hotel',
             'startDate',
             'endDate',
@@ -75,6 +84,9 @@ class BookingAnalyticsController extends Controller
             'metrics',
             'historicalComparison',
             'bookingPace',
+            'leadTimeDistribution',
+            'lengthOfStayDistribution',
+            'futureOnTheBooks',
             'channelDistribution',
             'recentSnapshots',
             'roomTypes',
@@ -135,13 +147,18 @@ class BookingAnalyticsController extends Controller
                 'Nights',
                 'Status',
                 'Total Price (JPY)',
+                'Lead Time (Days)',
                 'Created At',
             ]);
 
             foreach ($reservations as $res) {
+                $created = Carbon::parse($res->created_at);
+                $checkIn = Carbon::parse($res->check_in_date);
+                $leadDays = max(0, $created->diffInDays($checkIn, false));
+
                 fputcsv($handle, [
                     $res->confirmation_code,
-                    $res->guest?->full_name ?? $res->guest_name,
+                    $res->guest?->full_name ?? ($res->guest ? $res->guest->first_name . ' ' . $res->guest->last_name : 'Unknown Guest'),
                     $res->channel?->name ?? 'Direct Web',
                     $res->room?->room_number ?? 'Unassigned',
                     $res->check_in_date?->toDateString(),
@@ -149,6 +166,7 @@ class BookingAnalyticsController extends Controller
                     $res->nights ?? 1,
                     $res->status,
                     $res->total_price,
+                    $leadDays,
                     $res->created_at?->toDateTimeString(),
                 ]);
             }

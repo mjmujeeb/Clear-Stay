@@ -17,14 +17,28 @@ class AnalyticsController extends Controller
         $this->analyticsService = $analyticsService;
     }
 
+    /**
+     * Primary Hotel Executive Analytics & Reports Dashboard.
+     */
     public function index()
     {
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
-        $hotel = Hotel::find($hotelId);
+        $hotel = Hotel::find($hotelId) ?? Hotel::first();
 
         $kpis = $hotelId ? $this->analyticsService->getKpis($hotelId) : [];
+        $channelProfitability = $hotelId ? $this->analyticsService->getChannelProfitability($hotelId) : [];
+        $operations = $hotelId ? $this->analyticsService->getHousekeepingOperationsMetrics($hotelId) : [];
+        $roomTypePerformance = $hotelId ? $this->analyticsService->getRoomTypePerformance($hotelId) : [];
+        $executiveInsights = $hotelId ? $this->analyticsService->getExecutiveInsights($hotelId, $kpis) : [];
 
-        return view('analytics.index', compact('hotel', 'kpis'));
+        return view('analytics.index', compact(
+            'hotel',
+            'kpis',
+            'channelProfitability',
+            'operations',
+            'roomTypePerformance',
+            'executiveInsights'
+        ));
     }
 
     public function occupancyData(Request $request): JsonResponse
@@ -53,6 +67,15 @@ class AnalyticsController extends Controller
         $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
 
         $data = $this->analyticsService->getRoomTypeDistribution($hotelId);
+
+        return response()->json($data);
+    }
+
+    public function profitabilityData(): JsonResponse
+    {
+        $hotelId = session('current_hotel_id') ?? Auth::user()->hotel_id;
+
+        $data = $this->analyticsService->getChannelProfitability($hotelId);
 
         return response()->json($data);
     }
