@@ -12,6 +12,7 @@ return [
         'contact' => 'Contact',
         'dashboard' => 'Dashboard',
         'room_board' => 'Room Board',
+        'room_availability' => 'Live Room Availability',
         'reservations' => 'Reservations',
         'housekeeping' => 'Housekeeping',
         'analytics' => 'Analytics & Reports',

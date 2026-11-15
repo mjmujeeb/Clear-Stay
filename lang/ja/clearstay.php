@@ -12,6 +12,7 @@ return [
         'contact' => 'お問い合わせ',
         'dashboard' => 'ダッシュボード',
         'room_board' => '客室ステータスボード',
+        'room_availability' => '客室在庫一覧',
         'reservations' => '予約管理',
         'housekeeping' => '清掃・施設管理',
         'analytics' => '経営分析・レポート',

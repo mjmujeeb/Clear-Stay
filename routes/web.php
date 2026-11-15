@@ -35,6 +35,7 @@ use App\Http\Controllers\ReadinessCentreController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReservationIntegrityController;
+use App\Http\Controllers\RoomAvailabilityMatrixController;
 use App\Http\Controllers\RoomBoardController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SecurityController;
@@ -174,6 +175,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/pricing-settings/seasonal-rules/{id}', [PricingSettingsController::class, 'deleteSeasonalRule'])->name('pricing_settings.delete_seasonal_rule');
     Route::post('/pricing-settings/policy', [PricingSettingsController::class, 'updatePolicy'])->name('pricing_settings.update_policy');
     Route::post('/pricing-settings/simulate', [PricingSettingsController::class, 'simulateQuote'])->name('pricing_settings.simulate');
+
+    // ClearStay 5.0: Live Room Availability Matrix & Multi-Channel Inventory Visibility
+    Route::get('/room-availability', [RoomAvailabilityMatrixController::class, 'index'])->name('room_availability.index');
+    Route::get('/room-availability/matrix-data', [RoomAvailabilityMatrixController::class, 'matrixData'])->name('room_availability.data');
+    Route::get('/room-availability/details', [RoomAvailabilityMatrixController::class, 'quantityDetails'])->name('room_availability.details');
+    Route::post('/room-availability/realign', [RoomAvailabilityMatrixController::class, 'realignChannel'])->name('room_availability.realign');
+    Route::get('/room-availability/export', [RoomAvailabilityMatrixController::class, 'export'])->name('room_availability.export');
 
     // Pillar 5: Partner Assurance & Integration Quality Lab
     Route::get('/partner-assurance', [PartnerAssuranceController::class, 'index'])->name('partner_assurance.index');

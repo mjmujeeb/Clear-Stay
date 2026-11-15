@@ -1208,6 +1208,13 @@
             </li>
 
             <li class="menu-header">{{ app()->getLocale() === 'ja' ? '流通 & 収益管理' : 'Distribution & Revenue' }}</li>
+            <li class="menu-item {{ request()->routeIs('room_availability.*') ? 'active' : '' }}">
+                <a href="{{ route('room_availability.index') }}" data-tooltip="Live Room Availability Matrix: View remaining rooms in the hotel PMS and all connected simulated channels.">
+                    <i class="fa-solid fa-table-cells" style="color: #2DD4BF;"></i>
+                    <span>{{ app()->getLocale() === 'ja' ? '客室在庫一覧' : 'Live Availability' }}</span>
+                    <span class="badge" style="background: #287F79; color: #fff; font-size: 10px; font-weight: 800; margin-left: auto; padding: 2px 6px;">Live 5.0</span>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('channels.*') ? 'active' : '' }}">
                 <a href="{{ route('channels.index') }}">
                     <i class="fa-solid fa-globe" style="color: #34D399;"></i>
