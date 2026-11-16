@@ -114,7 +114,7 @@ php artisan migrate --seed
 ```bash
 php artisan serve
 ```
-Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser!
+Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** or  https://williams-sorry-follow-bar.trycloudflare.com in your browser!
 
 ---
 
